@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Gold Bot">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Trading Gold Bot</title>
+    <style>
+        :root {
+            --gold: #FFD700; --gold-dark: #B8860B; --gold-light: #FFE44D;
+            --bg-primary: #0D0D0D; --bg-secondary: #1A1A1A;
+            --bg-card: #242424; --bg-input: #2A2A2A;
+            --text-primary: #F0F0F0; --text-secondary: #888;
+            --border: #2E2E2E; --success: #00C853; --warning: #FF9800; --danger: #F44336;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+               background:var(--bg-primary); color:var(--text-primary);
+               height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+        header { background:var(--bg-secondary); border-bottom:1px solid var(--gold-dark);
+                 padding:10px 20px; display:flex; align-items:center;
+                 justify-content:space-between; flex-shrink:0;
+                 box-shadow:0 2px 20px rgba(184,134,11,.15); }
+        .logo { display:flex; align-items:center; gap:12px; }
+        .logo-icon { width:38px; height:38px;
+                     background:linear-gradient(135deg,var(--gold) 0%,var(--gold-dark) 100%);
+                     border-radius:10px; display:flex; align-items:center;
+                     justify-content:center; font-size:18px;
+                     box-shadow:0 2px 8px rgba(255,215,0,.3); }
+        .logo-text { font-size:17px; font-weight:700;
+                     background:linear-gradient(135deg,var(--gold),var(--gold-light));
+                     -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+                     letter-spacing:-.3px; }
+        .logo-sub { font-size:11px; color:var(--text-secondary); margin-top:1px; }
+        .header-right { display:flex; align-items:center; gap:16px; }
+        .live-badge { display:flex; align-items:center; gap:6px;
+                      font-size:12px; color:var(--text-secondary); }
+        .pulse { width:8px; height:8px; background:var(--success); border-radius:50%;
+                 animation:pulse 2s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.85)} }
+        .user-selector { display:flex; gap:6px; }
+        .user-btn { padding:6px 16px; border-radius:20px; border:1px solid var(--border);
+                    background:transparent; color:var(--text-secondary);
+                    cursor:pointer; font-size:13px; transition:all .2s; font-family:inherit; }
+        .user-btn:hover { border-color:var(--gold-dark); color:var(--text-primary); }
+        .user-btn.active { background:var(--gold); color:#000; border-color:var(--gold); font-weight:600; }
+        .main { display:grid; grid-template-columns:1fr 300px 370px; flex:1; overflow:hidden; }
+        .panel { border-right:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; }
+        .panel:last-child { border-right:none; }
+        .panel-header { padding:11px 16px; border-bottom:1px solid var(--border);
+                        display:flex; align-items:center; justify-content:space-between;
+                        flex-shrink:0; background:var(--bg-secondary); }
+        .panel-title { font-size:11px; font-weight:700; color:var(--gold);
+                       text-transform:uppercase; letter-spacing:.8px; }
+        .panel-body { flex:1; overflow-y:auto; padding:14px; scroll-behavior:smooth; }
+        .panel-body::-webkit-scrollbar { width:3px; }
+        .panel-body::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+        .tabs { display:flex; gap:3px; }
+        .tab { padding:4px 12px; border-radius:5px; font-size:12px; cursor:pointer;
+               color:var(--text-secondary); border:none; background:transparent;
+               font-family:inherit; transition:all .2s; }
+        .tab:hover { color:var(--text-primary); }
+        .tab.active { background:var(--bg-card); color:var(--text-primary); }
+        .stats-bar { display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
+                     background:var(--border); border-radius:8px; overflow:hidden; margin-bottom:14px; }
+        .stat-item { background:var(--bg-card); padding:10px 8px; text-align:center; }
+        .stat-value { font-size:15px; font-weight:700; }
+        .stat-label { font-size:10px; color:var(--text-secondary); margin-top:2px; }
+        .sig-table { width:100%; border-collapse:collapse; font-size:12px; margin-bottom:14px; }
+        .sig-table th { background:var(--bg-input); padding:5px 7px; color:var(--text-secondary);
+                        text-align:left; font-weight:600; font-size:10px; text-transform:uppercase; }
+        .sig-table td { padding:5px 7px; border-top:1px solid var(--border); }
+        .sig-empty { color:var(--text-secondary); font-size:12px; text-align:center;
+                     padding:10px 0; background:var(--bg-card); border-radius:6px; margin-bottom:14px; }
+        .macro-panel { border-radius:8px; padding:10px 12px; margin-bottom:14px;
+                       font-size:12px; border-left:3px solid var(--danger); }
+        .macro-blocked { background:rgba(244,67,54,.12); border-color:var(--danger); }
+        .macro-ok      { background:rgba(0,200,83,.08);  border-color:var(--success); }
+        .macro-row { display:flex; justify-content:space-between; margin-bottom:4px; }
+        .macro-key { color:var(--text-secondary); }
+        .macro-val { font-weight:600; }
+        .dxy-panel { background:var(--bg-card); border-radius:8px; padding:10px 12px;
+                     margin-bottom:14px; font-size:12px; border:1px solid var(--border); }
+        .dxy-row { display:flex; justify-content:space-between; margin-bottom:4px; }
+        .dxy-key { color:var(--text-secondary); }
+        .bias-bullish { color:var(--success); font-weight:700; }
+        .bias-neutral { color:var(--warning); font-weight:700; }
+        .bias-bearish { color:var(--danger);  font-weight:700; }
+        .alert-box { background:rgba(244,67,54,.1); border-left:3px solid var(--danger);
+                     border-radius:6px; padding:8px 10px; font-size:12px;
+                     color:var(--danger); margin-bottom:8px; }
+        .notes-area { width:100%; height:100px; background:var(--bg-input);
+                      border:1px solid var(--border); border-radius:8px;
+                      color:var(--text-primary); padding:10px 12px; font-size:13px;
+                      resize:vertical; font-family:inherit; line-height:1.5; outline:none;
+                      transition:border-color .2s; }
+        .notes-area:focus { border-color:var(--gold-dark); }
+        .btn { padding:7px 16px; border-radius:6px; border:none; cursor:pointer;
+               font-size:13px; font-weight:500; transition:all .2s; font-family:inherit; }
+        .btn-gold { background:var(--gold); color:#000; }
+        .btn-gold:hover { background:var(--gold-light); transform:translateY(-1px); }
+        .btn-ghost { background:transparent; color:var(--text-secondary); border:1px solid var(--border); }
+        .btn-ghost:hover { border-color:var(--gold-dark); color:var(--text-primary); }
+        .note-item { background:var(--bg-card); border-radius:8px; padding:12px;
+                     margin-bottom:8px; border-left:3px solid var(--gold-dark);
+                     animation:fadeIn .3s ease; }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+        .note-meta { display:flex; justify-content:space-between; margin-bottom:5px; }
+        .note-author { font-size:12px; color:var(--gold); font-weight:600; }
+        .note-time { font-size:11px; color:var(--text-secondary); }
+        .note-text { font-size:13px; line-height:1.5; white-space:pre-wrap; }
+        .note-del { background:none; border:none; color:var(--text-secondary);
+                    cursor:pointer; font-size:11px; margin-top:6px; }
+        .note-del:hover { color:var(--danger); }
+        .upload-area { border:2px dashed var(--border); border-radius:8px; padding:24px;
+                       text-align:center; cursor:pointer; transition:all .2s; margin-bottom:14px; }
+        .upload-area:hover { border-color:var(--gold-dark); background:rgba(255,215,0,.03); }
+        .upload-area input { display:none; }
+        .image-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+        .image-item { position:relative; border-radius:6px; overflow:hidden;
+                      background:var(--bg-card); aspect-ratio:16/9; cursor:pointer; }
+        .image-item img { width:100%; height:100%; object-fit:cover; transition:transform .3s; }
+        .image-item:hover img { transform:scale(1.05); }
+        .img-overlay { position:absolute; bottom:0; left:0; right:0;
+                       background:linear-gradient(transparent,rgba(0,0,0,.8));
+                       padding:16px 8px 6px; font-size:10px; color:#ccc; }
+        .agent-card { background:var(--bg-card); border-radius:10px; padding:12px;
+                      margin-bottom:8px; border:1px solid var(--border); transition:border-color .2s; }
+        .agent-card:hover { border-color:var(--gold-dark); }
+        .agent-header { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+        .agent-icon { width:34px; height:34px; border-radius:8px; display:flex;
+                      align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+        .agent-name { font-size:13px; font-weight:600; }
+        .agent-role { font-size:11px; color:var(--text-secondary); }
+        .agent-last { font-size:10px; color:var(--text-secondary); margin-top:2px; }
+        .status-badge { display:inline-flex; align-items:center; gap:4px; padding:2px 8px;
+                        border-radius:10px; font-size:10px; font-weight:600; }
+        .s-active  { background:rgba(0,200,83,.15); color:var(--success); }
+        .s-working { background:rgba(255,152,0,.15); color:var(--warning); }
+        .s-idle    { background:rgba(136,136,136,.12); color:var(--text-secondary); }
+        .agent-task { font-size:11px; color:var(--text-secondary); background:var(--bg-input);
+                      padding:6px 10px; border-radius:6px; line-height:1.4; }
+        .progress-bar { height:3px; background:var(--bg-input); border-radius:2px;
+                        margin-top:8px; overflow:hidden; }
+        .progress-fill { height:100%; background:linear-gradient(90deg,var(--gold-dark),var(--gold));
+                         border-radius:2px; transition:width .6s ease; }
+        .tag { display:inline-block; padding:1px 7px; border-radius:10px; font-size:10px;
+               background:rgba(255,215,0,.08); color:var(--gold);
+               border:1px solid rgba(255,215,0,.15); margin:3px 2px 0 0; }
+        .chat-messages { flex:1; overflow-y:auto; padding:14px;
+                         display:flex; flex-direction:column; gap:10px; }
+        .chat-messages::-webkit-scrollbar { width:3px; }
+        .chat-messages::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+        .message { max-width:86%; }
+        .message.user { align-self:flex-end; }
+        .message.assistant { align-self:flex-start; }
+        .bubble { padding:9px 13px; border-radius:12px; font-size:13px; line-height:1.5; }
+        .message.user .bubble { background:linear-gradient(135deg,var(--gold-dark),#8B6914);
+                                  color:#fff; border-bottom-right-radius:3px; }
+        .message.assistant .bubble { background:var(--bg-card); color:var(--text-primary);
+                                     border:1px solid var(--border); border-bottom-left-radius:3px; }
+        .msg-meta { font-size:10px; color:var(--text-secondary); margin-top:3px; padding:0 3px; }
+        .message.user .msg-meta { text-align:right; }
+        .typing-bubble { background:var(--bg-card); border:1px solid var(--border);
+                         border-radius:12px; border-bottom-left-radius:3px;
+                         padding:10px 14px; display:flex; gap:4px; align-items:center; }
+        .dot { width:6px; height:6px; background:var(--gold); border-radius:50%; animation:bounce 1.2s infinite; }
+        .dot:nth-child(2) { animation-delay:.15s; }
+        .dot:nth-child(3) { animation-delay:.3s; }
+        @keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-5px)} }
+        .chat-footer { padding:10px 14px; border-top:1px solid var(--border);
+                       display:flex; flex-direction:column; gap:6px; flex-shrink:0; }
+        .chat-as { font-size:11px; color:var(--text-secondary);
+                   display:flex; align-items:center; gap:6px; }
+        .chat-as-name { color:var(--gold); font-weight:600; }
+        .chat-input-row { display:flex; gap:8px; }
+        .chat-input { flex:1; background:var(--bg-input); border:1px solid var(--border);
+                      border-radius:8px; color:var(--text-primary); padding:8px 12px;
+                      font-size:13px; outline:none; font-family:inherit; resize:none; height:40px;
+                      transition:border-color .2s; line-height:1.4; }
+        .chat-input:focus { border-color:var(--gold-dark); }
+        .send-btn { width:40px; height:40px; background:var(--gold); border:none;
+                    border-radius:8px; cursor:pointer; font-size:15px; transition:all .2s;
+                    flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+        .send-btn:hover { background:var(--gold-light); transform:scale(1.05); }
+        .send-btn:disabled { background:var(--border); cursor:not-allowed; transform:none; }
+        .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.85);
+                         display:flex; align-items:center; justify-content:center; z-index:999; }
+        .modal { background:var(--bg-secondary); border:1px solid var(--gold-dark);
+                 border-radius:14px; padding:28px; width:420px; max-width:92vw;
+                 box-shadow:0 8px 40px rgba(0,0,0,.6); }
+        .modal h2 { color:var(--gold); margin-bottom:10px; font-size:18px; }
+        .modal p { color:var(--text-secondary); font-size:13px; margin-bottom:16px; line-height:1.6; }
+        .modal-input { width:100%; background:var(--bg-input); border:1px solid var(--border);
+                       border-radius:8px; color:var(--text-primary); padding:10px 14px;
+                       font-size:13px; outline:none; margin-bottom:14px; font-family:monospace; }
+        .modal-input:focus { border-color:var(--gold-dark); }
+        .modal-btns { display:flex; gap:8px; }
+        .section { margin-bottom:16px; }
+        .section-label { font-size:10px; font-weight:700; color:var(--text-secondary);
+                         text-transform:uppercase; letter-spacing:.6px; margin-bottom:8px; }
+        .empty { color:var(--text-secondary); font-size:12px; text-align:center; padding:20px 0; }
+        .variant-card { background:var(--bg-card); border-radius:10px; padding:12px;
+                        margin-bottom:8px; border:1px solid var(--border); }
+        .variant-card.active-var { border-color:var(--gold-dark);
+                                   box-shadow:0 0 8px rgba(255,215,0,.15); }
+        .variant-header { display:flex; justify-content:space-between; align-items:center;
+                          margin-bottom:8px; }
+        .variant-name { font-size:13px; font-weight:600; }
+        .variant-date { font-size:10px; color:var(--text-secondary); }
+        .variant-stats { display:grid; grid-template-columns:repeat(5,1fr); gap:4px;
+                         margin-bottom:8px; }
+        .v-stat { background:var(--bg-input); border-radius:5px; padding:5px 4px;
+                  text-align:center; }
+        .v-stat-val { font-size:12px; font-weight:700; }
+        .v-stat-lbl { font-size:9px; color:var(--text-secondary); margin-top:1px; }
+        .active-badge { background:rgba(255,215,0,.15); color:var(--gold);
+                        border:1px solid rgba(255,215,0,.3); border-radius:10px;
+                        font-size:10px; font-weight:600; padding:2px 8px; }
+        .strat-form { background:var(--bg-card); border-radius:10px; padding:14px;
+                      margin-bottom:12px; border:1px solid var(--border); }
+        .strat-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
+        .strat-input { background:var(--bg-input); border:1px solid var(--border);
+                       border-radius:6px; color:var(--text-primary); padding:7px 10px;
+                       font-size:12px; outline:none; font-family:inherit; width:100%;
+                       transition:border-color .2s; }
+        .strat-input:focus { border-color:var(--gold-dark); }
+        .strat-textarea { background:var(--bg-input); border:1px solid var(--border);
+                          border-radius:6px; color:var(--text-primary); padding:7px 10px;
+                          font-size:12px; outline:none; font-family:inherit; width:100%;
+                          resize:vertical; height:60px; transition:border-color .2s; }
+        .strat-textarea:focus { border-color:var(--gold-dark); }
+        .strat-btns { display:flex; gap:6px; justify-content:flex-end; }
+        .strat-source { display:inline-block; padding:1px 8px; border-radius:10px;
+                        font-size:10px; font-weight:600; margin-bottom:4px; }
+        .src-optimizer { background:rgba(255,152,0,.15); color:var(--warning); }
+        .src-manual    { background:rgba(0,188,212,.15);  color:#00BCD4; }
+        .src-tradingview { background:rgba(156,39,176,.15); color:#9C27B0; }
+        .src-other     { background:rgba(139,195,74,.15); color:#8BC34A; }
+        .src-commander { background:rgba(255,215,0,.12); color:var(--gold); border:1px solid rgba(255,215,0,.2); }
+        .mobile-nav    { display:none; }
+        .mobile-user-bar { display:none !important; }
+        @media (max-width:768px) {
+            body { overflow:hidden; }
+            /* ── Header ── */
+            header {
+                padding: max(54px,env(safe-area-inset-top)) 16px 10px;
+                background: linear-gradient(180deg,#1E1E1E 0%,#1A1A1A 100%);
+                border-bottom: 1.5px solid rgba(184,134,11,.4);
+                box-shadow: 0 2px 16px rgba(0,0,0,.5);
+            }
+            .logo-icon { width:30px;height:30px;font-size:15px;border-radius:8px; }
+            .logo-text  { font-size:14px;letter-spacing:-.2px; }
+            .logo-sub   { display:none; }
+            .live-badge { display:none; }
+            #updatedTs  { display:none; }
+            .header-right { gap:6px; }
+            .user-selector { gap:5px; }
+            .user-btn {
+                padding:5px 13px; font-size:12px; border-radius:20px;
+                border:1.5px solid rgba(255,255,255,.08);
+            }
+            .user-btn.active {
+                background:var(--gold); color:#000;
+                border-color:var(--gold); font-weight:700;
+                box-shadow:0 0 10px rgba(255,215,0,.3);
+            }
+            button[onclick="resetApiKey()"] { display:none; }
+            /* ── Layout ── */
+            .main { grid-template-columns:1fr; min-height:0; }
+            .panel { display:none; border-right:none; min-height:0; }
+            .panel.mob-active { display:flex; }
+            .panel-header {
+                padding:10px 14px;
+                background:rgba(26,26,26,.95);
+                backdrop-filter:blur(8px);
+                -webkit-backdrop-filter:blur(8px);
+            }
+            .panel-body { padding:12px; }
+            .stats-bar { grid-template-columns:repeat(2,1fr); margin-bottom:12px; }
+            .stat-item { padding:12px 8px; }
+            .stat-value { font-size:16px; }
+            .strat-form-grid { grid-template-columns:1fr; }
+            /* ── Bottom Nav ── */
+            .mobile-nav {
+                display:flex;
+                background:rgba(20,20,20,.97);
+                border-top:1.5px solid rgba(184,134,11,.3);
+                flex-shrink:0;
+                padding-bottom:max(16px,env(safe-area-inset-bottom));
+                backdrop-filter:blur(12px);
+                -webkit-backdrop-filter:blur(12px);
+            }
+            .mnav-btn {
+                flex:1; padding:10px 4px 4px; border:none; background:transparent;
+                color:rgba(255,255,255,.35); font-size:10px; font-weight:500;
+                cursor:pointer; font-family:inherit; display:flex;
+                flex-direction:column; align-items:center; gap:3px;
+                transition:all .2s; letter-spacing:.2px;
+            }
+            .mnav-btn.active { color:var(--gold); }
+            .mnav-btn.active .mnav-icon { filter:drop-shadow(0 0 6px rgba(255,215,0,.6)); }
+            .mnav-icon { font-size:22px; transition:transform .2s; }
+            /* ── Chat ── */
+            .chat-messages { padding:12px; gap:8px; }
+            .bubble { font-size:14px; padding:10px 14px; }
+            .chat-footer { padding:8px 12px 10px; }
+            .chat-as { display:none; }
+            .chat-input-row { gap:8px; }
+            /* ── iOS Inputs (prevent zoom) ── */
+            .chat-input    { font-size:16px !important; height:44px; border-radius:10px; }
+            .notes-area    { font-size:16px !important; }
+            .strat-input   { font-size:16px !important; }
+            .strat-textarea{ font-size:16px !important; }
+            .modal-input   { font-size:16px !important; }
+            /* ── Cards ── */
+            .agent-card  { padding:10px; }
+            .variant-card{ padding:10px; }
+            .macro-panel { padding:10px 12px; }
+            .dxy-panel   { padding:10px 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="modal-overlay" id="apiModal">
+    <div class="modal">
+        <h2>🔑 Anthropic API Key</h2>
+        <p>Um mit dem Commander zu chatten, benötigst du einen Anthropic API Key.<br>
+        Er wird nur lokal in deinem Browser gespeichert.</p>
+        <input type="password" class="modal-input" id="apiKeyInput" placeholder="sk-ant-api03-..." />
+        <div class="modal-btns">
+            <button class="btn btn-gold" onclick="saveApiKey()" style="flex:1">Speichern & Starten</button>
+            <button class="btn btn-ghost" onclick="skipApiKey()">Später</button>
+        </div>
+    </div>
+</div>
+
+<header>
+    <div class="logo">
+        <div class="logo-icon">⚡</div>
+        <div>
+            <div class="logo-text">Trading Gold Bot</div>
+            <div class="logo-sub">XAUUSD · SMC Strategie · MetaTrader 5</div>
+        </div>
+    </div>
+    <div class="header-right">
+        <div class="live-badge">
+            <div class="pulse"></div>
+            <span id="agentCount">– Agenten aktiv</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-secondary)" id="updatedTs"></div>
+        <div class="user-selector">
+            <button class="user-btn" onclick="setUser('Andreas',this)">Andreas</button>
+            <button class="user-btn active" onclick="setUser('Dominik',this)">Dominik</button>
+            <button class="user-btn" onclick="setUser('Johannes',this)">Johannes</button>
+        </div>
+        <button class="btn btn-ghost" onclick="resetApiKey()" style="font-size:11px;padding:5px 10px" title="API Key ändern">🔑</button>
+    </div>
+</header>
+
+<div class="mobile-user-bar" id="mobileUserBar">
+    <button class="user-btn" onclick="setUser('Andreas',this)">Andreas</button>
+    <button class="user-btn active" onclick="setUser('Dominik',this)">Dominik</button>
+    <button class="user-btn" onclick="setUser('Johannes',this)">Johannes</button>
+</div>
+
+<div class="main">
+
+    <!-- LEFT: Stats + Signale + Notizen -->
+    <div class="panel mob-active" id="panelStats">
+        <div class="panel-header">
+            <div class="panel-title">Performance & Notizen</div>
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('notes',this)">Notizen</button>
+                <button class="tab" onclick="showTab('strategies',this)">Strategien</button>
+                <button class="tab" onclick="showTab('images',this)">Bilder</button>
+            </div>
+        </div>
+        <div class="panel-body">
+            <div class="stats-bar" id="statsBar">
+                <div class="stat-item"><div class="stat-value" id="s-wr" style="color:var(--gold)">–</div><div class="stat-label">Win Rate</div></div>
+                <div class="stat-item"><div class="stat-value" id="s-pf" style="color:var(--gold)">–</div><div class="stat-label">Profit Factor</div></div>
+                <div class="stat-item"><div class="stat-value" id="s-dd" style="color:var(--gold)">–</div><div class="stat-label">Max DD</div></div>
+                <div class="stat-item"><div class="stat-value" id="s-pnl" style="color:var(--gold)">–</div><div class="stat-label">PnL (BT)</div></div>
+            </div>
+
+            <div class="section">
+                <div class="section-label">Aktive Signale</div>
+                <div id="signalsPanel"></div>
+            </div>
+
+            <div id="alertsPanel"></div>
+
+            <div class="section">
+                <div class="section-label">Makro Filter</div>
+                <div id="macroPanel"></div>
+                <div id="dxyPanel"></div>
+            </div>
+
+            <div id="tabNotes">
+                <div class="section">
+                    <div class="section-label">Neue Notiz</div>
+                    <textarea class="notes-area" id="noteInput"
+                        placeholder="Erkenntnisse, Ideen, Probleme..."></textarea>
+                    <div style="display:flex;justify-content:flex-end;margin-top:8px">
+                        <button class="btn btn-gold" onclick="addNote()">Speichern</button>
+                    </div>
+                </div>
+                <div class="section">
+                    <div class="section-label">Notizen</div>
+                    <div id="notesList"></div>
+                </div>
+            </div>
+
+            <div id="tabStrategies" style="display:none">
+                <div class="section">
+                    <div class="section-label">Neue Strategie hinzufügen</div>
+                    <div class="strat-form">
+                        <div class="strat-form-grid">
+                            <input class="strat-input" id="sName" placeholder="Name (z.B. SMC v2)" />
+                            <select class="strat-input" id="sSource">
+                                <option value="manual">Manuell</option>
+                                <option value="optimizer">Optimizer</option>
+                                <option value="tradingview">TradingView</option>
+                                <option value="other">Andere</option>
+                            </select>
+                        </div>
+                        <div class="strat-form-grid">
+                            <input class="strat-input" id="sWr"  placeholder="Win Rate % (z.B. 65.1)" type="number" step="0.1" />
+                            <input class="strat-input" id="sPf"  placeholder="Profit Factor (z.B. 1.75)" type="number" step="0.01" />
+                            <input class="strat-input" id="sTrades" placeholder="Trades (z.B. 86)" type="number" />
+                            <input class="strat-input" id="sMdd" placeholder="Max DD % (z.B. -4.8)" type="number" step="0.1" />
+                            <input class="strat-input" id="sPnl" placeholder="PnL $ (z.B. 2958)" type="number" />
+                            <input class="strat-input" id="sRr"  placeholder="R:R (z.B. 1.5)" type="number" step="0.1" />
+                        </div>
+                        <textarea class="strat-textarea" id="sDesc" placeholder="Beschreibung, Regeln, Besonderheiten..."></textarea>
+                        <div class="strat-btns" style="margin-top:8px">
+                            <button class="btn btn-ghost" onclick="clearStratForm()">Leeren</button>
+                            <button class="btn btn-gold" id="saveStratBtn" onclick="saveStrategy()">Speichern</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="section">
+                    <div class="section-label">Alle Strategien <span id="stratCount" style="color:var(--text-secondary);font-weight:400"></span></div>
+                    <div id="strategiesList"></div>
+                </div>
+            </div>
+
+            <div id="tabImages" style="display:none">
+                <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                    <input type="file" id="fileInput" accept="image/*" multiple onchange="handleUpload(event)">
+                    <div style="font-size:32px;margin-bottom:8px">📷</div>
+                    <div style="font-size:13px;color:var(--text-secondary)">Charts & Screenshots hochladen</div>
+                    <div style="font-size:11px;color:var(--border);margin-top:4px">PNG, JPG, WebP</div>
+                </div>
+                <div class="section-label">Galerie</div>
+                <div class="image-grid" id="imageGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CENTER: Agenten -->
+    <div class="panel" id="panelAgents">
+        <div class="panel-header">
+            <div class="panel-title">Agenten Status</div>
+            <button class="btn btn-ghost" onclick="renderAgents()" style="font-size:11px;padding:3px 10px">⟳</button>
+        </div>
+        <div class="panel-body" id="agentPanel"></div>
+    </div>
+
+    <!-- RIGHT: Chat -->
+    <div class="panel" id="panelChat">
+        <div class="panel-header">
+            <div>
+                <div class="panel-title">Commander · Team Leader</div>
+                <div style="font-size:11px;color:var(--text-secondary);margin-top:1px">Koordiniert Agenten & verteilt Aufgaben</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+                <button class="btn btn-ghost" onclick="clearChat()" style="font-size:11px;padding:3px 8px" title="Verlauf löschen">🗑️</button>
+                <div class="status-badge s-active">
+                    <div style="width:5px;height:5px;background:currentColor;border-radius:50%"></div>
+                    Online
+                </div>
+            </div>
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-footer">
+            <div class="chat-as">
+                ✍️ Schreibt als: <span class="chat-as-name" id="chatAsName">Dominik</span>
+                <span style="color:var(--border)">·</span>
+                <span style="cursor:pointer;color:var(--text-secondary)" onclick="document.getElementById('mobileUserBar').scrollIntoView({behavior:'smooth'})" title="Benutzer wechseln">wechseln ↑</span>
+            </div>
+            <div class="chat-input-row">
+                <textarea class="chat-input" id="chatInput"
+                    placeholder="Aufgabe oder Frage an den Commander..."
+                    onkeydown="onKey(event)"></textarea>
+                <button class="send-btn" id="sendBtn" onclick="sendMsg()">➤</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<nav class="mobile-nav" id="mobileNav">
+    <button class="mnav-btn active" onclick="showPanel(0,this)">
+        <span class="mnav-icon">📊</span>Stats
+    </button>
+    <button class="mnav-btn" onclick="showPanel(1,this)">
+        <span class="mnav-icon">🤖</span>Agenten
+    </button>
+    <button class="mnav-btn" onclick="showPanel(2,this)">
+        <span class="mnav-icon">💬</span>Chat
+    </button>
+</nav>
+
+<script>
+const LIVE = {"updated": "23.05.2026 22:40", "wr": 65.1, "pf": 1.67, "trades": 83, "net_pnl": 2580.11, "max_dd": -4.8, "price": 4508.22, "n_signals": 0, "best_wr": 0, "best_pf": 0, "candidates": 0, "from_date": "2024-07-15", "to_date": "2026-03-12", "variants": [{"id": "20260521_000000", "name": "Variante 1 — 21.05.2026 (Aktuell aktiv)", "date": "21.05.2026 00:00", "wr": 65.1, "pf": 1.67, "trades": 83, "mdd": -4.8, "pnl": 2580.11, "active": true, "top3": [], "config": {"ob_impulse_pips": 80, "ob_max_age": 30, "ob_min_body": 0.5, "bos_required": true, "swing_len": 12, "fvg_min_pips": 15, "fvg_max_age": 20, "min_brk_pip": 6, "pip_size": 0.1, "rr": 1.5, "rsi_limit": 65, "cooldown": 5, "ema_len": 50, "atr_len": 14, "rsi_len": 14, "initial_cap": 10000, "risk_pct": 0.009, "max_drawdown_pct": 0.05, "commission": 0.0007, "slippage_pip": 2, "ob_vol_multiplier": 1.3, "h4_stage_filter": true, "h4_ema_fast": 50, "h4_ema_slow": 200}}], "risk_status": "ok", "alerts": [], "signals": [], "agents": [{"name": "Data Fetcher", "role": "Daten-Beschaffung", "icon": "🔄", "color": "#2196F3", "bg": "rgba(33,150,243,.15)", "status": "idle", "prog": 0, "task": "Status: OK | Daten-Aktualisierung", "tags": ["MT5", "Parquet", "Historie"], "last": "2026-05-23T09:11"}, {"name": "Optimizer", "role": "Parameter-Suche", "icon": "⚙️", "color": "#FF9800", "bg": "rgba(255,152,0,.15)", "status": "idle", "prog": 0, "task": "Beste WR: –% | PF: – | – Kandidaten", "tags": ["Grid-Search", "Optimierung"], "last": "–"}, {"name": "Backtester", "role": "Strategie-Tester", "icon": "📊", "color": "#4CAF50", "bg": "rgba(76,175,80,.15)", "status": "idle", "prog": 0, "task": "Letzter Backtest: WR=65.1% | PF=1.67 | 83 Trades", "tags": ["M15", "XAUUSD", "SMC"], "last": "2026-05-23T09:11"}, {"name": "Signal Scanner", "role": "Echtzeit-Signale", "icon": "🔍", "color": "#9C27B0", "bg": "rgba(156,39,176,.15)", "status": "active", "prog": 100, "task": "Letzter Scan: 0 Signal(e) | Preis: $4508.22", "tags": ["OB", "FVG", "BOS"], "last": "2026-05-23T22:34"}, {"name": "Risk Manager", "role": "Risiko-Kontrolle", "icon": "🛡️", "color": "#E91E63", "bg": "rgba(233,30,99,.15)", "status": "idle", "prog": 0, "task": "Status: OK | 0 Alert(s)", "tags": ["Drawdown", "Sizing"], "last": "2026-05-23T09:11"}, {"name": "Reporter", "role": "Dashboard", "icon": "📋", "color": "#00BCD4", "bg": "rgba(0,188,212,.15)", "status": "active", "prog": 100, "task": "Status: OK", "tags": ["HTML", "Dashboard"], "last": "2026-05-23T22:24"}, {"name": "Notifier", "role": "WhatsApp Alerts", "icon": "📲", "color": "#8BC34A", "bg": "rgba(139,195,74,.15)", "status": "idle", "prog": 0, "task": "Status: – | WhatsApp/Telegram bereit", "tags": ["WhatsApp", "Telegram"], "last": "–"}, {"name": "Executor", "role": "Order-Ausführung", "icon": "⚡", "color": "#FF5722", "bg": "rgba(255,87,34,.15)", "status": "idle", "prog": 0, "task": "Orders platziert: 0 | Modus: DRY RUN", "tags": ["MT5", "Orders", "DryRun"], "last": "–"}, {"name": "Macro Filter", "role": "News-Kalender", "icon": "📅", "color": "#F44336", "bg": "rgba(244,67,54,.15)", "status": "active", "prog": 100, "task": "Kein Block | Nächstes Event: None in None Min", "tags": ["FOMC", "NFP", "CPI", "News"], "last": "2026-05-23T22:34"}, {"name": "DXY Correlation", "role": "USD & Yield Analyse", "icon": "📈", "color": "#00BCD4", "bg": "rgba(0,188,212,.15)", "status": "idle", "prog": 0, "task": "Gold-Bias: NEUTRAL (1/2) | DXY=99.32 | 10Y=4.558%", "tags": ["DXY", "US10Y", "Makro"], "last": "2026-05-23T21:13"}], "macro_blocked": false, "macro_reason": null, "macro_next": null, "macro_mins": null, "macro_today": [], "dxy": 99.32, "dxy_trend": "falling", "tnx": 4.558, "tnx_trend": "rising", "gold_bias": "neutral", "bias_label": "Neutral — DXY fällt, Yields steigen"};
+
+// ── STATE ──────────────────────────────────────────
+let user = localStorage.getItem('tgb_user') || 'Dominik';
+let apiKey = localStorage.getItem('tgb_key') || '';
+let notes  = JSON.parse(localStorage.getItem('tgb_notes') || '[]');
+let imgs   = [];
+let hist   = [];
+let busy   = false;
+
+// ── BOOT ───────────────────────────────────────────
+window.onload = () => {
+    if (!apiKey) {
+        document.getElementById('apiModal').style.display = 'flex';
+    } else {
+        document.getElementById('apiModal').style.display = 'none';
+        boot();
+    }
+};
+function saveApiKey() {
+    const v = document.getElementById('apiKeyInput').value.trim();
+    if (v) { localStorage.setItem('tgb_key', v); apiKey = v; }
+    document.getElementById('apiModal').style.display = 'none';
+    boot();
+}
+function resetApiKey() {
+    localStorage.removeItem('tgb_key');
+    apiKey = '';
+    document.getElementById('apiKeyInput').value = '';
+    document.getElementById('apiModal').style.display = 'flex';
+}
+function skipApiKey() {
+    document.getElementById('apiModal').style.display = 'none';
+    boot();
+}
+async function boot() {
+    renderStats();
+    renderSignalsPanel();
+    renderAlerts();
+    renderMacro();
+    renderDxy();
+    renderAgents();
+    renderNotes();
+    renderStrategies();
+    renderImgs();
+    updateHeader();
+    initUserButtons();
+    const saved = await loadChat();
+    if (saved && saved.length > 0) {
+        hist = saved;
+        saved.forEach(m => renderMsg(m.role, m.content, m.ts, m.author));
+        document.getElementById('chatMessages').scrollTop = 999999;
+    } else {
+        welcomeMsg();
+    }
+}
+
+// ── LIVE POLLING ───────────────────────────────────
+async function pollLiveData() {
+    try {
+        const r = await fetch('/data.json?_=' + Date.now());
+        if (!r.ok) return;
+        const d = await r.json();
+        Object.assign(LIVE, d);
+        renderStats();
+        renderSignalsPanel();
+        renderAlerts();
+        renderMacro();
+        renderDxy();
+        renderAgents();
+        updateHeader();
+        const dot = document.querySelector('.pulse');
+        if (dot) { dot.style.background='var(--success)'; setTimeout(()=>{dot.style.background=''},800); }
+    } catch(e) {}
+}
+setInterval(pollLiveData, 30000);
+
+// ── LIVE DATA ──────────────────────────────────────
+function renderStats() {
+    const col = (v, good, warn) => v >= good ? 'var(--success)' : v >= warn ? 'var(--warning)' : 'var(--danger)';
+    document.getElementById('s-wr').textContent  = LIVE.wr   ? LIVE.wr  + '%' : '–';
+    document.getElementById('s-pf').textContent  = LIVE.pf   || '–';
+    document.getElementById('s-dd').textContent  = LIVE.max_dd ? LIVE.max_dd + '%' : '–';
+    document.getElementById('s-pnl').textContent = LIVE.net_pnl ? '+$' + Math.round(LIVE.net_pnl).toLocaleString('de') : '–';
+    document.getElementById('s-wr').style.color  = col(LIVE.wr,   60, 50);
+    document.getElementById('s-pf').style.color  = col(LIVE.pf,  1.5,  1);
+    document.getElementById('s-dd').style.color  = LIVE.max_dd > -3 ? 'var(--success)' : LIVE.max_dd > -5 ? 'var(--warning)' : 'var(--danger)';
+    document.getElementById('s-pnl').style.color = LIVE.net_pnl >= 0 ? 'var(--success)' : 'var(--danger)';
+    document.getElementById('updatedTs').textContent = 'Update: ' + LIVE.updated;
+}
+
+function renderSignalsPanel() {
+    const el = document.getElementById('signalsPanel');
+    if (!LIVE.signals || !LIVE.signals.length) {
+        el.innerHTML = '<div class="sig-empty">Kein aktives Setup</div>';
+        return;
+    }
+    const rows = LIVE.signals.map(s => {
+        const c = s.direction === 'LONG' ? 'var(--success)' : 'var(--danger)';
+        return `<tr>
+            <td style="color:${c};font-weight:700">${s.direction}</td>
+            <td>$${s.price}</td><td>$${s.sl}</td><td>$${s.tp}</td>
+            <td>${s.rr}</td><td>${s.rsi}</td>
+            <td>${s.has_fvg ? '✓' : '–'}</td>
+        </tr>`;
+    }).join('');
+    el.innerHTML = `<table class="sig-table">
+        <tr><th>Dir</th><th>Entry</th><th>SL</th><th>TP</th><th>R:R</th><th>RSI</th><th>FVG</th></tr>
+        ${rows}
+    </table>`;
+}
+
+function renderAlerts() {
+    const el = document.getElementById('alertsPanel');
+    if (!LIVE.alerts || !LIVE.alerts.length) { el.innerHTML = ''; return; }
+    el.innerHTML = LIVE.alerts.map(a => `<div class="alert-box">⚠️ ${esc(a)}</div>`).join('');
+}
+
+function renderMacro() {
+    const el = document.getElementById('macroPanel');
+    const blocked = LIVE.macro_blocked;
+    const cls = blocked ? 'macro-blocked' : 'macro-ok';
+    const statusText = blocked
+        ? `🔴 BLOCKIERT — ${esc(LIVE.macro_reason || '')}`
+        : `🟢 Kein Block`;
+    const nextText = LIVE.macro_next
+        ? `${esc(LIVE.macro_next)} in ${LIVE.macro_mins} Min`
+        : 'Keine Events diese Woche';
+    const todayRows = (LIVE.macro_today || []).map(e =>
+        `<div style="font-size:11px;color:var(--text-secondary);margin-top:3px">
+            ${e.time} — ${esc(e.title)}
+         </div>`
+    ).join('');
+    el.innerHTML = `
+        <div class="macro-panel ${cls}">
+            <div class="macro-row">
+                <span class="macro-key">Status</span>
+                <span class="macro-val">${statusText}</span>
+            </div>
+            <div class="macro-row">
+                <span class="macro-key">Nächstes Event</span>
+                <span>${nextText}</span>
+            </div>
+            ${todayRows ? `<div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.08)">${todayRows}</div>` : ''}
+        </div>`;
+}
+
+function renderDxy() {
+    const el = document.getElementById('dxyPanel');
+    if (!LIVE.dxy) { el.innerHTML = ''; return; }
+    const biasMap = { bullish:'bias-bullish', neutral:'bias-neutral', bearish:'bias-bearish' };
+    const biasCls = biasMap[LIVE.gold_bias] || 'bias-neutral';
+    const dxyArr = LIVE.dxy_trend === 'falling' ? '↓' : '↑';
+    const tnxArr = LIVE.tnx_trend === 'falling' ? '↓' : '↑';
+    el.innerHTML = `
+        <div class="dxy-panel">
+            <div class="dxy-row">
+                <span class="dxy-key">Gold-Bias</span>
+                <span class="${biasCls}">${(LIVE.gold_bias||'–').toUpperCase()}</span>
+            </div>
+            <div class="dxy-row">
+                <span class="dxy-key">DXY</span>
+                <span>${LIVE.dxy} ${dxyArr}</span>
+            </div>
+            <div class="dxy-row">
+                <span class="dxy-key">US 10Y Yield</span>
+                <span>${LIVE.tnx}% ${tnxArr}</span>
+            </div>
+            <div style="font-size:11px;color:var(--text-secondary);margin-top:4px">${esc(LIVE.bias_label||'')}</div>
+        </div>`;
+}
+
+function updateHeader() {
+    const active = (LIVE.agents || []).filter(a => a.status !== 'idle').length;
+    document.getElementById('agentCount').textContent = active + ' Agenten aktiv';
+}
+
+// ── AGENTS ─────────────────────────────────────────
+function renderAgents() {
+    const sMap = { active:'s-active', working:'s-working', idle:'s-idle' };
+    const sLbl = { active:'Aktiv', working:'Arbeitet', idle:'Bereit' };
+    const agents = LIVE.agents || [];
+    document.getElementById('agentPanel').innerHTML = agents.map(a => `
+        <div class="agent-card">
+            <div class="agent-header">
+                <div class="agent-icon" style="background:${a.bg}">${a.icon}</div>
+                <div style="flex:1">
+                    <div style="display:flex;align-items:center;justify-content:space-between">
+                        <div class="agent-name">${a.name}</div>
+                        <div class="status-badge ${sMap[a.status]}">${sLbl[a.status]}</div>
+                    </div>
+                    <div class="agent-role">${a.role}</div>
+                    <div class="agent-last">Zuletzt: ${a.last}</div>
+                </div>
+            </div>
+            <div class="agent-task">${a.task}</div>
+            ${a.status === 'working' ? `
+            <div class="progress-bar"><div class="progress-fill" style="width:${a.prog}%"></div></div>` : ''}
+            <div style="margin-top:6px">${a.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+        </div>`).join('');
+}
+
+// ── MOBILE NAV ─────────────────────────────────────
+function showPanel(idx, btn) {
+    const panels = ['panelStats','panelAgents','panelChat'];
+    panels.forEach((id,i) => {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('mob-active', i === idx);
+    });
+    document.querySelectorAll('.mnav-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    if (idx === 2) {
+        setTimeout(() => {
+            const box = document.getElementById('chatMessages');
+            if (box) box.scrollTop = box.scrollHeight;
+        }, 50);
+    }
+}
+
+// ── USER ───────────────────────────────────────────
+function setUser(name, btn) {
+    user = name;
+    localStorage.setItem('tgb_user', name);
+    document.querySelectorAll('.user-btn').forEach(b => {
+        b.classList.toggle('active', b.textContent.trim() === name);
+    });
+    const ind = document.getElementById('chatAsName');
+    if (ind) ind.textContent = name;
+}
+function initUserButtons() {
+    document.querySelectorAll('.user-btn').forEach(b => {
+        b.classList.toggle('active', b.textContent.trim() === user);
+    });
+    const ind = document.getElementById('chatAsName');
+    if (ind) ind.textContent = user;
+}
+
+// ── TABS ───────────────────────────────────────────
+function showTab(id, btn) {
+    ['notes','strategies','images'].forEach(t =>
+        document.getElementById('tab' + t[0].toUpperCase() + t.slice(1)).style.display = 'none');
+    document.getElementById('tab' + id[0].toUpperCase() + id.slice(1)).style.display = 'block';
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+// ── STRATEGIEN (JSONBin) ────────────────────────────
+const IMGUR_CID = '/*__IMGURKEY__*/';
+const JB_KEY = '$2a$10$DPH4U6EMaWQeUrhnX5pITu1hqVPqD7z.CsPYooJC1TNKmNcu3Pfpi';
+const JB_BIN = '6a10abf86610dd3ae88c58bf';
+const JB_URL = `https://api.jsonbin.io/v3/b/${JB_BIN}`;
+const JB_HDR = { 'X-Master-Key': JB_KEY, 'Content-Type': 'application/json' };
+
+async function _jbGet() {
+    try {
+        const r = await fetch(JB_URL + '/latest', { headers: JB_HDR });
+        const d = await r.json();
+        return d.record || {};
+    } catch { return {}; }
+}
+async function _jbPut(data) {
+    await fetch(JB_URL, { method:'PUT', headers:JB_HDR, body:JSON.stringify(data) });
+}
+
+async function loadStrategies() {
+    return (await _jbGet()).strategies || [];
+}
+async function saveStrategies(list) {
+    const data = await _jbGet();
+    await _jbPut({ ...data, strategies: list });
+}
+
+async function loadChat() {
+    return (await _jbGet()).chat || [];
+}
+async function saveChat(messages) {
+    const data = await _jbGet();
+    // Max 200 Nachrichten behalten
+    const trimmed = messages.slice(-200);
+    await _jbPut({ ...data, chat: trimmed });
+}
+async function clearChat() {
+    if (!confirm('Gesamten Chatverlauf für alle löschen?')) return;
+    hist = [];
+    const data = await _jbGet();
+    await _jbPut({ ...data, chat: [] });
+    document.getElementById('chatMessages').innerHTML = '';
+    welcomeMsg();
+}
+
+async function loadImages() {
+    return (await _jbGet()).images || [];
+}
+async function saveImages(list) {
+    const data = await _jbGet();
+    await _jbPut({ ...data, images: list });
+}
+
+async function renderStrategies() {
+    const el = document.getElementById('strategiesList');
+    el.innerHTML = '<div class="empty">Lade...</div>';
+
+    // Optimizer-Varianten aus LIVE + Cloud-Strategien zusammenführen
+    const cloud = await loadStrategies();
+    const local = (LIVE.variants || []).map(v => ({ ...v, source: v.source || 'optimizer', _local: true }));
+
+    // Zusammenführen: Cloud-Einträge zuerst, dann lokale die noch nicht in Cloud sind
+    const all = [...cloud];
+    for (const lv of local) {
+        if (!cloud.find(c => c.id === lv.id)) all.push(lv);
+    }
+
+    document.getElementById('stratCount').textContent = `(${all.length})`;
+
+    if (!all.length) {
+        el.innerHTML = '<div class="empty">Noch keine Strategien.<br>Füge oben eine neue hinzu!</div>';
+        return;
+    }
+
+    el.innerHTML = all.map(v => {
+        const wrCol = v.wr >= 65 ? 'var(--success)' : v.wr >= 60 ? 'var(--warning)' : 'var(--danger)';
+        const pfCol = v.pf >= 1.5 ? 'var(--success)' : v.pf >= 1.2 ? 'var(--warning)' : 'var(--danger)';
+        const ddCol = v.mdd > -3 ? 'var(--success)' : v.mdd > -6 ? 'var(--warning)' : 'var(--danger)';
+        const srcMap = { optimizer:'src-optimizer', manual:'src-manual', tradingview:'src-tradingview', commander:'src-commander', other:'src-other' };
+        const srcLbl = { optimizer:'Optimizer', manual:'Manuell', tradingview:'TradingView', commander:'🤖 Commander', other:'Andere' };
+        const src = v.source || 'manual';
+        return `
+        <div class="variant-card ${v.active ? 'active-var' : ''}">
+            <div class="variant-header">
+                <div>
+                    <span class="strat-source ${srcMap[src]||'src-other'}">${srcLbl[src]||src}</span>
+                    <div class="variant-name">${esc(v.name||'Unbenannt')}</div>
+                    <div class="variant-date">${esc(v.date||'')} · ${esc(v.author||'')}</div>
+                </div>
+                <div style="display:flex;gap:6px;align-items:center">
+                    ${v.active ? '<span class="active-badge">Aktiv</span>' : ''}
+                    ${!v._local ? `<button onclick="deleteStrategy('${v.id}')" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:13px" title="Löschen">✕</button>` : ''}
+                </div>
+            </div>
+            ${v.wr ? `<div class="variant-stats">
+                <div class="v-stat"><div class="v-stat-val" style="color:${wrCol}">${v.wr}%</div><div class="v-stat-lbl">Win Rate</div></div>
+                <div class="v-stat"><div class="v-stat-val" style="color:${pfCol}">${v.pf}</div><div class="v-stat-lbl">PF</div></div>
+                <div class="v-stat"><div class="v-stat-val">${v.trades||'–'}</div><div class="v-stat-lbl">Trades</div></div>
+                <div class="v-stat"><div class="v-stat-val" style="color:${ddCol}">${v.mdd}%</div><div class="v-stat-lbl">Max DD</div></div>
+                <div class="v-stat"><div class="v-stat-val" style="color:${v.pnl>=0?'var(--success)':'var(--danger)'}">$${v.pnl>0?'+':''}${v.pnl}</div><div class="v-stat-lbl">PnL</div></div>
+            </div>` : ''}
+            ${v.rr ? `<div style="font-size:11px;color:var(--text-secondary);margin-bottom:6px">R:R = ${v.rr}</div>` : ''}
+            ${v.desc ? `<div style="font-size:12px;color:var(--text-secondary);background:var(--bg-input);padding:6px 8px;border-radius:6px;line-height:1.4">${esc(v.desc)}</div>` : ''}
+        </div>`;
+    }).join('');
+}
+
+async function saveStrategy() {
+    const name = document.getElementById('sName').value.trim();
+    if (!name) { alert('Bitte einen Namen eingeben.'); return; }
+    const btn = document.getElementById('saveStratBtn');
+    btn.textContent = 'Speichern...'; btn.disabled = true;
+    const strat = {
+        id:     Date.now().toString(),
+        name,
+        source: document.getElementById('sSource').value,
+        author: user,
+        date:   new Date().toLocaleDateString('de-AT'),
+        wr:     parseFloat(document.getElementById('sWr').value)    || null,
+        pf:     parseFloat(document.getElementById('sPf').value)    || null,
+        trades: parseInt(document.getElementById('sTrades').value)  || null,
+        mdd:    parseFloat(document.getElementById('sMdd').value)   || null,
+        pnl:    parseInt(document.getElementById('sPnl').value)     || null,
+        rr:     parseFloat(document.getElementById('sRr').value)    || null,
+        desc:   document.getElementById('sDesc').value.trim() || null,
+        active: false,
+    };
+    const list = await loadStrategies();
+    list.unshift(strat);
+    await saveStrategies(list);
+    clearStratForm();
+    btn.textContent = 'Speichern'; btn.disabled = false;
+    renderStrategies();
+}
+
+async function deleteStrategy(id) {
+    if (!confirm('Strategie löschen?')) return;
+    const list = await loadStrategies();
+    await saveStrategies(list.filter(s => s.id !== id));
+    renderStrategies();
+}
+
+function clearStratForm() {
+    ['sName','sWr','sPf','sTrades','sMdd','sPnl','sRr','sDesc'].forEach(id => {
+        document.getElementById(id).value = '';
+    });
+    document.getElementById('sSource').value = 'manual';
+}
+
+// ── NOTES ──────────────────────────────────────────
+function addNote() {
+    const txt = document.getElementById('noteInput').value.trim();
+    if (!txt) return;
+    notes.unshift({ txt, author:user, ts:Date.now() });
+    save('tgb_notes', notes);
+    document.getElementById('noteInput').value = '';
+    renderNotes();
+}
+function delNote(i) { notes.splice(i,1); save('tgb_notes',notes); renderNotes(); }
+function renderNotes() {
+    const el = document.getElementById('notesList');
+    if (!notes.length) { el.innerHTML = '<div class="empty">Noch keine Notizen</div>'; return; }
+    el.innerHTML = notes.map((n,i) => `
+        <div class="note-item">
+            <div class="note-meta">
+                <span class="note-author">${n.author}</span>
+                <span class="note-time">${fmtTime(n.ts)}</span>
+            </div>
+            <div class="note-text">${esc(n.txt)}</div>
+            <button class="note-del" onclick="delNote(${i})">✕ Löschen</button>
+        </div>`).join('');
+}
+
+// ── IMAGES ─────────────────────────────────────────
+async function handleUpload(e) {
+    if (!IMGUR_CID || IMGUR_CID === '/*__IMGURKEY__*/') {
+        alert('Imgur Client ID nicht konfiguriert. Bitte Administrator kontaktieren.');
+        return;
+    }
+    const el = document.getElementById('imageGrid');
+    for (const f of [...e.target.files]) {
+        el.innerHTML = '<div class="empty" style="grid-column:1/-1">Uploading...</div>';
+        try {
+            const fd = new FormData();
+            fd.append('image', f);
+            const r = await fetch('https://api.imgur.com/3/image', {
+                method: 'POST',
+                headers: { 'Authorization': `Client-ID ${IMGUR_CID}` },
+                body: fd
+            });
+            const d = await r.json();
+            if (!d.success) throw new Error(d.data?.error || 'Upload fehlgeschlagen');
+            const list = await loadImages();
+            list.unshift({ url: d.data.link, deletehash: d.data.deletehash, name: f.name, author: user, ts: Date.now() });
+            await saveImages(list);
+        } catch(err) {
+            alert('Upload Fehler: ' + err.message);
+        }
+    }
+    await renderImgs();
+}
+async function renderImgs() {
+    const el = document.getElementById('imageGrid');
+    el.innerHTML = '<div class="empty" style="grid-column:1/-1">Lade...</div>';
+    const list = await loadImages();
+    imgs = list;
+    if (!list.length) { el.innerHTML = '<div class="empty" style="grid-column:1/-1">Noch keine Bilder</div>'; return; }
+    el.innerHTML = list.map(img => `
+        <div class="image-item" onclick="openImg('${img.url}')">
+            <img src="${img.url}" alt="${esc(img.name)}" loading="lazy">
+            <div class="img-overlay">${esc(img.name)}</div>
+        </div>`).join('');
+}
+function openImg(url) {
+    const w = window.open('');
+    w.document.write(`<!DOCTYPE html><html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh;cursor:zoom-out" onclick="window.close()"><img src="${url}" style="max-width:100vw;max-height:100vh"></body></html>`);
+}
+
+// ── CHAT ───────────────────────────────────────────
+function buildSysPrompt() {
+    return `Du bist Commander, der Team Leader des "Trading Gold Bot" Projekts.
+
+PROJEKT: XAUUSD (Gold) Trading Bot mit SMC Strategie auf MetaTrader 5
+STRATEGIE: Order Block + Break of Structure + Fair Value Gap
+TEAM: Andreas, Johannes, Dominik
+
+AKTUELLE PERFORMANCE (Live-Daten):
+- Win Rate: ${LIVE.wr}% | Profit Factor: ${LIVE.pf} | Trades: ${LIVE.trades}
+- Net PnL: $${LIVE.net_pnl} | Max Drawdown: ${LIVE.max_dd}%
+- Aktueller Preis: $${LIVE.price} | Aktive Signale: ${LIVE.n_signals}
+- Backtest-Zeitraum: ${LIVE.from_date} → ${LIVE.to_date}
+
+MAKRO-FILTER (Live):
+- Macro-Block: ${LIVE.macro_blocked ? 'JA — ' + LIVE.macro_reason : 'NEIN — kein Block'}
+- Nächstes Event: ${LIVE.macro_next || 'keines'} ${LIVE.macro_mins ? 'in ' + LIVE.macro_mins + ' Min' : ''}
+- DXY: ${LIVE.dxy || '–'} (${LIVE.dxy_trend || '–'}) | US 10Y: ${LIVE.tnx || '–'}% (${LIVE.tnx_trend || '–'})
+- Gold-Bias: ${(LIVE.gold_bias || 'neutral').toUpperCase()} — ${LIVE.bias_label || ''}
+
+DEINE AGENTEN:
+- 👑 Commander (du) — Koordination & Überblick
+- 📅 Macro Filter — News-Kalender, FOMC/NFP/CPI Blocks
+- 📈 DXY Correlation — USD-Index & Yield-Analyse
+- 📊 Backtester — smc_backtester.py, M15/H4 Backtests
+- ⚙️ Optimizer — Grid-Search für Parameter
+- 🔄 Data Fetcher — MT5-Datenimport
+- 🛡️ Risk Manager — Drawdown-Überwachung (max 5%)
+- 🔍 Signal Scanner — Echtzeit OB+FVG Erkennung
+- 📲 Notifier — WhatsApp/Telegram Alerts
+- ⚡ Executor — MT5 Order-Platzierung (aktuell: DRY RUN)
+
+COMMANDER DISPATCH SYSTEM:
+Du kannst dem Bot-PC direkt Backtests und Optimierungen in Auftrag geben. Wenn ein Teammitglied explizit einen Test/Backtest/Optimierung anfordert (z.B. "teste RR=2.5", "was wäre besser?", "optimiere die Parameter"), füge am ENDE deiner Antwort ein <dispatch> Tag hinzu:
+
+<dispatch>{"type":"backtest","name":"RR=2.5 Test","params":{"rr":2.5},"author":"${user}","desc":"Test mit erhöhtem R:R"}</dispatch>
+
+Verfügbare Typen:
+- "backtest": Custom Backtest. params = SMC-Parameter (rr, ob_impulse_pips, ob_min_body, swing_len, fvg_min_pips, min_brk_pip, rsi_limit, cooldown)
+- "optimize": Startet vollständige Grid-Search. params = {"min_wr":0.60,"min_trades":15}
+- "signal_scan": Aktueller Echtzeit-Marktscan. params = {}
+
+Wichtig: NUR bei explizitem Wunsch nach Backtest/Test/Optimierung ein <dispatch> Tag hinzufügen. Normale Fragen OHNE <dispatch> beantworten!
+
+VERHALTEN: Antworte präzise auf Deutsch. Nenne bei Delegation den Agenten mit Emoji.`;
+}
+
+function welcomeMsg() {
+    const nSig = LIVE.n_signals || 0;
+    const sigTxt = nSig > 0 ? `🔍 **Signal Scanner**: ${nSig} aktives Setup!` : '🔍 **Signal Scanner**: Kein aktives Setup';
+    const riskTxt = LIVE.risk_status === 'critical' ? '🚨 **Risk Manager**: KRITISCH — Trading pausiert!'
+                  : LIVE.risk_status === 'warning'  ? '⚠️ **Risk Manager**: Warnung aktiv'
+                  : '🛡️ **Risk Manager**: OK — alle Limits eingehalten';
+    const macroTxt = LIVE.macro_blocked
+        ? `🔴 **Macro Filter**: BLOCKIERT — ${LIVE.macro_reason}`
+        : `📅 **Macro Filter**: Kein Block${LIVE.macro_next ? ' | Nächstes: ' + LIVE.macro_next + ' in ' + LIVE.macro_mins + ' Min' : ''}`;
+    const dxyBias = (LIVE.gold_bias||'neutral');
+    const dxyTxt = dxyBias === 'bullish' ? `📈 **DXY**: Gold-Bias BULLISCH (DXY=${LIVE.dxy})`
+                 : dxyBias === 'bearish' ? `📉 **DXY**: Gold-Bias BEARISCH — Longs gesperrt`
+                 : `📈 **DXY**: Gold-Bias NEUTRAL (DXY=${LIVE.dxy})`;
+    addMsg('assistant', `Hallo ${user}! Ich bin euer **Commander**.
+
+Aktueller Status (${LIVE.updated}):
+📊 **Backtester**: WR=${LIVE.wr}% | PF=${LIVE.pf} | ${LIVE.trades} Trades | $${LIVE.net_pnl > 0 ? '+' : ''}${Math.round(LIVE.net_pnl)} PnL
+${sigTxt}
+${riskTxt}
+${macroTxt}
+${dxyTxt}
+
+Was soll ich koordinieren?`);
+}
+
+function renderMsg(role, text, ts, author) {
+    const box = document.getElementById('chatMessages');
+    const d = document.createElement('div');
+    d.className = `message ${role}`;
+    const who = author || (role === 'user' ? user : 'Commander');
+    const md = text
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+        .replace(/\n/g,'<br>');
+    d.innerHTML = `<div class="bubble">${md}</div><div class="msg-meta">${who} · ${fmtTime(ts||Date.now())}</div>`;
+    box.appendChild(d);
+    box.scrollTop = box.scrollHeight;
+}
+function addMsg(role, text) {
+    const ts = Date.now();
+    const author = role === 'user' ? user : 'Commander';
+    hist.push({ role, content: text, ts, author });
+    renderMsg(role, text, ts, author);
+}
+function showTyping() {
+    const box = document.getElementById('chatMessages');
+    const d = document.createElement('div');
+    d.className = 'message assistant'; d.id = 'typing';
+    d.innerHTML = `<div class="typing-bubble"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+    box.appendChild(d); box.scrollTop = box.scrollHeight;
+}
+function hideTyping() { const el = document.getElementById('typing'); if(el) el.remove(); }
+
+async function sendMsg() {
+    if (busy) return;
+    const inp = document.getElementById('chatInput');
+    const txt = inp.value.trim();
+    if (!txt) return;
+    inp.value = ''; inp.style.height = '40px';
+    addMsg('user', txt);
+    if (!apiKey) {
+        addMsg('assistant', '⚠️ Kein API Key — bitte Seite neu laden und Key eingeben.');
+        return;
+    }
+    busy = true;
+    document.getElementById('sendBtn').disabled = true;
+    showTyping();
+    try {
+        const messages = hist.slice(0,-1).map(m => ({ role:m.role, content:m.content }));
+        messages.push({ role:'user', content:txt });
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+            method:'POST',
+            headers: {
+                'Content-Type':'application/json',
+                'x-api-key': apiKey,
+                'anthropic-version':'2023-06-01',
+                'anthropic-dangerous-direct-browser-access':'true'
+            },
+            body: JSON.stringify({
+                model:'claude-sonnet-4-6',
+                max_tokens:1024,
+                system: buildSysPrompt(),
+                messages
+            })
+        });
+        if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'API Fehler'); }
+        const data = await res.json();
+        const rawText = data.content[0].text;
+        const dispatchMatch = rawText.match(/<dispatch>([\s\S]*?)<\/dispatch>/);
+        const cleanText = rawText.replace(/<dispatch>[\s\S]*?<\/dispatch>/g, '').trim();
+        hideTyping();
+        addMsg('assistant', cleanText);
+        saveChat(hist).catch(() => {});
+        if (dispatchMatch) {
+            try {
+                const cmd = JSON.parse(dispatchMatch[1]);
+                cmd.id = Date.now().toString();
+                await dispatchCommand(cmd);
+            } catch(e) {
+                addMsg('assistant', '⚠️ Dispatch-Fehler: ' + e.message);
+            }
+        }
+    } catch(err) {
+        hideTyping();
+        addMsg('assistant', `❌ **Fehler:** ${err.message}`);
+    } finally {
+        busy = false;
+        document.getElementById('sendBtn').disabled = false;
+    }
+}
+function onKey(e) { if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } }
+
+// ── COMMANDER DISPATCH ─────────────────────────────
+async function dispatchCommand(cmd) {
+    try {
+        const data = await _jbGet();
+        const commands = data.commands || [];
+        commands.push({ ...cmd, status: 'pending', dispatched: Date.now() });
+        await _jbPut({ ...data, commands });
+        addMsg('assistant', `⚡ **Befehl übermittelt!** "${cmd.name || cmd.type}" wurde an den Bot-PC gesendet.\n\nDas Ergebnis erscheint automatisch im **Strategien-Tab** — dauert ca. 2 Min. ⏱️`);
+        saveChat(hist).catch(() => {});
+    } catch(e) {
+        addMsg('assistant', '⚠️ Konnte Befehl nicht senden: ' + e.message);
+    }
+}
+
+// ── UTILS ──────────────────────────────────────────
+function save(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtTime(ts) {
+    const d = new Date(ts), diff = Date.now() - ts;
+    if (diff < 60000) return 'Gerade eben';
+    if (diff < 3600000) return `${Math.floor(diff/60000)} Min. ago`;
+    if (diff < 86400000) return d.toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'});
+    return d.toLocaleDateString('de-AT',{day:'2-digit',month:'2-digit'});
+}
+</script>
+</body>
+</html>
