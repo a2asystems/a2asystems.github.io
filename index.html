@@ -79,6 +79,7 @@
             padding:5px 13px; border-radius:20px; border:1px solid var(--border);
             background:transparent; color:var(--text-secondary); cursor:pointer;
             font-size:12px; font-weight:500; transition:all var(--ease); font-family:inherit;
+            touch-action:manipulation; -webkit-tap-highlight-color:transparent;
         }
         .user-btn:hover { border-color:var(--border-primary); color:var(--text-primary); }
         .user-btn.active {
@@ -88,7 +89,8 @@
         .btn {
             padding:6px 14px; border-radius:var(--r-xs); border:none; cursor:pointer;
             font-size:12px; font-weight:500; transition:all var(--ease); font-family:inherit;
-            touch-action:manipulation; -webkit-user-select:none; user-select:none;
+            touch-action:manipulation; -webkit-tap-highlight-color:transparent;
+            -webkit-user-select:none; user-select:none;
         }
         .modal-btns .btn { min-height:44px; }
         .btn-gold { background:var(--primary); color:#fff; }
@@ -359,44 +361,67 @@
 
         /* MOBILE */
         @media (max-width:768px) {
-            html { height:100%; overflow:hidden; }
-            body { height:100%; overflow:hidden; }
-            header { padding:max(52px,env(safe-area-inset-top)) 16px 10px; flex-shrink:0; }
+            html, body {
+                height:100%; height:100dvh;
+                max-height:100%; max-height:100dvh;
+                overflow:hidden;
+                position:fixed; width:100%;
+            }
+            body { display:flex; flex-direction:column; }
+            header {
+                padding:max(48px,env(safe-area-inset-top)) 16px 10px;
+                flex-shrink:0; position:relative; z-index:10;
+            }
             .logo-icon { width:28px; height:28px; font-size:14px; }
             .logo-text  { font-size:14px; }
             .logo-sub, .live-badge, #updatedTs { display:none; }
             .header-right { gap:8px; }
             .user-btn { padding:5px 12px; font-size:12px; }
             .user-btn.active { background:var(--primary); color:#fff; }
-            .main { grid-template-columns:1fr; min-height:0; flex:1; overflow:hidden; }
-            .panel { display:none; border-right:none; min-height:0; overflow:hidden; }
-            .panel.mob-active { display:flex; flex-direction:column; flex:1; height:100%; overflow:hidden; }
+            .main {
+                display:flex !important; flex-direction:column;
+                flex:1; min-height:0; overflow:hidden;
+            }
+            .panel { display:none; border-right:none; }
+            .panel.mob-active {
+                display:flex; flex-direction:column;
+                flex:1; min-height:0; overflow:hidden;
+            }
+            .panel-header { flex-shrink:0; }
             .panel-body {
-                padding:12px; flex:1; min-height:0;
-                overflow-y:scroll; -webkit-overflow-scrolling:touch;
+                flex:1; min-height:0; padding:12px;
+                overflow-y:auto; -webkit-overflow-scrolling:touch;
+                overscroll-behavior:contain;
             }
             .stats-bar { grid-template-columns:repeat(2,1fr); margin-bottom:12px; gap:6px; }
             .stat-item { padding:14px 8px; }
             .stat-value { font-size:18px; }
             .strat-form-grid { grid-template-columns:1fr; }
             .mobile-nav {
-                display:flex; background:rgba(7,11,18,.96); border-top:1px solid var(--border);
-                flex-shrink:0; padding-bottom:max(16px,env(safe-area-inset-bottom));
+                display:flex; flex-shrink:0;
+                background:rgba(7,11,18,.96); border-top:1px solid var(--border);
+                padding-bottom:max(16px,env(safe-area-inset-bottom));
                 backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
+                position:relative; z-index:10;
             }
             .mnav-btn {
                 flex:1; padding:10px 4px 4px; border:none; background:transparent;
                 color:var(--text-dim); font-size:10px; font-weight:500; cursor:pointer;
                 font-family:inherit; display:flex; flex-direction:column; align-items:center;
-                gap:3px; transition:all var(--ease); letter-spacing:.3px;
+                gap:3px; letter-spacing:.3px;
                 touch-action:manipulation; -webkit-tap-highlight-color:transparent;
+                -webkit-user-select:none; user-select:none;
             }
             .mnav-btn.active { color:var(--primary-light); }
             .mnav-btn.active .mnav-icon { filter:drop-shadow(0 0 8px rgba(61,142,255,.8)); transform:scale(1.1); }
-            .mnav-icon { width:22px; height:22px; display:flex; align-items:center; justify-content:center; transition:all var(--ease); }
-            .chat-messages { padding:12px; gap:8px; -webkit-overflow-scrolling:touch; overflow-y:scroll; }
+            .mnav-icon { width:22px; height:22px; display:flex; align-items:center; justify-content:center; }
+            .chat-messages {
+                flex:1; min-height:0; padding:12px; gap:8px;
+                overflow-y:auto; -webkit-overflow-scrolling:touch;
+                overscroll-behavior:contain;
+            }
+            .chat-footer { flex-shrink:0; padding:8px 12px max(10px,env(safe-area-inset-bottom)); }
             .bubble { font-size:14px; }
-            .chat-footer { padding:8px 12px max(10px,env(safe-area-inset-bottom)); flex-shrink:0; }
             .chat-as { display:none; }
             .chat-input { font-size:16px !important; height:46px; }
             .notes-area, .strat-input, .strat-textarea { font-size:16px !important; }
@@ -606,7 +631,7 @@
 </nav>
 
 <script>
-const LIVE = {"updated": "26.05.2026 22:22", "wr": 71.4, "pf": 2.35, "trades": 21, "net_pnl": 969.9, "max_dd": -1.5, "price": 4517.63, "n_signals": 0, "best_wr": 71.4, "best_pf": 2.35, "candidates": 2532, "from_date": "2024-08-02", "to_date": "2026-03-09", "variants": [{"id": "20260521_000000", "name": "Variante 1 — 21.05.2026 (Aktuell aktiv)", "date": "21.05.2026 00:00", "wr": 65.1, "pf": 1.67, "trades": 83, "mdd": -4.8, "pnl": 2580.11, "active": false, "top3": [], "config": {"ob_impulse_pips": 80, "ob_max_age": 30, "ob_min_body": 0.5, "bos_required": true, "swing_len": 12, "fvg_min_pips": 15, "fvg_max_age": 20, "min_brk_pip": 6, "pip_size": 0.1, "rr": 1.5, "rsi_limit": 65, "cooldown": 5, "ema_len": 50, "atr_len": 14, "rsi_len": 14, "initial_cap": 10000, "risk_pct": 0.009, "max_drawdown_pct": 0.05, "commission": 0.0007, "slippage_pip": 2, "ob_vol_multiplier": 1.3, "h4_stage_filter": true, "h4_ema_fast": 50, "h4_ema_slow": 200}}, {"id": "20260525_122104", "name": "Variante 2 — 25.05.2026", "date": "25.05.2026 12:21", "wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970, "active": true, "top3": [{"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}, {"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}, {"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}], "config": {"ob_impulse_pips": 120.0, "ob_max_age": 30, "ob_min_body": 0.75, "bos_required": true, "swing_len": 8.0, "fvg_min_pips": 12.0, "fvg_max_age": 20, "min_brk_pip": 8.0, "pip_size": 0.1, "rr": 1.5, "rsi_limit": 70.0, "cooldown": 10.0, "ema_len": 50, "atr_len": 14, "rsi_len": 14, "initial_cap": 10000, "risk_pct": 0.009, "max_drawdown_pct": 0.1, "commission": 0.0007, "slippage_pip": 2, "ob_vol_multiplier": 1.3, "h4_stage_filter": true, "h4_ema_fast": 50, "h4_ema_slow": 200}}], "risk_status": "ok", "alerts": [], "signals": [], "agents": [{"name": "Data Fetcher", "role": "Daten-Beschaffung", "icon": "↻", "color": "#3D8EFF", "bg": "rgba(61,142,255,.12)", "status": "active", "prog": 100, "task": "Status: OK | Daten-Aktualisierung", "tags": ["MT5", "Parquet", "Historie"], "last": "2026-05-26T22:08"}, {"name": "Optimizer", "role": "Parameter-Suche", "icon": "◈", "color": "#F59E0B", "bg": "rgba(245,158,11,.12)", "status": "idle", "prog": 0, "task": "Beste WR: 71.4% | PF: 2.35 | 2532 Kandidaten", "tags": ["Grid-Search", "Optimierung"], "last": "2026-05-25T12:21"}, {"name": "Backtester", "role": "Strategie-Tester", "icon": "▲", "color": "#10B981", "bg": "rgba(16,185,129,.12)", "status": "active", "prog": 100, "task": "Letzter Backtest: WR=71.4% | PF=2.35 | 21 Trades", "tags": ["M15", "XAUUSD", "SMC"], "last": "2026-05-26T22:08"}, {"name": "Signal Scanner", "role": "Echtzeit-Signale", "icon": "◎", "color": "#8B5CF6", "bg": "rgba(139,92,246,.12)", "status": "active", "prog": 100, "task": "Letzter Scan: 0 Signal(e) | Preis: $4517.63", "tags": ["OB", "FVG", "BOS"], "last": "2026-05-26T21:27"}, {"name": "Risk Manager", "role": "Risiko-Kontrolle", "icon": "◼", "color": "#EF4444", "bg": "rgba(239,68,68,.12)", "status": "active", "prog": 100, "task": "Status: OK | 0 Alert(s)", "tags": ["Drawdown", "Sizing"], "last": "2026-05-26T22:08"}, {"name": "Reporter", "role": "Dashboard", "icon": "≡", "color": "#14B8A6", "bg": "rgba(20,184,166,.12)", "status": "active", "prog": 100, "task": "Status: OK", "tags": ["HTML", "Dashboard"], "last": "2026-05-26T22:15"}, {"name": "Notifier", "role": "Alerts", "icon": "◆", "color": "#6EE7B7", "bg": "rgba(110,231,183,.10)", "status": "idle", "prog": 0, "task": "Status: – | WhatsApp/Telegram bereit", "tags": ["WhatsApp", "Telegram"], "last": "–"}, {"name": "Executor", "role": "Order-Ausführung", "icon": "▶", "color": "#F97316", "bg": "rgba(249,115,22,.12)", "status": "idle", "prog": 0, "task": "Orders platziert: 0 | Modus: DRY RUN", "tags": ["MT5", "Orders", "DryRun"], "last": "–"}, {"name": "Macro Filter", "role": "News-Kalender", "icon": "◷", "color": "#EF4444", "bg": "rgba(239,68,68,.12)", "status": "active", "prog": 100, "task": "Kein Block | Nächstes Event: CPI m/m in 362 Min", "tags": ["FOMC", "NFP", "CPI", "News"], "last": "2026-05-26T21:27"}, {"name": "DXY Correlation", "role": "USD & Yield Analyse", "icon": "↗", "color": "#3D8EFF", "bg": "rgba(61,142,255,.12)", "status": "active", "prog": 100, "task": "Gold-Bias: NEUTRAL (1/2) | DXY=99.145 | 10Y=4.493%", "tags": ["DXY", "US10Y", "Makro"], "last": "2026-05-26T22:08"}], "macro_blocked": false, "macro_reason": null, "macro_next": "CPI m/m", "macro_mins": 362, "macro_today": [{"title": "CPI m/m", "time": "21:30 UTC", "country": "AUD"}, {"title": "CPI y/y", "time": "21:30 UTC", "country": "AUD"}, {"title": "Trimmed Mean CPI m/m", "time": "21:30 UTC", "country": "AUD"}], "dxy": 99.145, "dxy_trend": "falling", "tnx": 4.493, "tnx_trend": "rising", "gold_bias": "neutral", "bias_label": "Neutral — DXY fällt, Yields steigen"};
+const LIVE = {"updated": "26.05.2026 22:24", "wr": 71.4, "pf": 2.35, "trades": 21, "net_pnl": 969.9, "max_dd": -1.5, "price": 4503.78, "n_signals": 0, "best_wr": 71.4, "best_pf": 2.35, "candidates": 2532, "from_date": "2024-08-02", "to_date": "2026-03-09", "variants": [{"id": "20260521_000000", "name": "Variante 1 — 21.05.2026 (Aktuell aktiv)", "date": "21.05.2026 00:00", "wr": 65.1, "pf": 1.67, "trades": 83, "mdd": -4.8, "pnl": 2580.11, "active": false, "top3": [], "config": {"ob_impulse_pips": 80, "ob_max_age": 30, "ob_min_body": 0.5, "bos_required": true, "swing_len": 12, "fvg_min_pips": 15, "fvg_max_age": 20, "min_brk_pip": 6, "pip_size": 0.1, "rr": 1.5, "rsi_limit": 65, "cooldown": 5, "ema_len": 50, "atr_len": 14, "rsi_len": 14, "initial_cap": 10000, "risk_pct": 0.009, "max_drawdown_pct": 0.05, "commission": 0.0007, "slippage_pip": 2, "ob_vol_multiplier": 1.3, "h4_stage_filter": true, "h4_ema_fast": 50, "h4_ema_slow": 200}}, {"id": "20260525_122104", "name": "Variante 2 — 25.05.2026", "date": "25.05.2026 12:21", "wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970, "active": true, "top3": [{"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}, {"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}, {"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}], "config": {"ob_impulse_pips": 120.0, "ob_max_age": 30, "ob_min_body": 0.75, "bos_required": true, "swing_len": 8.0, "fvg_min_pips": 12.0, "fvg_max_age": 20, "min_brk_pip": 8.0, "pip_size": 0.1, "rr": 1.5, "rsi_limit": 70.0, "cooldown": 10.0, "ema_len": 50, "atr_len": 14, "rsi_len": 14, "initial_cap": 10000, "risk_pct": 0.009, "max_drawdown_pct": 0.1, "commission": 0.0007, "slippage_pip": 2, "ob_vol_multiplier": 1.3, "h4_stage_filter": true, "h4_ema_fast": 50, "h4_ema_slow": 200}}], "risk_status": "ok", "alerts": [], "signals": [], "agents": [{"name": "Data Fetcher", "role": "Daten-Beschaffung", "icon": "↻", "color": "#3D8EFF", "bg": "rgba(61,142,255,.12)", "status": "active", "prog": 100, "task": "Status: OK | Daten-Aktualisierung", "tags": ["MT5", "Parquet", "Historie"], "last": "2026-05-26T22:08"}, {"name": "Optimizer", "role": "Parameter-Suche", "icon": "◈", "color": "#F59E0B", "bg": "rgba(245,158,11,.12)", "status": "idle", "prog": 0, "task": "Beste WR: 71.4% | PF: 2.35 | 2532 Kandidaten", "tags": ["Grid-Search", "Optimierung"], "last": "2026-05-25T12:21"}, {"name": "Backtester", "role": "Strategie-Tester", "icon": "▲", "color": "#10B981", "bg": "rgba(16,185,129,.12)", "status": "active", "prog": 100, "task": "Letzter Backtest: WR=71.4% | PF=2.35 | 21 Trades", "tags": ["M15", "XAUUSD", "SMC"], "last": "2026-05-26T22:08"}, {"name": "Signal Scanner", "role": "Echtzeit-Signale", "icon": "◎", "color": "#8B5CF6", "bg": "rgba(139,92,246,.12)", "status": "active", "prog": 100, "task": "Letzter Scan: 0 Signal(e) | Preis: $4503.78", "tags": ["OB", "FVG", "BOS"], "last": "2026-05-26T22:23"}, {"name": "Risk Manager", "role": "Risiko-Kontrolle", "icon": "◼", "color": "#EF4444", "bg": "rgba(239,68,68,.12)", "status": "active", "prog": 100, "task": "Status: OK | 0 Alert(s)", "tags": ["Drawdown", "Sizing"], "last": "2026-05-26T22:08"}, {"name": "Reporter", "role": "Dashboard", "icon": "≡", "color": "#14B8A6", "bg": "rgba(20,184,166,.12)", "status": "active", "prog": 100, "task": "Status: OK", "tags": ["HTML", "Dashboard"], "last": "2026-05-26T22:22"}, {"name": "Notifier", "role": "Alerts", "icon": "◆", "color": "#6EE7B7", "bg": "rgba(110,231,183,.10)", "status": "idle", "prog": 0, "task": "Status: – | WhatsApp/Telegram bereit", "tags": ["WhatsApp", "Telegram"], "last": "–"}, {"name": "Executor", "role": "Order-Ausführung", "icon": "▶", "color": "#F97316", "bg": "rgba(249,115,22,.12)", "status": "idle", "prog": 0, "task": "Orders platziert: 0 | Modus: DRY RUN", "tags": ["MT5", "Orders", "DryRun"], "last": "–"}, {"name": "Macro Filter", "role": "News-Kalender", "icon": "◷", "color": "#EF4444", "bg": "rgba(239,68,68,.12)", "status": "active", "prog": 100, "task": "Kein Block | Nächstes Event: CPI m/m in 306 Min", "tags": ["FOMC", "NFP", "CPI", "News"], "last": "2026-05-26T22:23"}, {"name": "DXY Correlation", "role": "USD & Yield Analyse", "icon": "↗", "color": "#3D8EFF", "bg": "rgba(61,142,255,.12)", "status": "active", "prog": 100, "task": "Gold-Bias: NEUTRAL (1/2) | DXY=99.145 | 10Y=4.493%", "tags": ["DXY", "US10Y", "Makro"], "last": "2026-05-26T22:08"}], "macro_blocked": false, "macro_reason": null, "macro_next": "CPI m/m", "macro_mins": 306, "macro_today": [{"title": "CPI m/m", "time": "21:30 UTC", "country": "AUD"}, {"title": "CPI y/y", "time": "21:30 UTC", "country": "AUD"}, {"title": "Trimmed Mean CPI m/m", "time": "21:30 UTC", "country": "AUD"}], "dxy": 99.145, "dxy_trend": "falling", "tnx": 4.493, "tnx_trend": "rising", "gold_bias": "neutral", "bias_label": "Neutral — DXY fällt, Yields steigen"};
 
 // ── STATE ──────────────────────────────────────────
 let user = localStorage.getItem('tgb_user') || 'Dominik';
