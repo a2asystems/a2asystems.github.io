@@ -399,10 +399,11 @@
 
 <div class="modal-overlay" id="apiModal">
     <div class="modal">
-        <h2>API Key</h2>
-        <p>Um mit dem Commander zu chatten, benötigst du einen Anthropic API Key.<br>
-        Er wird nur lokal in deinem Browser gespeichert.</p>
+        <h2>Setup</h2>
+        <p>Anthropic API Key — für den Commander Chat</p>
         <input type="password" class="modal-input" id="apiKeyInput" placeholder="sk-ant-api03-..." />
+        <p style="margin-top:10px;margin-bottom:6px;font-size:12px;color:var(--text-secondary)">GitHub Token — für geteilte Notizen &amp; Strategien <span style="color:var(--text-dim)">(optional)</span></p>
+        <input type="password" class="modal-input" id="ghTokenInput" placeholder="github_pat_..." />
         <div class="modal-btns">
             <button class="btn btn-gold" onclick="saveApiKey()" style="flex:1">Speichern & Starten</button>
             <button class="btn btn-ghost" onclick="skipApiKey()">Später</button>
@@ -609,7 +610,7 @@
 </nav>
 
 <script>
-const LIVE = {"updated": "25.05.2026 06:30", "wr": 65.9, "pf": 1.73, "trades": 85, "net_pnl": 2852.17, "max_dd": -4.8, "price": 4508.22, "n_signals": 0, "best_wr": 0, "best_pf": 0, "candidates": 0, "from_date": "2024-05-28", "to_date": "2026-03-12", "variants": [{"id": "20260521_000000", "name": "Variante 1 — 21.05.2026 (Aktuell aktiv)", "date": "21.05.2026 00:00", "wr": 65.1, "pf": 1.67, "trades": 83, "mdd": -4.8, "pnl": 2580.11, "active": true, "top3": [], "config": {"ob_impulse_pips": 80, "ob_max_age": 30, "ob_min_body": 0.5, "bos_required": true, "swing_len": 12, "fvg_min_pips": 15, "fvg_max_age": 20, "min_brk_pip": 6, "pip_size": 0.1, "rr": 1.5, "rsi_limit": 65, "cooldown": 5, "ema_len": 50, "atr_len": 14, "rsi_len": 14, "initial_cap": 10000, "risk_pct": 0.009, "max_drawdown_pct": 0.05, "commission": 0.0007, "slippage_pip": 2, "ob_vol_multiplier": 1.3, "h4_stage_filter": true, "h4_ema_fast": 50, "h4_ema_slow": 200}}], "risk_status": "ok", "alerts": [], "signals": [], "agents": [{"name": "Data Fetcher", "role": "Daten-Beschaffung", "icon": "↻", "color": "#3D8EFF", "bg": "rgba(61,142,255,.12)", "status": "active", "prog": 100, "task": "Status: OK | Daten-Aktualisierung", "tags": ["MT5", "Parquet", "Historie"], "last": "2026-05-25T06:30"}, {"name": "Optimizer", "role": "Parameter-Suche", "icon": "◈", "color": "#F59E0B", "bg": "rgba(245,158,11,.12)", "status": "idle", "prog": 0, "task": "Beste WR: –% | PF: – | – Kandidaten", "tags": ["Grid-Search", "Optimierung"], "last": "–"}, {"name": "Backtester", "role": "Strategie-Tester", "icon": "▲", "color": "#10B981", "bg": "rgba(16,185,129,.12)", "status": "active", "prog": 100, "task": "Letzter Backtest: WR=65.9% | PF=1.73 | 85 Trades", "tags": ["M15", "XAUUSD", "SMC"], "last": "2026-05-25T06:30"}, {"name": "Signal Scanner", "role": "Echtzeit-Signale", "icon": "◎", "color": "#8B5CF6", "bg": "rgba(139,92,246,.12)", "status": "active", "prog": 100, "task": "Letzter Scan: 0 Signal(e) | Preis: $4508.22", "tags": ["OB", "FVG", "BOS"], "last": "2026-05-25T06:27"}, {"name": "Risk Manager", "role": "Risiko-Kontrolle", "icon": "◼", "color": "#EF4444", "bg": "rgba(239,68,68,.12)", "status": "active", "prog": 100, "task": "Status: OK | 0 Alert(s)", "tags": ["Drawdown", "Sizing"], "last": "2026-05-25T06:30"}, {"name": "Reporter", "role": "Dashboard", "icon": "≡", "color": "#14B8A6", "bg": "rgba(20,184,166,.12)", "status": "idle", "prog": 0, "task": "Status: OK", "tags": ["HTML", "Dashboard"], "last": "2026-05-25T03:27"}, {"name": "Notifier", "role": "Alerts", "icon": "◆", "color": "#6EE7B7", "bg": "rgba(110,231,183,.10)", "status": "idle", "prog": 0, "task": "Status: – | WhatsApp/Telegram bereit", "tags": ["WhatsApp", "Telegram"], "last": "–"}, {"name": "Executor", "role": "Order-Ausführung", "icon": "▶", "color": "#F97316", "bg": "rgba(249,115,22,.12)", "status": "idle", "prog": 0, "task": "Orders platziert: 0 | Modus: DRY RUN", "tags": ["MT5", "Orders", "DryRun"], "last": "–"}, {"name": "Macro Filter", "role": "News-Kalender", "icon": "◷", "color": "#EF4444", "bg": "rgba(239,68,68,.12)", "status": "active", "prog": 100, "task": "Kein Block | Nächstes Event: CPI m/m in 2703 Min", "tags": ["FOMC", "NFP", "CPI", "News"], "last": "2026-05-25T06:27"}, {"name": "DXY Correlation", "role": "USD & Yield Analyse", "icon": "↗", "color": "#3D8EFF", "bg": "rgba(61,142,255,.12)", "status": "active", "prog": 100, "task": "Gold-Bias: NEUTRAL (1/2) | DXY=99.047 | 10Y=4.558%", "tags": ["DXY", "US10Y", "Makro"], "last": "2026-05-25T06:30"}], "macro_blocked": false, "macro_reason": null, "macro_next": "CPI m/m", "macro_mins": 2703, "macro_today": [], "dxy": 99.047, "dxy_trend": "falling", "tnx": 4.558, "tnx_trend": "rising", "gold_bias": "neutral", "bias_label": "Neutral — DXY fällt, Yields steigen"};
+const LIVE = {"updated": "26.05.2026 19:18", "wr": 65.9, "pf": 1.73, "trades": 85, "net_pnl": 2852.17, "max_dd": -4.8, "price": 4563.43, "n_signals": 0, "best_wr": 71.4, "best_pf": 2.35, "candidates": 2532, "from_date": "2024-05-28", "to_date": "2026-03-12", "variants": [{"id": "20260521_000000", "name": "Variante 1 — 21.05.2026 (Aktuell aktiv)", "date": "21.05.2026 00:00", "wr": 65.1, "pf": 1.67, "trades": 83, "mdd": -4.8, "pnl": 2580.11, "active": false, "top3": [], "config": {"ob_impulse_pips": 80, "ob_max_age": 30, "ob_min_body": 0.5, "bos_required": true, "swing_len": 12, "fvg_min_pips": 15, "fvg_max_age": 20, "min_brk_pip": 6, "pip_size": 0.1, "rr": 1.5, "rsi_limit": 65, "cooldown": 5, "ema_len": 50, "atr_len": 14, "rsi_len": 14, "initial_cap": 10000, "risk_pct": 0.009, "max_drawdown_pct": 0.05, "commission": 0.0007, "slippage_pip": 2, "ob_vol_multiplier": 1.3, "h4_stage_filter": true, "h4_ema_fast": 50, "h4_ema_slow": 200}}, {"id": "20260525_122104", "name": "Variante 2 — 25.05.2026", "date": "25.05.2026 12:21", "wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970, "active": true, "top3": [{"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}, {"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}, {"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}], "config": {"ob_impulse_pips": 120.0, "ob_max_age": 30, "ob_min_body": 0.75, "bos_required": true, "swing_len": 8.0, "fvg_min_pips": 12.0, "fvg_max_age": 20, "min_brk_pip": 8.0, "pip_size": 0.1, "rr": 1.5, "rsi_limit": 70.0, "cooldown": 10.0, "ema_len": 50, "atr_len": 14, "rsi_len": 14, "initial_cap": 10000, "risk_pct": 0.009, "max_drawdown_pct": 0.1, "commission": 0.0007, "slippage_pip": 2, "ob_vol_multiplier": 1.3, "h4_stage_filter": true, "h4_ema_fast": 50, "h4_ema_slow": 200}}], "risk_status": "ok", "alerts": [], "signals": [], "agents": [{"name": "Data Fetcher", "role": "Daten-Beschaffung", "icon": "↻", "color": "#3D8EFF", "bg": "rgba(61,142,255,.12)", "status": "idle", "prog": 0, "task": "Status: OK | Daten-Aktualisierung", "tags": ["MT5", "Parquet", "Historie"], "last": "2026-05-26T12:12"}, {"name": "Optimizer", "role": "Parameter-Suche", "icon": "◈", "color": "#F59E0B", "bg": "rgba(245,158,11,.12)", "status": "idle", "prog": 0, "task": "Beste WR: 71.4% | PF: 2.35 | 2532 Kandidaten", "tags": ["Grid-Search", "Optimierung"], "last": "2026-05-25T12:21"}, {"name": "Backtester", "role": "Strategie-Tester", "icon": "▲", "color": "#10B981", "bg": "rgba(16,185,129,.12)", "status": "idle", "prog": 0, "task": "Letzter Backtest: WR=65.9% | PF=1.73 | 85 Trades", "tags": ["M15", "XAUUSD", "SMC"], "last": "2026-05-25T06:30"}, {"name": "Signal Scanner", "role": "Echtzeit-Signale", "icon": "◎", "color": "#8B5CF6", "bg": "rgba(139,92,246,.12)", "status": "idle", "prog": 0, "task": "Letzter Scan: 0 Signal(e) | Preis: $4563.43", "tags": ["OB", "FVG", "BOS"], "last": "2026-05-25T06:57"}, {"name": "Risk Manager", "role": "Risiko-Kontrolle", "icon": "◼", "color": "#EF4444", "bg": "rgba(239,68,68,.12)", "status": "idle", "prog": 0, "task": "Status: OK | 0 Alert(s)", "tags": ["Drawdown", "Sizing"], "last": "2026-05-25T06:30"}, {"name": "Reporter", "role": "Dashboard", "icon": "≡", "color": "#14B8A6", "bg": "rgba(20,184,166,.12)", "status": "idle", "prog": 0, "task": "Status: OK", "tags": ["HTML", "Dashboard"], "last": "2026-05-25T06:30"}, {"name": "Notifier", "role": "Alerts", "icon": "◆", "color": "#6EE7B7", "bg": "rgba(110,231,183,.10)", "status": "idle", "prog": 0, "task": "Status: – | WhatsApp/Telegram bereit", "tags": ["WhatsApp", "Telegram"], "last": "–"}, {"name": "Executor", "role": "Order-Ausführung", "icon": "▶", "color": "#F97316", "bg": "rgba(249,115,22,.12)", "status": "idle", "prog": 0, "task": "Orders platziert: 0 | Modus: DRY RUN", "tags": ["MT5", "Orders", "DryRun"], "last": "–"}, {"name": "Macro Filter", "role": "News-Kalender", "icon": "◷", "color": "#EF4444", "bg": "rgba(239,68,68,.12)", "status": "idle", "prog": 0, "task": "Kein Block | Nächstes Event: CPI m/m in 2672 Min", "tags": ["FOMC", "NFP", "CPI", "News"], "last": "2026-05-25T06:57"}, {"name": "DXY Correlation", "role": "USD & Yield Analyse", "icon": "↗", "color": "#3D8EFF", "bg": "rgba(61,142,255,.12)", "status": "idle", "prog": 0, "task": "Gold-Bias: NEUTRAL (1/2) | DXY=99.04 | 10Y=4.558%", "tags": ["DXY", "US10Y", "Makro"], "last": "2026-05-26T12:12"}], "macro_blocked": false, "macro_reason": null, "macro_next": "CPI m/m", "macro_mins": 2672, "macro_today": [], "dxy": 99.04, "dxy_trend": "falling", "tnx": 4.558, "tnx_trend": "rising", "gold_bias": "neutral", "bias_label": "Neutral — DXY fällt, Yields steigen"};
 
 // ── STATE ──────────────────────────────────────────
 let user = localStorage.getItem('tgb_user') || 'Dominik';
@@ -621,6 +622,8 @@ let busy   = false;
 
 // ── BOOT ───────────────────────────────────────────
 window.onload = () => {
+    const savedGh = localStorage.getItem('tgb_ghtoken');
+    if (savedGh) { document.getElementById('ghTokenInput').value = savedGh; }
     if (!apiKey) {
         document.getElementById('apiModal').style.display = 'flex';
     } else {
@@ -631,6 +634,8 @@ window.onload = () => {
 function saveApiKey() {
     const v = document.getElementById('apiKeyInput').value.trim();
     if (v) { localStorage.setItem('tgb_key', v); apiKey = v; }
+    const gv = document.getElementById('ghTokenInput').value.trim();
+    if (gv) { localStorage.setItem('tgb_ghtoken', gv); _ghToken = gv; }
     document.getElementById('apiModal').style.display = 'none';
     boot();
 }
@@ -638,6 +643,8 @@ function resetApiKey() {
     localStorage.removeItem('tgb_key');
     apiKey = '';
     document.getElementById('apiKeyInput').value = '';
+    const savedGh = localStorage.getItem('tgb_ghtoken');
+    if (savedGh) document.getElementById('ghTokenInput').value = savedGh;
     document.getElementById('apiModal').style.display = 'flex';
 }
 function skipApiKey() {
@@ -855,56 +862,149 @@ function showTab(id, btn) {
     btn.classList.add('active');
 }
 
-// ── STRATEGIEN (JSONBin) ────────────────────────────
+// ── CLOUD STORAGE (GitHub) ─────────────────────────
 const IMGBB_KEY = 'a2490835943cef8ae22860914c5a5d19';
-const JB_KEY = '$2a$10$DPH4U6EMaWQeUrhnX5pITu1hqVPqD7z.CsPYooJC1TNKmNcu3Pfpi';
-const JB_BIN = '6a10abf86610dd3ae88c58bf';
-const JB_URL = `https://api.jsonbin.io/v3/b/${JB_BIN}`;
-const JB_HDR = { 'X-Master-Key': JB_KEY, 'Content-Type': 'application/json' };
+const GH_TOKEN  = '';
+const GH_USER   = 'a2asystems';
+const GH_REPO   = 'a2asystems.github.io';
 
-async function _jbGet() {
-    try {
-        const r = await fetch(JB_URL + '/latest', { headers: JB_HDR });
-        const d = await r.json();
-        return d.record || {};
-    } catch { return {}; }
+let _ghToken  = (GH_TOKEN && GH_TOKEN !== '') ? GH_TOKEN : (localStorage.getItem('tgb_ghtoken') || '');
+const _ghUser = (GH_USER  && GH_USER  !== 'a2asystems')  ? GH_USER  : 'a2asystems';
+const _ghRepo = (GH_REPO  && GH_REPO  !== 'a2asystems.github.io')  ? GH_REPO  : 'a2asystems.github.io';
+
+let _ghSha       = null;
+let _ghOnline    = true;
+let _ghCache     = null;
+let _ghLastFetch = 0;
+let _ghFetchProm = null;
+
+async function _ghGet() {
+    if (!_ghToken) return _ghCache || {};
+    const now = Date.now();
+    if (_ghCache !== null && (now - _ghLastFetch) < 3000) return _ghCache;
+    if (_ghFetchProm) return _ghFetchProm;
+    _ghFetchProm = (async () => {
+        try {
+            const ctrl = new AbortController();
+            setTimeout(() => ctrl.abort(), 8000);
+            const r = await fetch(
+                `https://api.github.com/repos/${_ghUser}/${_ghRepo}/contents/state.json?t=${now}`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${_ghToken}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                    },
+                    signal: ctrl.signal,
+                }
+            );
+            if (r.status === 404) {
+                _ghSha = null; _ghOnline = true; _ghLastFetch = Date.now();
+                _ghCache = _ghCache || {};
+                return _ghCache;
+            }
+            if (!r.ok) throw new Error('status ' + r.status);
+            const d = await r.json();
+            _ghSha       = d.sha;
+            _ghOnline    = true;
+            _ghLastFetch = Date.now();
+            _ghCache     = JSON.parse(atob(d.content.replace(/
+/g, '')));
+            return _ghCache;
+        } catch {
+            _ghOnline = false;
+            return _ghCache || {};
+        } finally {
+            _ghFetchProm = null;
+        }
+    })();
+    return _ghFetchProm;
 }
-async function _jbPut(data) {
-    await fetch(JB_URL, { method:'PUT', headers:JB_HDR, body:JSON.stringify(data) });
+
+async function _ghPut(data) {
+    if (!_ghToken) return false;
+    const enc = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+    for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+            const ctrl = new AbortController();
+            setTimeout(() => ctrl.abort(), 12000);
+            const payload = { message: 'bot: update state', content: enc };
+            if (_ghSha) payload.sha = _ghSha;
+            const r = await fetch(
+                `https://api.github.com/repos/${_ghUser}/${_ghRepo}/contents/state.json`,
+                {
+                    method:  'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${_ghToken}`,
+                        'Accept':        'application/vnd.github.v3+json',
+                        'Content-Type':  'application/json',
+                    },
+                    body:   JSON.stringify(payload),
+                    signal: ctrl.signal,
+                }
+            );
+            if (r.status === 409) {
+                _ghLastFetch = 0;
+                await _ghGet();
+                continue;
+            }
+            if (!r.ok) throw new Error('status ' + r.status);
+            const d  = await r.json();
+            _ghSha       = d.content?.sha || _ghSha;
+            _ghOnline    = true;
+            _ghLastFetch = 0;
+            _ghCache     = data;
+            return true;
+        } catch {
+            _ghOnline = false;
+            return false;
+        }
+    }
+    return false;
 }
 
 async function loadStrategies() {
-    return (await _jbGet()).strategies || [];
+    return (await _ghGet()).strategies || [];
 }
 async function saveStrategies(list) {
-    const data = await _jbGet();
-    await _jbPut({ ...data, strategies: list });
+    const data = await _ghGet();
+    localStorage.setItem('tgb_strategies_bak', JSON.stringify(list.slice(0, 50)));
+    await _ghPut({ ...data, strategies: list });
 }
 
 async function loadChat() {
-    return (await _jbGet()).chat || [];
+    if (!_ghToken) {
+        try { return JSON.parse(localStorage.getItem('tgb_chat') || '[]'); } catch { return []; }
+    }
+    const cloud = (await _ghGet()).chat;
+    if (cloud && cloud.length) return cloud;
+    try { return JSON.parse(localStorage.getItem('tgb_chat') || '[]'); } catch { return []; }
 }
 async function saveChat(messages) {
-    const data = await _jbGet();
-    // Max 200 Nachrichten behalten
     const trimmed = messages.slice(-200);
-    await _jbPut({ ...data, chat: trimmed });
+    localStorage.setItem('tgb_chat', JSON.stringify(trimmed));
+    if (_ghToken && _ghOnline) {
+        const data = await _ghGet();
+        await _ghPut({ ...data, chat: trimmed });
+    }
 }
 async function clearChat() {
-    if (!confirm('Gesamten Chatverlauf für alle löschen?')) return;
+    if (!confirm('Gesamten Chatverlauf löschen?')) return;
     hist = [];
-    const data = await _jbGet();
-    await _jbPut({ ...data, chat: [] });
+    localStorage.removeItem('tgb_chat');
+    if (_ghToken) {
+        const data = await _ghGet();
+        await _ghPut({ ...data, chat: [] });
+    }
     document.getElementById('chatMessages').innerHTML = '';
     welcomeMsg();
 }
 
 async function loadImages() {
-    return (await _jbGet()).images || [];
+    return (await _ghGet()).images || [];
 }
 async function saveImages(list) {
-    const data = await _jbGet();
-    await _jbPut({ ...data, images: list });
+    const data = await _ghGet();
+    await _ghPut({ ...data, images: list });
 }
 
 async function renderStrategies() {
@@ -1238,11 +1338,15 @@ function onKey(e) { if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); se
 
 // ── COMMANDER DISPATCH ─────────────────────────────
 async function dispatchCommand(cmd) {
+    if (!_ghToken) {
+        addMsg('assistant', '⚠️ **Kein GitHub Token** — bitte Token über das Schlüssel-Symbol oben rechts eingeben.');
+        return;
+    }
     try {
-        const data = await _jbGet();
+        const data = await _ghGet();
         const commands = data.commands || [];
         commands.push({ ...cmd, status: 'pending', dispatched: Date.now() });
-        await _jbPut({ ...data, commands });
+        await _ghPut({ ...data, commands });
         addMsg('assistant', `⚡ **Befehl übermittelt!** "${cmd.name || cmd.type}" wurde an den Bot-PC gesendet.\n\nDas Ergebnis erscheint automatisch im **Strategien-Tab** — dauert ca. 2 Min. ⏱️`);
         saveChat(hist).catch(() => {});
     } catch(e) {
