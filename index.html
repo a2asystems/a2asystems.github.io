@@ -20,7 +20,7 @@ html{font-size:15px}
 body{
   font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',Helvetica,sans-serif;
   background:var(--bg);color:var(--text);
-  min-height:100dvh;overflow-x:hidden;
+  min-height:100dvh;
   -webkit-overflow-scrolling:touch;
   background-image:
     radial-gradient(ellipse 100% 50% at 50% -10%,rgba(245,158,11,.07) 0%,transparent 60%),
@@ -188,6 +188,29 @@ header{
 #sendBtn:disabled{opacity:.35}
 #sendBtn:not(:disabled):active{transform:scale(.9)}
 
+/* NOTES & PHOTOS */
+.note-input{width:100%;min-height:100px;background:rgba(255,255,255,.055);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;color:var(--text);font-size:.82rem;font-family:inherit;resize:vertical;outline:none;-webkit-appearance:none;transition:border-color .2s;line-height:1.55}
+.note-input:focus{border-color:rgba(245,158,11,.38)}
+.note-input::placeholder{color:var(--text3)}
+.note-saved{display:flex;flex-direction:column;gap:8px}
+.note-item{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:11px 13px;position:relative}
+.note-item-text{font-size:.78rem;color:var(--text);line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.note-item-meta{font-size:.58rem;color:var(--text3);margin-top:5px}
+.note-del{position:absolute;top:8px;right:8px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:.9rem;padding:2px 5px;border-radius:4px;touch-action:manipulation}
+.note-del:active{color:var(--red)}
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.photo-thumb{aspect-ratio:1;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.04);border:1px solid var(--border);cursor:pointer;touch-action:manipulation;position:relative}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.photo-thumb .ph-del{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.6);border:none;color:#fff;border-radius:4px;font-size:.6rem;padding:2px 5px;cursor:pointer;touch-action:manipulation;display:none}
+.photo-thumb:hover .ph-del,.photo-thumb:active .ph-del{display:block}
+.upload-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border:2px dashed var(--border);border-radius:var(--r);background:none;color:var(--text2);font-size:.75rem;font-weight:600;cursor:pointer;touch-action:manipulation;width:100%;transition:border-color .2s,color .2s;-webkit-appearance:none}
+.upload-btn:active{border-color:var(--gold);color:var(--gold)}
+#photoFileIn{display:none}
+.lightbox{display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.92);align-items:center;justify-content:center;padding:16px}
+.lightbox.on{display:flex}
+.lightbox img{max-width:100%;max-height:100%;border-radius:8px;object-fit:contain}
+.lb-close{position:absolute;top:max(16px,env(safe-area-inset-top));right:16px;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:1.2rem;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
+
 /* TOAST */
 #toast{position:fixed;bottom:max(76px,calc(env(safe-area-inset-bottom)+70px));left:50%;transform:translateX(-50%) translateY(14px);font-size:.75rem;font-weight:600;padding:9px 18px;border-radius:20px;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;z-index:500;white-space:nowrap}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -196,11 +219,12 @@ header{
 @media(min-width:769px){
   html{height:100%;overflow:hidden}
   body{height:100%;display:grid;grid-template-rows:auto 1fr;overflow:hidden}
-  .main{display:grid;grid-template-columns:1fr 320px 380px;overflow:hidden;flex-direction:unset}
+  .main{display:grid;grid-template-columns:1fr 300px 340px 300px;overflow:hidden;flex-direction:unset}
   .panel{height:100%;overflow-y:auto;border-right:1px solid var(--border);padding:18px}
   .panel:last-child{border-right:none}
   #panelChat{height:100%;overflow:hidden;padding:0;display:flex;flex-direction:column}
   #panelChat .chat-msgs{padding:18px}
+  #panelNotes{display:flex!important}
   #panelSignals{display:none!important}
   .tabbar{display:none!important}
   .kpi-grid{grid-template-columns:repeat(4,1fr)}
@@ -215,6 +239,8 @@ header{
   .main{display:block}
   .panel{display:none}
   .panel.active{display:flex}
+  #panelNotes{display:none}
+  #panelNotes.active{display:flex}
   #panelChat{height:calc(100dvh - max(68px,calc(env(safe-area-inset-top)+58px)) - max(68px,calc(env(safe-area-inset-bottom)+58px)));overflow:hidden}
   #panelChat.active{display:flex}
   #panelChat .chat-msgs{padding:10px}
@@ -243,22 +269,25 @@ header{
 <nav class="tabbar">
   <div class="tabbar-row">
     <button class="tbtn active" data-tab="dashboard" onclick="switchTab('dashboard')">
-      <span class="ti">📊</span>Dashboard
+      <span class="ti">📊</span>Stats
     </button>
     <button class="tbtn" data-tab="agents" onclick="switchTab('agents')">
       <span class="ti">🤖</span>Agenten
     </button>
-    <button class="tbtn" data-tab="signals" onclick="switchTab('signals')">
-      <span class="ti">⚡</span>Signale
-      <span class="tbadge" id="sigBadge" style="display:none">0</span>
-    </button>
     <button class="tbtn" data-tab="chat" onclick="switchTab('chat')">
       <span class="ti">💬</span>Commander
+    </button>
+    <button class="tbtn" data-tab="notes" onclick="switchTab('notes')">
+      <span class="ti">📝</span>Notizen
     </button>
   </div>
 </nav>
 
 <div id="toast"></div>
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lb-close" onclick="closeLightbox()">✕</button>
+  <img id="lbImg" src="" alt="">
+</div>
 
 <main class="main">
 
@@ -365,7 +394,49 @@ header{
     </div>
   </section>
 
-  <!-- ════════════ PANEL 4: CHAT ════════════ -->
+  <!-- ════════════ PANEL 4: NOTIZEN & FOTOS ════════════ -->
+  <section class="panel" id="panelNotes">
+
+    <!-- NOTE INPUT -->
+    <div class="card">
+      <div class="ch">
+        <span class="ct">Neue Notiz</span>
+        <button class="btn" onclick="saveNote()">💾 Speichern</button>
+      </div>
+      <div class="cb">
+        <textarea class="note-input" id="noteInput" placeholder="Notiz eingeben… (z.B. Trade-Ideen, Beobachtungen, Strategie-Anpassungen)"></textarea>
+      </div>
+    </div>
+
+    <!-- SAVED NOTES -->
+    <div class="card">
+      <div class="ch">
+        <span class="ct">Gespeicherte Notizen</span>
+        <button class="btn" onclick="clearNotes()" style="color:var(--red);border-color:rgba(239,68,68,.3)">Alle löschen</button>
+      </div>
+      <div class="cb">
+        <div id="notesList"><div class="empty"><div class="empty-ico">📝</div>Noch keine Notizen</div></div>
+      </div>
+    </div>
+
+    <!-- PHOTOS -->
+    <div class="card">
+      <div class="ch">
+        <span class="ct">Fotos & Charts</span>
+        <span style="font-size:.62rem;color:var(--text3)" id="photoCount">0 Fotos</span>
+      </div>
+      <div class="cb" style="display:flex;flex-direction:column;gap:10px">
+        <button class="upload-btn" onclick="document.getElementById('photoFileIn').click()">
+          📷 Foto hinzufügen
+        </button>
+        <input type="file" id="photoFileIn" accept="image/*" multiple onchange="uploadPhotos(this)">
+        <div class="photo-grid" id="photoGrid"></div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ════════════ PANEL 5: CHAT ════════════ -->
   <section class="panel" id="panelChat">
     <div class="chat-msgs" id="chatBox"></div>
     <div class="chat-foot">
@@ -377,7 +448,7 @@ header{
 </main>
 
 <script>
-const LIVE = {"updated": "27.05.2026 06:54", "wr": 71.4, "pf": 2.35, "trades": 21, "net_pnl": 969.9, "max_dd": -1.5, "price": 4510.05, "n_signals": 0, "best_wr": 71.4, "best_pf": 2.35, "candidates": 2532, "from_date": "2024-08-02", "to_date": "2026-03-09", "variants": [{"id": "20260521_000000", "name": "Variante 1 — 21.05.2026 (Aktuell aktiv)", "date": "21.05.2026 00:00", "wr": 65.1, "pf": 1.67, "trades": 83, "mdd": -4.8, "pnl": 2580.11, "active": false, "top3": [], "config": {"ob_impulse_pips": 80, "ob_max_age": 30, "ob_min_body": 0.5, "bos_required": true, "swing_len": 12, "fvg_min_pips": 15, "fvg_max_age": 20, "min_brk_pip": 6, "pip_size": 0.1, "rr": 1.5, "rsi_limit": 65, "cooldown": 5, "ema_len": 50, "atr_len": 14, "rsi_len": 14, "initial_cap": 10000, "risk_pct": 0.009, "max_drawdown_pct": 0.05, "commission": 0.0007, "slippage_pip": 2, "ob_vol_multiplier": 1.3, "h4_stage_filter": true, "h4_ema_fast": 50, "h4_ema_slow": 200}}, {"id": "20260525_122104", "name": "Variante 2 — 25.05.2026", "date": "25.05.2026 12:21", "wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970, "active": true, "top3": [{"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}, {"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}, {"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}], "config": {"ob_impulse_pips": 120.0, "ob_max_age": 30, "ob_min_body": 0.75, "bos_required": true, "swing_len": 8.0, "fvg_min_pips": 12.0, "fvg_max_age": 20, "min_brk_pip": 8.0, "pip_size": 0.1, "rr": 1.5, "rsi_limit": 70.0, "cooldown": 10.0, "ema_len": 50, "atr_len": 14, "rsi_len": 14, "initial_cap": 10000, "risk_pct": 0.009, "max_drawdown_pct": 0.1, "commission": 0.0007, "slippage_pip": 2, "ob_vol_multiplier": 1.3, "h4_stage_filter": true, "h4_ema_fast": 50, "h4_ema_slow": 200}}], "risk_status": "ok", "alerts": [], "signals": [], "agents": [{"name": "Data Fetcher", "role": "Daten-Beschaffung", "icon": "↻", "color": "#3D8EFF", "bg": "rgba(61,142,255,.12)", "status": "active", "prog": 100, "task": "Status: OK | Daten-Aktualisierung", "tags": ["MT5", "Parquet", "Historie"], "last": "2026-05-27T06:30"}, {"name": "Optimizer", "role": "Parameter-Suche", "icon": "◈", "color": "#F59E0B", "bg": "rgba(245,158,11,.12)", "status": "idle", "prog": 0, "task": "Beste WR: 71.4% | PF: 2.35 | 2532 Kandidaten", "tags": ["Grid-Search", "Optimierung"], "last": "2026-05-25T12:21"}, {"name": "Backtester", "role": "Strategie-Tester", "icon": "▲", "color": "#10B981", "bg": "rgba(16,185,129,.12)", "status": "active", "prog": 100, "task": "Letzter Backtest: WR=71.4% | PF=2.35 | 21 Trades", "tags": ["M15", "XAUUSD", "SMC"], "last": "2026-05-27T06:30"}, {"name": "Signal Scanner", "role": "Echtzeit-Signale", "icon": "◎", "color": "#8B5CF6", "bg": "rgba(139,92,246,.12)", "status": "active", "prog": 100, "task": "Letzter Scan: 0 Signal(e) | Preis: $4510.05", "tags": ["OB", "FVG", "BOS"], "last": "2026-05-27T06:42"}, {"name": "Risk Manager", "role": "Risiko-Kontrolle", "icon": "◼", "color": "#EF4444", "bg": "rgba(239,68,68,.12)", "status": "active", "prog": 100, "task": "Status: OK | 0 Alert(s)", "tags": ["Drawdown", "Sizing"], "last": "2026-05-27T06:30"}, {"name": "Reporter", "role": "Dashboard", "icon": "≡", "color": "#14B8A6", "bg": "rgba(20,184,166,.12)", "status": "active", "prog": 100, "task": "Status: OK", "tags": ["HTML", "Dashboard"], "last": "2026-05-27T06:48"}, {"name": "Notifier", "role": "Alerts", "icon": "◆", "color": "#6EE7B7", "bg": "rgba(110,231,183,.10)", "status": "idle", "prog": 0, "task": "Status: – | WhatsApp/Telegram bereit", "tags": ["WhatsApp", "Telegram"], "last": "–"}, {"name": "Executor", "role": "Order-Ausführung", "icon": "▶", "color": "#F97316", "bg": "rgba(249,115,22,.12)", "status": "idle", "prog": 0, "task": "Orders platziert: 0 | Modus: DRY RUN", "tags": ["MT5", "Orders", "DryRun"], "last": "–"}, {"name": "Macro Filter", "role": "News-Kalender", "icon": "◷", "color": "#EF4444", "bg": "rgba(239,68,68,.12)", "status": "active", "prog": 100, "task": "Kein Block | Nächstes Event: Core PCE Price Index m/m in 1907 Min", "tags": ["FOMC", "NFP", "CPI", "News"], "last": "2026-05-27T06:42"}, {"name": "DXY Correlation", "role": "USD & Yield Analyse", "icon": "↗", "color": "#3D8EFF", "bg": "rgba(61,142,255,.12)", "status": "active", "prog": 100, "task": "Gold-Bias: NEUTRAL (1/2) | DXY=99.087 | 10Y=4.493%", "tags": ["DXY", "US10Y", "Makro"], "last": "2026-05-27T06:30"}], "macro_blocked": false, "macro_reason": null, "macro_next": "Core PCE Price Index m/m", "macro_mins": 1907, "macro_today": [], "dxy": 99.087, "dxy_trend": "falling", "tnx": 4.493, "tnx_trend": "rising", "gold_bias": "neutral", "bias_label": "Neutral — DXY fällt, Yields steigen"};
+const LIVE = {"updated": "27.05.2026 07:17", "wr": 71.4, "pf": 2.35, "trades": 21, "net_pnl": 969.9, "max_dd": -1.5, "price": 4510.05, "n_signals": 0, "best_wr": 71.4, "best_pf": 2.35, "candidates": 2532, "from_date": "2024-08-02", "to_date": "2026-03-09", "variants": [{"id": "20260521_000000", "name": "Variante 1 — 21.05.2026 (Aktuell aktiv)", "date": "21.05.2026 00:00", "wr": 65.1, "pf": 1.67, "trades": 83, "mdd": -4.8, "pnl": 2580.11, "active": false, "top3": [], "config": {"ob_impulse_pips": 80, "ob_max_age": 30, "ob_min_body": 0.5, "bos_required": true, "swing_len": 12, "fvg_min_pips": 15, "fvg_max_age": 20, "min_brk_pip": 6, "pip_size": 0.1, "rr": 1.5, "rsi_limit": 65, "cooldown": 5, "ema_len": 50, "atr_len": 14, "rsi_len": 14, "initial_cap": 10000, "risk_pct": 0.009, "max_drawdown_pct": 0.05, "commission": 0.0007, "slippage_pip": 2, "ob_vol_multiplier": 1.3, "h4_stage_filter": true, "h4_ema_fast": 50, "h4_ema_slow": 200}}, {"id": "20260525_122104", "name": "Variante 2 — 25.05.2026", "date": "25.05.2026 12:21", "wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970, "active": true, "top3": [{"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}, {"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}, {"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}], "config": {"ob_impulse_pips": 120.0, "ob_max_age": 30, "ob_min_body": 0.75, "bos_required": true, "swing_len": 8.0, "fvg_min_pips": 12.0, "fvg_max_age": 20, "min_brk_pip": 8.0, "pip_size": 0.1, "rr": 1.5, "rsi_limit": 70.0, "cooldown": 10.0, "ema_len": 50, "atr_len": 14, "rsi_len": 14, "initial_cap": 10000, "risk_pct": 0.009, "max_drawdown_pct": 0.1, "commission": 0.0007, "slippage_pip": 2, "ob_vol_multiplier": 1.3, "h4_stage_filter": true, "h4_ema_fast": 50, "h4_ema_slow": 200}}], "risk_status": "ok", "alerts": [], "signals": [], "agents": [{"name": "Data Fetcher", "role": "Daten-Beschaffung", "icon": "↻", "color": "#3D8EFF", "bg": "rgba(61,142,255,.12)", "status": "active", "prog": 100, "task": "Status: OK | Daten-Aktualisierung", "tags": ["MT5", "Parquet", "Historie"], "last": "2026-05-27T06:30"}, {"name": "Optimizer", "role": "Parameter-Suche", "icon": "◈", "color": "#F59E0B", "bg": "rgba(245,158,11,.12)", "status": "idle", "prog": 0, "task": "Beste WR: 71.4% | PF: 2.35 | 2532 Kandidaten", "tags": ["Grid-Search", "Optimierung"], "last": "2026-05-25T12:21"}, {"name": "Backtester", "role": "Strategie-Tester", "icon": "▲", "color": "#10B981", "bg": "rgba(16,185,129,.12)", "status": "active", "prog": 100, "task": "Letzter Backtest: WR=71.4% | PF=2.35 | 21 Trades", "tags": ["M15", "XAUUSD", "SMC"], "last": "2026-05-27T06:30"}, {"name": "Signal Scanner", "role": "Echtzeit-Signale", "icon": "◎", "color": "#8B5CF6", "bg": "rgba(139,92,246,.12)", "status": "active", "prog": 100, "task": "Letzter Scan: 0 Signal(e) | Preis: $4510.05", "tags": ["OB", "FVG", "BOS"], "last": "2026-05-27T07:12"}, {"name": "Risk Manager", "role": "Risiko-Kontrolle", "icon": "◼", "color": "#EF4444", "bg": "rgba(239,68,68,.12)", "status": "active", "prog": 100, "task": "Status: OK | 0 Alert(s)", "tags": ["Drawdown", "Sizing"], "last": "2026-05-27T06:30"}, {"name": "Reporter", "role": "Dashboard", "icon": "≡", "color": "#14B8A6", "bg": "rgba(20,184,166,.12)", "status": "active", "prog": 100, "task": "Status: OK", "tags": ["HTML", "Dashboard"], "last": "2026-05-27T06:54"}, {"name": "Notifier", "role": "Alerts", "icon": "◆", "color": "#6EE7B7", "bg": "rgba(110,231,183,.10)", "status": "idle", "prog": 0, "task": "Status: – | WhatsApp/Telegram bereit", "tags": ["WhatsApp", "Telegram"], "last": "–"}, {"name": "Executor", "role": "Order-Ausführung", "icon": "▶", "color": "#F97316", "bg": "rgba(249,115,22,.12)", "status": "idle", "prog": 0, "task": "Orders platziert: 0 | Modus: DRY RUN", "tags": ["MT5", "Orders", "DryRun"], "last": "–"}, {"name": "Macro Filter", "role": "News-Kalender", "icon": "◷", "color": "#EF4444", "bg": "rgba(239,68,68,.12)", "status": "active", "prog": 100, "task": "Kein Block | Nächstes Event: Core PCE Price Index m/m in 1877 Min", "tags": ["FOMC", "NFP", "CPI", "News"], "last": "2026-05-27T07:12"}, {"name": "DXY Correlation", "role": "USD & Yield Analyse", "icon": "↗", "color": "#3D8EFF", "bg": "rgba(61,142,255,.12)", "status": "active", "prog": 100, "task": "Gold-Bias: NEUTRAL (1/2) | DXY=99.087 | 10Y=4.493%", "tags": ["DXY", "US10Y", "Makro"], "last": "2026-05-27T06:30"}], "macro_blocked": false, "macro_reason": null, "macro_next": "Core PCE Price Index m/m", "macro_mins": 1877, "macro_today": [], "dxy": 99.087, "dxy_trend": "falling", "tnx": 4.493, "tnx_trend": "rising", "gold_bias": "neutral", "bias_label": "Neutral — DXY fällt, Yields steigen"};
 
 const GHUSER = 'a2asystems';
 const GHREPO = 'a2asystems.github.io';
@@ -392,6 +463,8 @@ const ME = 'Trader';
 window.addEventListener('load', () => {
     renderAll(L);
     initChat();
+    renderNotes();
+    renderPhotos();
     setInterval(poll, 30000);
 });
 window.addEventListener('resize', () => { if(L) drawChart(L); });
@@ -673,12 +746,13 @@ function renderEvents(d) {
 // ── TABS ───────────────────────────────────────────────────────────────────
 function switchTab(tab) {
     document.querySelectorAll('.tbtn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
-    const map = {dashboard:'panelDashboard',agents:'panelAgents',signals:'panelSignals',chat:'panelChat'};
+    const map = {dashboard:'panelDashboard',agents:'panelAgents',signals:'panelSignals',chat:'panelChat',notes:'panelNotes'};
     document.querySelectorAll('.panel').forEach(p=>{
         const active = p.id===map[tab];
-        if (p.id==='panelSignals') { p.style.display=active?'flex':'none'; }
+        if (p.id==='panelSignals'||p.id==='panelNotes') { p.style.display=active?'flex':'none'; }
         else { p.classList.toggle('active',active); }
     });
+    if (tab==='notes') renderNotes();
 }
 
 // ── CHAT ───────────────────────────────────────────────────────────────────
@@ -819,6 +893,93 @@ async function dispatch(cmd){
 Ergebnis erscheint in ~2 Min. im Dashboard.');
         toast('Befehl gesendet ✓');
     }catch(e){addMsg('assistant','⚠️ Dispatch fehlgeschlagen: '+e.message);}
+}
+
+// ── NOTES ──────────────────────────────────────────────────────────────────
+function getNotes(){try{return JSON.parse(localStorage.getItem('gb_notes')||'[]');}catch(e){return[];}}
+function saveNotes(n){try{localStorage.setItem('gb_notes',JSON.stringify(n));}catch(e){}}
+
+function saveNote(){
+    const inp=document.getElementById('noteInput');
+    const txt=inp.value.trim(); if(!txt) return;
+    const notes=getNotes();
+    notes.unshift({text:txt,ts:Date.now()});
+    saveNotes(notes);
+    inp.value='';
+    renderNotes();
+    toast('Notiz gespeichert ✓');
+}
+
+function deleteNote(idx){
+    const notes=getNotes(); notes.splice(idx,1); saveNotes(notes); renderNotes();
+}
+
+function clearNotes(){
+    if(!confirm('Alle Notizen löschen?')) return;
+    saveNotes([]); renderNotes(); toast('Alle Notizen gelöscht');
+}
+
+function renderNotes(){
+    const notes=getNotes();
+    const el=document.getElementById('notesList'); if(!el) return;
+    if(!notes.length){el.innerHTML='<div class="empty"><div class="empty-ico">📝</div>Noch keine Notizen</div>';return;}
+    el.innerHTML='<div class="note-saved">'+notes.map((n,i)=>
+        `<div class="note-item">
+          <div class="note-item-text">${esc(n.text)}</div>
+          <div class="note-item-meta">${fmt(n.ts)}</div>
+          <button class="note-del" onclick="deleteNote(${i})">✕</button>
+        </div>`
+    ).join('')+'</div>';
+}
+
+// ── PHOTOS ─────────────────────────────────────────────────────────────────
+function getPhotos(){try{return JSON.parse(localStorage.getItem('gb_photos')||'[]');}catch(e){return[];}}
+function savePhotosList(p){try{localStorage.setItem('gb_photos',JSON.stringify(p));}catch(e){}}
+
+async function uploadPhotos(input){
+    const files=Array.from(input.files); if(!files.length) return;
+    toast('Lade hoch…');
+    for(const file of files){
+        try{
+            const fd=new FormData(); fd.append('image',file); fd.append('key',IMGBB);
+            const r=await fetch('https://api.imgbb.com/1/upload',{method:'POST',body:fd});
+            const d=await r.json();
+            if(d.success){
+                const photos=getPhotos();
+                photos.unshift({url:d.data.url,thumb:d.data.thumb?.url||d.data.url,ts:Date.now(),name:file.name});
+                savePhotosList(photos);
+                renderPhotos();
+                toast('Foto hochgeladen ✓');
+            } else { toast('Upload fehlgeschlagen',true); }
+        } catch(e){ toast('Upload Fehler: '+e.message,true); }
+    }
+    input.value='';
+}
+
+function deletePhoto(idx){
+    const photos=getPhotos(); photos.splice(idx,1); savePhotosList(photos); renderPhotos();
+}
+
+function renderPhotos(){
+    const photos=getPhotos();
+    const grid=document.getElementById('photoGrid'); if(!grid) return;
+    const cnt=document.getElementById('photoCount'); if(cnt) cnt.textContent=photos.length+' Foto(s)';
+    if(!photos.length){grid.innerHTML='';return;}
+    grid.innerHTML=photos.map((p,i)=>
+        `<div class="photo-thumb">
+          <img src="${esc(p.thumb||p.url)}" alt="${esc(p.name||'')}" onclick="openLightbox('${esc(p.url)}')">
+          <button class="ph-del" onclick="deletePhoto(${i})">✕</button>
+        </div>`
+    ).join('');
+}
+
+function openLightbox(url){
+    document.getElementById('lbImg').src=url;
+    document.getElementById('lightbox').classList.add('on');
+}
+function closeLightbox(){
+    document.getElementById('lightbox').classList.remove('on');
+    document.getElementById('lbImg').src='';
 }
 
 // ── UTILS ──────────────────────────────────────────────────────────────────
