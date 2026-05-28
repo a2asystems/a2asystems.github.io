@@ -438,8 +438,7 @@ async function ghGet(){
         {headers:{Authorization:'Bearer '+ghTok(),'User-Agent':'gold-bot'}});
     if(!r.ok) throw new Error('GitHub GET '+r.status);
     const m=await r.json();
-    return {data:JSON.parse(atob(m.content.replace(/
-/g,''))),sha:m.sha};
+    return {data:JSON.parse(atob(m.content.replace(/\n/g,''))),sha:m.sha};
 }
 async function ghPut(data,sha){
     const r=await fetch(`https://api.github.com/repos/${GHUSER}/${GHREPO}/contents/state.json`,{
@@ -455,9 +454,7 @@ async function dispatch(cmd){
         const{data,sha}=await ghGet();
         (data.commands=data.commands||[]).push({...cmd,status:'pending',dispatched:Date.now()});
         await ghPut(data,sha);
-        addMsg('assistant','⚡ **Befehl gesendet!** "'+esc(cmd.name||cmd.type)+'" wurde übermittelt.
-
-Ergebnis erscheint in ~2 Min. im Dashboard.');
+        addMsg('assistant','⚡ **Befehl gesendet!** "'+esc(cmd.name||cmd.type)+'" wurde übermittelt.\n\nErgebnis erscheint in ~2 Min. im Dashboard.');
         toast('Befehl gesendet ✓');
     }catch(e){addMsg('assistant','⚠️ Dispatch fehlgeschlagen: '+e.message);}
 }
