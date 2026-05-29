@@ -303,21 +303,23 @@ function renderEvents(d) {
 }
 
 // ── TABS ───────────────────────────────────────────────────────────────────
+var _tabMap = {stats:'panelDashboard', agents:'panelAgents', chat:'panelChat', notes:'panelNotes'};
 function switchTab(tab) {
-    document.querySelectorAll('.tbtn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
-    const map = {dashboard:'panelDashboard',agents:'panelAgents',signals:'panelSignals',chat:'panelChat',notes:'panelNotes'};
-    if (window.matchMedia('(max-width:768px)').matches) {
-        // Inline style overrides CSS display:none without needing !important
-        ['panelDashboard','panelAgents','panelNotes','panelChat'].forEach(function(id) {
-            var el = document.getElementById(id);
-            if (!el) return;
-            var show = map[tab] === id;
-            el.style.setProperty('display', show ? 'flex' : 'none', 'important');
-        });
-    } else {
-        document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id===map[tab]));
-    }
-    if (tab==='notes') renderNotes();
+    var targetId = _tabMap[tab];
+    // Update panel visibility
+    Object.values(_tabMap).forEach(function(id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        if (id === targetId) { el.classList.add('show'); }
+        else { el.classList.remove('show'); }
+    });
+    // Update tab button state
+    document.querySelectorAll('.tbtn').forEach(function(b) {
+        if (b.dataset.tab === tab) { b.classList.add('show'); }
+        else { b.classList.remove('show'); }
+    });
+    if (tab === 'notes') renderNotes();
+    if (tab === 'chat' && document.getElementById('chatBox') && !document.getElementById('chatBox').children.length) initChat();
 }
 
 // ── CHAT ───────────────────────────────────────────────────────────────────
