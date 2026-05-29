@@ -322,6 +322,18 @@ function switchTab(tab) {
     if (tab === 'chat' && document.getElementById('chatBox') && !document.getElementById('chatBox').children.length) initChat();
 }
 
+function startOptimizer() {
+    switchTab('chat');
+    setTimeout(function() {
+        var inp = document.getElementById('chatInput');
+        if (inp) {
+            inp.value = 'Starte den Optimizer und zeige mir die besten Parameter';
+            inp.dispatchEvent(new Event('input'));
+            inp.focus();
+        }
+    }, 300);
+}
+
 // ── CHAT ───────────────────────────────────────────────────────────────────
 function initChat() {
     // Set initial persona button highlight
