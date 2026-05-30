@@ -400,20 +400,29 @@ async function toggleAsset(symbol, activate) {
 
 // ── CHAT ───────────────────────────────────────────────────────────────────
 function initChat() {
-    // Set initial persona button highlight
     document.querySelectorAll('.pb-btn').forEach(b => b.classList.toggle('active', b.textContent.includes(ME)));
-    const saved = (() => { try { return JSON.parse(localStorage.getItem('gb_chat')||'[]'); } catch(e) { return []; } })();
+    // Load saved conversation (never includes auto-generated welcome messages)
+    const saved = (function() {
+        try { return JSON.parse(localStorage.getItem('gb_chat') || '[]').filter(function(m){ return !m.auto; }); }
+        catch(e) { return []; }
+    })();
+    hist = saved.slice(); // seed history with saved
+    // Show saved messages first, then fresh welcome below
     if (saved.length) {
-        hist=saved; hist.forEach(m=>renderMsg(m.role,m.content,m.ts,m.author));
-    } else {
-        welcome();
+        const sep = document.createElement('div');
+        sep.style.cssText = 'text-align:center;font-size:.6rem;color:var(--text3);padding:6px 0;border-top:1px solid var(--border);margin-top:4px';
+        sep.textContent = '— ' + saved.length + ' gespeicherte Nachrichten —';
+        document.getElementById('chatBox').appendChild(sep);
+        saved.forEach(function(m) { renderMsg(m.role, m.content, m.ts, m.author); });
     }
+    welcome(); // always show fresh status at bottom
 }
 
 function welcome() {
     const d=L;
     const wr=d.wr?d.wr.toFixed(1)+'%':'–', pf=d.pf?d.pf.toFixed(2):'–';
     const dd=d.max_dd?d.max_dd.toFixed(1)+'%':'–', pnl=d.net_pnl?(d.net_pnl>0?'+':'')+d.net_pnl.toFixed(0)+'$':'–';
+    // auto:true marks this as a generated status message — not saved to localStorage
     addMsg('assistant',`**Gold Bot Commander** bereit ⚡
 
 📊 System-Status:
@@ -422,7 +431,7 @@ function welcome() {
 • Gold-Bias: **${(d.gold_bias||'neutral').toUpperCase()}** | DXY: ${d.dxy||'–'}
 • Macro: ${d.macro_blocked?'🔴 BLOCKIERT':'✅ Trading frei'}
 
-Wie kann ich helfen? Ich kann Agenten starten, Strategien analysieren und Befehle an den Bot senden.`);
+Wie kann ich helfen? Ich kann Agenten starten, Strategien analysieren und Befehle an den Bot senden.`, true);
 }
 
 function sysPrompt() {
@@ -461,11 +470,19 @@ function renderMsg(role, text, ts, author) {
     box.appendChild(d); box.scrollTop = box.scrollHeight;
 }
 
-function addMsg(role, text) {
+function addMsg(role, text, auto) {
     const ts=Date.now(), author=role==='user'?ME:'Commander';
-    hist.push({role,content:text,ts,author});
+    const entry = {role, content:text, ts, author};
+    if (auto) entry.auto = true;
+    hist.push(entry);
     renderMsg(role,text,ts,author);
-    try { localStorage.setItem('gb_chat', JSON.stringify(hist.slice(-60))); } catch(e) {}
+    // Don't save auto-generated status messages — only real conversation
+    if (!auto) {
+        try {
+            const toSave = hist.filter(function(m){ return !m.auto; }).slice(-60);
+            localStorage.setItem('gb_chat', JSON.stringify(toSave));
+        } catch(e) { console.warn('localStorage nicht verfügbar:', e); }
+    }
 }
 
 function showTyping() {
