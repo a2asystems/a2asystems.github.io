@@ -45,7 +45,7 @@ async function poll() {
 // ── RENDER ─────────────────────────────────────────────────────────────────
 function renderAll(d) {
     [renderHeader, renderKPIs, drawChart, renderStatus, renderRisk,
-     renderStrategies, renderAgents, renderSignals, renderEvents
+     renderStrategies, renderAgents, renderSignals, renderEvents, renderPoly
     ].forEach(function(fn){ try { fn(d); } catch(e) { console.error(fn.name, e); } });
 }
 
@@ -303,8 +303,101 @@ function renderEvents(d) {
     }).join('');
 }
 
+// ── POLYMARKET ─────────────────────────────────────────────────────────────
+function renderPoly(d) {
+    var poly = d.polymarket || {};
+    var opps = poly.opportunities || [];
+    var orders = poly.all_orders || poly.orders_placed || [];
+    var mode = poly.dry_run !== false ? 'PAPER' : 'LIVE';
+
+    // KPIs
+    var mEl = document.getElementById('polyMarkets');
+    var oEl = document.getElementById('polyOpps');
+    var ordEl = document.getElementById('polyOrders');
+    var modeEl = document.getElementById('polyMode');
+    if (mEl) mEl.textContent = poly.markets_scanned || '–';
+    if (oEl) oEl.textContent = opps.length || '0';
+    if (ordEl) ordEl.textContent = orders.length || '0';
+    if (modeEl) { modeEl.textContent = mode; modeEl.style.color = mode === 'LIVE' ? 'var(--red)' : 'var(--green)'; }
+
+    // Top opportunity
+    var top = poly.top_opportunity;
+    var topCard = document.getElementById('polyTopCard');
+    if (top && topCard) {
+        topCard.style.display = '';
+        var edgeEl = document.getElementById('polyTopEdge');
+        var contentEl = document.getElementById('polyTopContent');
+        if (edgeEl) edgeEl.textContent = (top.edge * 100).toFixed(1) + '% Edge';
+        if (contentEl) {
+            var dirColor = top.direction === 'YES' ? 'var(--green)' : 'var(--red)';
+            contentEl.innerHTML =
+                '<div style="font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:8px">' + esc(top.question) + '</div>' +
+                '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">' +
+                  '<span style="background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.3);color:var(--purple);padding:3px 8px;border-radius:5px;font-size:.65rem;font-weight:700">' +
+                    top.direction + ' @ ' + (top.direction === 'YES' ? top.yes_price : top.no_price).toFixed(2) +
+                  '</span>' +
+                  '<span style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);color:var(--gold);padding:3px 8px;border-radius:5px;font-size:.65rem;font-weight:700">' +
+                    'Claude: ' + (top.claude_prob * 100).toFixed(0) + '%' +
+                  '</span>' +
+                  '<span style="background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text2);padding:3px 8px;border-radius:5px;font-size:.65rem">' +
+                    'Vol: $' + (top.volume_24h || 0).toLocaleString() +
+                  '</span>' +
+                '</div>' +
+                '<div style="font-size:.7rem;color:var(--text2);line-height:1.5">' + esc(top.reasoning || '') + '</div>';
+        }
+    } else if (topCard) {
+        topCard.style.display = 'none';
+    }
+
+    // Opportunities list
+    var oppEl = document.getElementById('polyOppList');
+    if (oppEl) {
+        if (!opps.length) {
+            oppEl.innerHTML = '<div class="empty"><div class="empty-ico">⬡</div>Kein Scan gelaufen — startet alle 2h</div>';
+        } else {
+            oppEl.innerHTML = opps.map(function(o) {
+                var edgePct = (o.edge * 100).toFixed(1);
+                var hasEdge = o.edge >= 0.05;
+                var edgeColor = hasEdge ? 'var(--green)' : 'var(--text3)';
+                var confColor = o.confidence === 'high' ? 'var(--green)' : o.confidence === 'medium' ? 'var(--gold)' : 'var(--text3)';
+                return '<div class="sig-row">' +
+                    '<div class="sig-dir ' + (o.direction === 'YES' ? 'long' : 'short') + '" style="width:38px;font-size:.58rem">' + esc(o.direction) + '</div>' +
+                    '<div class="sig-info">' +
+                      '<div class="sig-price" style="font-size:.75rem">' + esc(o.question.slice(0, 70)) + (o.question.length > 70 ? '…' : '') + '</div>' +
+                      '<div class="sig-det">YES ' + (o.yes_price * 100).toFixed(0) + '% · Claude ' + (o.claude_prob * 100).toFixed(0) + '% · Vol $' + (o.volume_24h || 0).toLocaleString() + '</div>' +
+                    '</div>' +
+                    '<div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end;flex-shrink:0">' +
+                      '<span style="font-size:.7rem;font-weight:800;color:' + edgeColor + '">' + edgePct + '%</span>' +
+                      '<span style="font-size:.58rem;color:' + confColor + '">' + esc(o.confidence || '') + '</span>' +
+                    '</div>' +
+                  '</div>';
+            }).join('');
+        }
+    }
+
+    // Orders list
+    var ordListEl = document.getElementById('polyOrderList');
+    if (ordListEl) {
+        if (!orders.length) {
+            ordListEl.innerHTML = '<div class="empty"><div class="empty-ico">📋</div>Noch keine Orders</div>';
+        } else {
+            ordListEl.innerHTML = orders.slice(0, 10).map(function(o) {
+                var dirClass = o.direction === 'YES' ? 'long' : 'short';
+                return '<div class="sig-row">' +
+                    '<div class="sig-dir ' + dirClass + '" style="width:38px;font-size:.58rem">' + esc(o.direction) + '</div>' +
+                    '<div class="sig-info">' +
+                      '<div class="sig-price" style="font-size:.72rem">' + esc((o.question || '').slice(0, 65)) + '</div>' +
+                      '<div class="sig-det">@ ' + ((o.price || 0) * 100).toFixed(0) + '¢ · Stake $' + (o.stake || 0).toFixed(2) + ' · ' + esc(o.ts || '') + '</div>' +
+                    '</div>' +
+                    '<span style="font-size:.65rem;font-weight:700;color:var(--purple);flex-shrink:0">' + esc(o.mode || 'PAPER') + '</span>' +
+                  '</div>';
+            }).join('');
+        }
+    }
+}
+
 // ── TABS ───────────────────────────────────────────────────────────────────
-var _tabMap = {stats:'panelDashboard', agents:'panelAgents', chat:'panelChat', notes:'panelNotes'};
+var _tabMap = {stats:'panelDashboard', agents:'panelAgents', poly:'panelPoly', chat:'panelChat', notes:'panelNotes'};
 function switchTab(tab) {
     var targetId = _tabMap[tab];
     // Update panel visibility
