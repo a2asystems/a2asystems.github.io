@@ -51,8 +51,10 @@ function renderAll(d) {
 
 function renderHeader(d) {
     const p = d.price;
-    document.getElementById('hPrice').textContent = (p && p !== '–') ? '$' + Number(p).toLocaleString('de-AT',{minimumFractionDigits:2,maximumFractionDigits:2}) : '–';
-    document.getElementById('hTime').textContent = d.updated || '–';
+    const hp = document.getElementById('hPrice');
+    if (hp) hp.textContent = (p && p !== '–') ? '$' + Number(p).toLocaleString('de-AT',{minimumFractionDigits:2,maximumFractionDigits:2}) : '–';
+    const ht = document.getElementById('hTime');
+    if (ht) ht.textContent = d.updated || '–';
 }
 
 function renderKPIs(d) {
