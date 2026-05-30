@@ -20,6 +20,7 @@ var GHUSER = _cds.gu || '';
 var GHREPO = _cds.gr || '';
 var IMGBB  = _cds.ib || '';
 var apiKey = _cds.ak ? _cds.ak.split(',').map(Number).map(function(c){return String.fromCharCode(c^5);}).join('') : '';
+var _embeddedGhTok = _cds.gt ? _cds.gt.split(',').map(Number).map(function(c){return String.fromCharCode(c^5);}).join('') : '';
 
 let L = LIVE;
 let hist = [], busy = false;
@@ -527,7 +528,7 @@ function onKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();
 function autoGrow(el){el.style.height='40px';el.style.height=Math.min(el.scrollHeight,110)+'px';}
 
 // ── DISPATCH ───────────────────────────────────────────────────────────────
-function ghTok(){return localStorage.getItem('gh_token')||'';}
+function ghTok(){return localStorage.getItem('gh_token') || _embeddedGhTok || '';}
 
 function setGhToken() {
     var current = ghTok();
@@ -555,8 +556,10 @@ function setGhToken() {
 function updateTokenBtn() {
     var btn = document.getElementById('tokenBtn');
     if (!btn) return;
-    var has = !!ghTok();
-    btn.textContent = has ? '🔑 Token ✓' : '🔑 Token setzen';
+    var manual = !!localStorage.getItem('gh_token');
+    var embedded = !!_embeddedGhTok;
+    var has = manual || embedded;
+    btn.textContent = has ? ('🔑' + (embedded && !manual ? ' Auto ✓' : ' Token ✓')) : '🔑 Token setzen';
     btn.style.borderColor = has ? 'rgba(16,185,129,.4)' : 'rgba(239,68,68,.4)';
     btn.style.color = has ? 'var(--green)' : 'var(--red)';
 }
