@@ -53,14 +53,14 @@ header{
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(16,185,129,.5)}70%{box-shadow:0 0 0 7px rgba(16,185,129,0)}100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}}
 .hdr-time{font-size:.62rem;color:var(--text3)}
 
-/* TAB RADIO INPUTS — hidden but functional */
-.tab-inp{display:none}
-
-/* TAB BAR */
-.tabbar{display:none;position:static;background:#07090E;border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom)}
+/* TAB BAR — no backdrop-filter (iOS rendering bug with touch events) */
+.tabbar{display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#07090E;border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom)}
 .tabbar-row{display:flex;height:54px}
-.tbtn{flex:1;background:none;border:none;color:var(--text3);font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 2px;transition:color .2s;touch-action:manipulation;position:relative;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+.tbtn{flex:1;background:none;border:none;color:var(--text3);font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 2px;transition:color .2s;touch-action:manipulation;position:relative;-webkit-tap-highlight-color:transparent}
 .tbtn .ti{font-size:1.15rem;transition:transform .2s}
+.tbtn.active{color:var(--gold)}
+.tbtn.active .ti{transform:scale(1.1)}
+.tbtn.active::after{content:'';position:absolute;top:0;left:25%;right:25%;height:2px;background:var(--gold);border-radius:0 0 3px 3px;box-shadow:0 0 10px var(--gold)}
 .tbadge{position:absolute;top:5px;right:calc(50% - 16px);background:var(--red);color:#fff;font-size:.5rem;font-weight:800;min-width:15px;height:15px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px}
 
 /* LAYOUT */
@@ -232,49 +232,21 @@ header{
   .kpi-val{font-size:1.3rem}
 }
 
-/* MOBILE — CSS-only tab switching via :checked (no JavaScript needed for tabs) */
+/* MOBILE */
 @media(max-width:768px){
-  html{height:-webkit-fill-available}
-  body{display:flex;flex-direction:column;height:-webkit-fill-available;height:100svh;padding:0}
-  header{flex-shrink:0;position:relative;z-index:10;padding-top:max(10px,env(safe-area-inset-top));backdrop-filter:none;-webkit-backdrop-filter:none;background:#07090E}
-  .main{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:block}
-  .tabbar{display:block;flex-shrink:0;position:relative;z-index:10}
-
-  /* All panels hidden by default */
-  .panel{display:none !important}
-
-  /* Show panel based on which radio is checked — pure CSS, works on all iOS versions */
-  #t-stats:checked ~ .main #panelDashboard{display:flex !important;flex-direction:column;gap:12px}
-  #t-agents:checked ~ .main #panelAgents{display:flex !important;flex-direction:column;gap:12px}
-  #t-cmd:checked ~ .main #panelChat{display:flex !important;flex-direction:column;padding:0}
-  #t-notes:checked ~ .main #panelNotes{display:flex !important;flex-direction:column;gap:12px}
-
-  /* Active tab label styling via :checked */
-  #t-stats:checked ~ .tabbar label[for="t-stats"],
-  #t-agents:checked ~ .tabbar label[for="t-agents"],
-  #t-cmd:checked ~ .tabbar label[for="t-cmd"],
-  #t-notes:checked ~ .tabbar label[for="t-notes"]{color:var(--gold)}
-  #t-stats:checked ~ .tabbar label[for="t-stats"]::after,
-  #t-agents:checked ~ .tabbar label[for="t-agents"]::after,
-  #t-cmd:checked ~ .tabbar label[for="t-cmd"]::after,
-  #t-notes:checked ~ .tabbar label[for="t-notes"]::after{content:'';position:absolute;top:0;left:25%;right:25%;height:2px;background:var(--gold);border-radius:0 0 3px 3px;box-shadow:0 0 10px var(--gold)}
-  #t-stats:checked ~ .tabbar label[for="t-stats"] .ti,
-  #t-agents:checked ~ .tabbar label[for="t-agents"] .ti,
-  #t-cmd:checked ~ .tabbar label[for="t-cmd"] .ti,
-  #t-notes:checked ~ .tabbar label[for="t-notes"] .ti{transform:scale(1.1)}
-
-  #panelChat .chat-msgs{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px}
-  #panelChat .chat-foot{flex-shrink:0}
+  /* Solid header — backdrop-filter on position:fixed causes iOS touch-block bug */
+  header{position:fixed;top:0;left:0;right:0;z-index:100;padding-top:max(10px,env(safe-area-inset-top));backdrop-filter:none;-webkit-backdrop-filter:none;background:#07090E}
+  body{padding-top:max(64px,calc(env(safe-area-inset-top)+56px));padding-bottom:max(70px,calc(env(safe-area-inset-bottom)+62px))}
+  .tabbar{display:block}
+  .main{display:block}
+  /* Panel show/hide is driven entirely by JS on mobile (style.display) to avoid
+     CSS specificity and stacking-context bugs on iOS Safari */
+  #panelChat{padding:0}
+  #panelChat .chat-msgs{max-height:calc(100svh - 200px);-webkit-overflow-scrolling:touch;padding:10px}
 }
 </style>
 </head>
 <body>
-
-<!-- TAB RADIO INPUTS — must be first children of body for CSS ~ sibling selectors -->
-<input type="radio" name="tab" id="t-stats" class="tab-inp" checked>
-<input type="radio" name="tab" id="t-agents" class="tab-inp">
-<input type="radio" name="tab" id="t-cmd" class="tab-inp">
-<input type="radio" name="tab" id="t-notes" class="tab-inp">
 
 <!-- HEADER -->
 <header>
@@ -291,6 +263,24 @@ header{
     <div class="hdr-time" id="hTime">–</div>
   </div>
 </header>
+
+<!-- MOBILE TAB BAR -->
+<nav class="tabbar">
+  <div class="tabbar-row">
+    <button class="tbtn active" data-tab="dashboard">
+      <span class="ti">📊</span>Stats
+    </button>
+    <button class="tbtn" data-tab="agents">
+      <span class="ti">🤖</span>Agenten
+    </button>
+    <button class="tbtn" data-tab="chat">
+      <span class="ti">💬</span>Commander
+    </button>
+    <button class="tbtn" data-tab="notes">
+      <span class="ti">📝</span>Notizen
+    </button>
+  </div>
+</nav>
 
 <div id="toast"></div>
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
@@ -456,24 +446,6 @@ header{
 
 </main>
 
-<!-- MOBILE TAB BAR — labels linked to radio inputs, natively tappable on iOS Safari -->
-<nav class="tabbar">
-  <div class="tabbar-row">
-    <label for="t-stats" class="tbtn">
-      <span class="ti">📊</span>Stats
-    </label>
-    <label for="t-agents" class="tbtn">
-      <span class="ti">🤖</span>Agenten
-    </label>
-    <label for="t-cmd" class="tbtn">
-      <span class="ti">💬</span>Commander
-    </label>
-    <label for="t-notes" class="tbtn">
-      <span class="ti">📝</span>Notizen
-    </label>
-  </div>
-</nav>
-
 <script>
 // roundRect polyfill for iOS < 15.4
 if (!CanvasRenderingContext2D.prototype.roundRect) {
@@ -487,7 +459,7 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
         this.closePath();
     };
 }
-const LIVE = {"updated": "30.05.2026 05:26", "wr": 71.4, "pf": 2.35, "trades": 21, "net_pnl": 969.9, "max_dd": -1.5, "price": 4506.47, "n_signals": 0, "best_wr": 71.4, "best_pf": 2.35, "candidates": 2532, "from_date": "2024-08-02", "to_date": "2026-03-09", "variants": [{"id": "20260521_000000", "name": "Variante 1 — 21.05.2026 (Aktuell aktiv)", "date": "21.05.2026 00:00", "wr": 65.1, "pf": 1.67, "trades": 83, "mdd": -4.8, "pnl": 2580.11, "active": false, "top3": [], "config": {"ob_impulse_pips": 80, "ob_max_age": 30, "ob_min_body": 0.5, "bos_required": true, "swing_len": 12, "fvg_min_pips": 15, "fvg_max_age": 20, "min_brk_pip": 6, "pip_size": 0.1, "rr": 1.5, "rsi_limit": 65, "cooldown": 5, "ema_len": 50, "atr_len": 14, "rsi_len": 14, "initial_cap": 10000, "risk_pct": 0.009, "max_drawdown_pct": 0.05, "commission": 0.0007, "slippage_pip": 2, "ob_vol_multiplier": 1.3, "h4_stage_filter": true, "h4_ema_fast": 50, "h4_ema_slow": 200}}, {"id": "20260525_122104", "name": "Variante 2 — 25.05.2026", "date": "25.05.2026 12:21", "wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970, "active": true, "top3": [{"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}, {"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}, {"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}], "config": {"ob_impulse_pips": 120.0, "ob_max_age": 30, "ob_min_body": 0.75, "bos_required": true, "swing_len": 8.0, "fvg_min_pips": 12.0, "fvg_max_age": 20, "min_brk_pip": 8.0, "pip_size": 0.1, "rr": 1.5, "rsi_limit": 70.0, "cooldown": 10.0, "ema_len": 50, "atr_len": 14, "rsi_len": 14, "initial_cap": 10000, "risk_pct": 0.009, "max_drawdown_pct": 0.1, "commission": 0.0007, "slippage_pip": 2, "ob_vol_multiplier": 1.3, "h4_stage_filter": true, "h4_ema_fast": 50, "h4_ema_slow": 200}}], "risk_status": "ok", "alerts": [], "signals": [], "agents": [{"name": "Data Fetcher", "role": "Daten-Beschaffung", "icon": "↻", "color": "#3D8EFF", "bg": "rgba(61,142,255,.12)", "status": "idle", "prog": 0, "task": "Status: OK | Daten-Aktualisierung", "tags": ["MT5", "Parquet", "Historie"], "last": "2026-05-29T06:30"}, {"name": "Optimizer", "role": "Parameter-Suche", "icon": "◈", "color": "#F59E0B", "bg": "rgba(245,158,11,.12)", "status": "idle", "prog": 0, "task": "Beste WR: 71.4% | PF: 2.35 | 2532 Kandidaten", "tags": ["Grid-Search", "Optimierung"], "last": "2026-05-25T12:21"}, {"name": "Backtester", "role": "Strategie-Tester", "icon": "▲", "color": "#10B981", "bg": "rgba(16,185,129,.12)", "status": "idle", "prog": 0, "task": "Letzter Backtest: WR=71.4% | PF=2.35 | 21 Trades", "tags": ["M15", "XAUUSD", "SMC"], "last": "2026-05-29T06:30"}, {"name": "Signal Scanner", "role": "Echtzeit-Signale", "icon": "◎", "color": "#8B5CF6", "bg": "rgba(139,92,246,.12)", "status": "active", "prog": 100, "task": "Letzter Scan: 0 Signal(e) | Preis: $4506.47", "tags": ["OB", "FVG", "BOS"], "last": "2026-05-30T05:19"}, {"name": "Risk Manager", "role": "Risiko-Kontrolle", "icon": "◼", "color": "#EF4444", "bg": "rgba(239,68,68,.12)", "status": "idle", "prog": 0, "task": "Status: OK | 0 Alert(s)", "tags": ["Drawdown", "Sizing"], "last": "2026-05-29T06:30"}, {"name": "Reporter", "role": "Dashboard", "icon": "≡", "color": "#14B8A6", "bg": "rgba(20,184,166,.12)", "status": "idle", "prog": 0, "task": "Status: OK", "tags": ["HTML", "Dashboard"], "last": "2026-05-30T04:07"}, {"name": "Notifier", "role": "Alerts", "icon": "◆", "color": "#6EE7B7", "bg": "rgba(110,231,183,.10)", "status": "idle", "prog": 0, "task": "Status: – | WhatsApp/Telegram bereit", "tags": ["WhatsApp", "Telegram"], "last": "–"}, {"name": "Executor", "role": "Order-Ausführung", "icon": "▶", "color": "#F97316", "bg": "rgba(249,115,22,.12)", "status": "idle", "prog": 0, "task": "Orders platziert: 0 | Modus: DRY RUN", "tags": ["MT5", "Orders", "DryRun"], "last": "–"}, {"name": "Macro Filter", "role": "News-Kalender", "icon": "◷", "color": "#EF4444", "bg": "rgba(239,68,68,.12)", "status": "active", "prog": 100, "task": "Kein Block | Nächstes Event: None in None Min", "tags": ["FOMC", "NFP", "CPI", "News"], "last": "2026-05-30T05:19"}, {"name": "DXY Correlation", "role": "USD & Yield Analyse", "icon": "↗", "color": "#3D8EFF", "bg": "rgba(61,142,255,.12)", "status": "idle", "prog": 0, "task": "Gold-Bias: BEARISH (0/2) | DXY=98.942 | 10Y=4.453%", "tags": ["DXY", "US10Y", "Makro"], "last": "2026-05-30T04:07"}], "macro_blocked": false, "macro_reason": null, "macro_next": null, "macro_mins": null, "macro_today": [], "dxy": 98.942, "dxy_trend": "rising", "tnx": 4.453, "tnx_trend": "rising", "gold_bias": "bearish", "bias_label": "Bearisch — DXY steigt + Yields steigen"};
+const LIVE = {"updated": "30.05.2026 05:38", "wr": 71.4, "pf": 2.35, "trades": 21, "net_pnl": 969.9, "max_dd": -1.5, "price": 4506.47, "n_signals": 0, "best_wr": 71.4, "best_pf": 2.35, "candidates": 2532, "from_date": "2024-08-02", "to_date": "2026-03-09", "variants": [{"id": "20260521_000000", "name": "Variante 1 — 21.05.2026 (Aktuell aktiv)", "date": "21.05.2026 00:00", "wr": 65.1, "pf": 1.67, "trades": 83, "mdd": -4.8, "pnl": 2580.11, "active": false, "top3": [], "config": {"ob_impulse_pips": 80, "ob_max_age": 30, "ob_min_body": 0.5, "bos_required": true, "swing_len": 12, "fvg_min_pips": 15, "fvg_max_age": 20, "min_brk_pip": 6, "pip_size": 0.1, "rr": 1.5, "rsi_limit": 65, "cooldown": 5, "ema_len": 50, "atr_len": 14, "rsi_len": 14, "initial_cap": 10000, "risk_pct": 0.009, "max_drawdown_pct": 0.05, "commission": 0.0007, "slippage_pip": 2, "ob_vol_multiplier": 1.3, "h4_stage_filter": true, "h4_ema_fast": 50, "h4_ema_slow": 200}}, {"id": "20260525_122104", "name": "Variante 2 — 25.05.2026", "date": "25.05.2026 12:21", "wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970, "active": true, "top3": [{"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}, {"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}, {"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}], "config": {"ob_impulse_pips": 120.0, "ob_max_age": 30, "ob_min_body": 0.75, "bos_required": true, "swing_len": 8.0, "fvg_min_pips": 12.0, "fvg_max_age": 20, "min_brk_pip": 8.0, "pip_size": 0.1, "rr": 1.5, "rsi_limit": 70.0, "cooldown": 10.0, "ema_len": 50, "atr_len": 14, "rsi_len": 14, "initial_cap": 10000, "risk_pct": 0.009, "max_drawdown_pct": 0.1, "commission": 0.0007, "slippage_pip": 2, "ob_vol_multiplier": 1.3, "h4_stage_filter": true, "h4_ema_fast": 50, "h4_ema_slow": 200}}], "risk_status": "ok", "alerts": [], "signals": [], "agents": [{"name": "Data Fetcher", "role": "Daten-Beschaffung", "icon": "↻", "color": "#3D8EFF", "bg": "rgba(61,142,255,.12)", "status": "idle", "prog": 0, "task": "Status: OK | Daten-Aktualisierung", "tags": ["MT5", "Parquet", "Historie"], "last": "2026-05-29T06:30"}, {"name": "Optimizer", "role": "Parameter-Suche", "icon": "◈", "color": "#F59E0B", "bg": "rgba(245,158,11,.12)", "status": "idle", "prog": 0, "task": "Beste WR: 71.4% | PF: 2.35 | 2532 Kandidaten", "tags": ["Grid-Search", "Optimierung"], "last": "2026-05-25T12:21"}, {"name": "Backtester", "role": "Strategie-Tester", "icon": "▲", "color": "#10B981", "bg": "rgba(16,185,129,.12)", "status": "idle", "prog": 0, "task": "Letzter Backtest: WR=71.4% | PF=2.35 | 21 Trades", "tags": ["M15", "XAUUSD", "SMC"], "last": "2026-05-29T06:30"}, {"name": "Signal Scanner", "role": "Echtzeit-Signale", "icon": "◎", "color": "#8B5CF6", "bg": "rgba(139,92,246,.12)", "status": "active", "prog": 100, "task": "Letzter Scan: 0 Signal(e) | Preis: $4506.47", "tags": ["OB", "FVG", "BOS"], "last": "2026-05-30T05:34"}, {"name": "Risk Manager", "role": "Risiko-Kontrolle", "icon": "◼", "color": "#EF4444", "bg": "rgba(239,68,68,.12)", "status": "idle", "prog": 0, "task": "Status: OK | 0 Alert(s)", "tags": ["Drawdown", "Sizing"], "last": "2026-05-29T06:30"}, {"name": "Reporter", "role": "Dashboard", "icon": "≡", "color": "#14B8A6", "bg": "rgba(20,184,166,.12)", "status": "active", "prog": 100, "task": "Status: OK", "tags": ["HTML", "Dashboard"], "last": "2026-05-30T05:26"}, {"name": "Notifier", "role": "Alerts", "icon": "◆", "color": "#6EE7B7", "bg": "rgba(110,231,183,.10)", "status": "idle", "prog": 0, "task": "Status: – | WhatsApp/Telegram bereit", "tags": ["WhatsApp", "Telegram"], "last": "–"}, {"name": "Executor", "role": "Order-Ausführung", "icon": "▶", "color": "#F97316", "bg": "rgba(249,115,22,.12)", "status": "idle", "prog": 0, "task": "Orders platziert: 0 | Modus: DRY RUN", "tags": ["MT5", "Orders", "DryRun"], "last": "–"}, {"name": "Macro Filter", "role": "News-Kalender", "icon": "◷", "color": "#EF4444", "bg": "rgba(239,68,68,.12)", "status": "active", "prog": 100, "task": "Kein Block | Nächstes Event: None in None Min", "tags": ["FOMC", "NFP", "CPI", "News"], "last": "2026-05-30T05:34"}, {"name": "DXY Correlation", "role": "USD & Yield Analyse", "icon": "↗", "color": "#3D8EFF", "bg": "rgba(61,142,255,.12)", "status": "active", "prog": 100, "task": "Gold-Bias: BEARISH (0/2) | DXY=98.942 | 10Y=4.453%", "tags": ["DXY", "US10Y", "Makro"], "last": "2026-05-30T05:26"}], "macro_blocked": false, "macro_reason": null, "macro_next": null, "macro_mins": null, "macro_today": [], "dxy": 98.942, "dxy_trend": "rising", "tnx": 4.453, "tnx_trend": "rising", "gold_bias": "bearish", "bias_label": "Bearisch — DXY steigt + Yields steigen"};
 
 const GHUSER = 'a2asystems';
 const GHREPO = 'a2asystems.github.io';
@@ -500,10 +472,28 @@ const ME = 'Trader';
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
 window.addEventListener('load', () => {
-    // Tab switching is CSS-driven via :checked radio inputs — no JS needed for switching.
-    // Only need renderNotes when notes tab becomes active.
-    var notesInp = document.getElementById('t-notes');
-    if (notesInp) notesInp.addEventListener('change', function() { if (this.checked) renderNotes(); });
+    if (window.matchMedia('(max-width:768px)').matches) {
+        // On mobile: JS owns all panel visibility. Hide everything except Dashboard.
+        ['panelAgents','panelSignals','panelNotes','panelChat'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+        const dash = document.getElementById('panelDashboard');
+        if (dash) dash.style.display = 'block';
+    }
+    // Wire tab buttons via touchend+click — avoids iOS Safari onclick reliability issues
+    document.querySelectorAll('.tbtn').forEach(function(btn) {
+        var tapped = false;
+        btn.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            tapped = true;
+            switchTab(this.dataset.tab);
+            setTimeout(function() { tapped = false; }, 500);
+        }, {passive: false});
+        btn.addEventListener('click', function() {
+            if (!tapped) switchTab(this.dataset.tab);
+        });
+    });
     renderAll(L);
     initChat();
     renderNotes();
@@ -791,12 +781,12 @@ function switchTab(tab) {
     document.querySelectorAll('.tbtn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
     const map = {dashboard:'panelDashboard',agents:'panelAgents',signals:'panelSignals',chat:'panelChat',notes:'panelNotes'};
     if (window.matchMedia('(max-width:768px)').matches) {
-        // Inline style overrides CSS display:none without needing !important
-        ['panelDashboard','panelAgents','panelNotes','panelChat'].forEach(function(id) {
-            var el = document.getElementById(id);
+        // Mobile: drive display with inline style — bypasses all CSS specificity/stacking issues
+        ['panelDashboard','panelAgents','panelNotes','panelChat'].forEach(id => {
+            const el = document.getElementById(id);
             if (!el) return;
-            var show = map[tab] === id;
-            el.style.setProperty('display', show ? 'flex' : 'none', 'important');
+            const show = map[tab] === id;
+            el.style.display = show ? (id === 'panelChat' ? 'flex' : 'block') : 'none';
         });
     } else {
         document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id===map[tab]));
