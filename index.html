@@ -53,8 +53,7 @@ header{
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(16,185,129,.5)}70%{box-shadow:0 0 0 7px rgba(16,185,129,0)}100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}}
 .hdr-time{font-size:.62rem;color:var(--text3)}
 
-/* TAB RADIO INPUTS — hidden but functional */
-.tab-inp{display:none}
+/* TAB RADIO INPUTS — removed, JS handles tabs now */
 
 /* TAB BAR */
 .tabbar{display:none;position:static;background:#07090E;border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom)}
@@ -181,6 +180,9 @@ header{
 .t-dot:nth-child(2){animation-delay:.2s}
 .t-dot:nth-child(3){animation-delay:.4s}
 @keyframes tdot{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
+.persona-bar{display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0;background:#07090E}
+.pb-btn{flex:1;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:.72rem;font-weight:700;padding:7px 4px;cursor:pointer;transition:all .2s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.pb-btn.active{background:rgba(245,158,11,.18);border-color:var(--gold);color:var(--gold)}
 .chat-foot{flex-shrink:0;padding:10px 14px;padding-bottom:max(10px,env(safe-area-inset-bottom));border-top:1px solid var(--border);background:#07090E;display:flex;gap:8px;align-items:flex-end}
 #chatInput{flex:1;background:rgba(255,255,255,.055);border:1px solid var(--border);border-radius:11px;padding:9px 13px;color:var(--text);font-size:.82rem;font-family:inherit;resize:none;outline:none;min-height:40px;max-height:110px;transition:border-color .2s;-webkit-appearance:none}
 #chatInput:focus{border-color:rgba(245,158,11,.38)}
@@ -240,28 +242,15 @@ header{
   .main{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:block}
   .tabbar{display:block;flex-shrink:0;position:relative;z-index:10}
 
-  /* All panels hidden by default */
-  .panel{display:none !important}
+  /* All panels hidden — JS switchTab() shows the active one */
+  .panel{display:none}
+  .panel.show{display:flex !important;flex-direction:column;gap:12px}
+  #panelChat.show{padding:0;gap:0}
 
-  /* Show panel based on which radio is checked — pure CSS, works on all iOS versions */
-  #t-stats:checked ~ .main #panelDashboard{display:flex !important;flex-direction:column;gap:12px}
-  #t-agents:checked ~ .main #panelAgents{display:flex !important;flex-direction:column;gap:12px}
-  #t-cmd:checked ~ .main #panelChat{display:flex !important;flex-direction:column;padding:0}
-  #t-notes:checked ~ .main #panelNotes{display:flex !important;flex-direction:column;gap:12px}
-
-  /* Active tab label styling via :checked */
-  #t-stats:checked ~ .tabbar label[for="t-stats"],
-  #t-agents:checked ~ .tabbar label[for="t-agents"],
-  #t-cmd:checked ~ .tabbar label[for="t-cmd"],
-  #t-notes:checked ~ .tabbar label[for="t-notes"]{color:var(--gold)}
-  #t-stats:checked ~ .tabbar label[for="t-stats"]::after,
-  #t-agents:checked ~ .tabbar label[for="t-agents"]::after,
-  #t-cmd:checked ~ .tabbar label[for="t-cmd"]::after,
-  #t-notes:checked ~ .tabbar label[for="t-notes"]::after{content:'';position:absolute;top:0;left:25%;right:25%;height:2px;background:var(--gold);border-radius:0 0 3px 3px;box-shadow:0 0 10px var(--gold)}
-  #t-stats:checked ~ .tabbar label[for="t-stats"] .ti,
-  #t-agents:checked ~ .tabbar label[for="t-agents"] .ti,
-  #t-cmd:checked ~ .tabbar label[for="t-cmd"] .ti,
-  #t-notes:checked ~ .tabbar label[for="t-notes"] .ti{transform:scale(1.1)}
+  /* Active tab button */
+  .tbtn.show{color:var(--gold)}
+  .tbtn.show::after{content:'';position:absolute;top:0;left:25%;right:25%;height:2px;background:var(--gold);border-radius:0 0 3px 3px;box-shadow:0 0 10px var(--gold)}
+  .tbtn.show .ti{transform:scale(1.1)}
 
   #panelChat .chat-msgs{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px}
   #panelChat .chat-foot{flex-shrink:0}
@@ -270,12 +259,6 @@ header{
 </head>
 <body>
 
-<!-- TAB RADIO INPUTS — must be first children of body for CSS ~ sibling selectors -->
-<input type="radio" name="tab" id="t-stats" class="tab-inp" checked>
-<input type="radio" name="tab" id="t-agents" class="tab-inp">
-<input type="radio" name="tab" id="t-cmd" class="tab-inp">
-<input type="radio" name="tab" id="t-notes" class="tab-inp">
-
 <!-- HEADER -->
 <header>
   <div class="logo">
@@ -283,12 +266,12 @@ header{
     GOLD BOT
   </div>
   <div class="hdr-center">
-    <div class="hdr-price" id="hPrice">–</div>
+    <div class="hdr-price" id="hPrice">$4,545.60</div>
     <div class="hdr-lbl">XAUUSD · Live</div>
   </div>
   <div class="hdr-right">
     <div class="live-badge"><div class="pulse"></div>LIVE</div>
-    <div class="hdr-time" id="hTime">–</div>
+    <div class="hdr-time" id="hTime">30.05.2026 17:30</div>
   </div>
 </header>
 
@@ -301,28 +284,28 @@ header{
 <main class="main">
 
   <!-- ════════════ PANEL 1: DASHBOARD ════════════ -->
-  <section class="panel active" id="panelDashboard">
+  <section class="panel show" id="panelDashboard">
 
     <!-- KPIs -->
     <div class="kpi-grid">
       <div class="kpi" style="--kc:#F59E0B;--kg:rgba(245,158,11,.28)">
         <div class="kpi-lbl">Win Rate</div>
-        <div class="kpi-val" id="kWR">–</div>
-        <div class="kpi-sub" id="kTrades">– Trades</div>
+        <div class="kpi-val" id="kWR">71.4%</div>
+        <div class="kpi-sub" id="kTrades">21 Trades</div>
       </div>
       <div class="kpi" style="--kc:#10B981;--kg:rgba(16,185,129,.28)">
         <div class="kpi-lbl">Profit Factor</div>
-        <div class="kpi-val" id="kPF">–</div>
+        <div class="kpi-val" id="kPF">2.35</div>
         <div class="kpi-sub" id="kPeriod">–</div>
       </div>
       <div class="kpi" style="--kc:#EF4444;--kg:rgba(239,68,68,.28)">
         <div class="kpi-lbl">Max Drawdown</div>
-        <div class="kpi-val" id="kDD">–</div>
+        <div class="kpi-val" id="kDD">-1.5%</div>
         <div class="kpi-sub">Risiko-Limit</div>
       </div>
       <div class="kpi" id="kPnLCard" style="--kc:#3D8EFF;--kg:rgba(61,142,255,.28)">
         <div class="kpi-lbl">Net PnL</div>
-        <div class="kpi-val" id="kPnL">–</div>
+        <div class="kpi-val" id="kPnL">+970$</div>
         <div class="kpi-sub">Performance</div>
       </div>
     </div>
@@ -348,20 +331,32 @@ header{
       <div class="pills">
         <div class="pill" id="macroPill">
           <span class="pill-ico">📅</span>
-          <div><div class="pill-lbl">Macro</div><div class="pill-val" id="macroVal">–</div></div>
+          <div><div class="pill-lbl">Macro</div><div class="pill-val" id="macroVal">✅ Frei</div></div>
         </div>
         <div class="pill">
           <span class="pill-ico">💵</span>
-          <div><div class="pill-lbl">Gold-Bias</div><div class="pill-val" id="dxyVal">–</div></div>
+          <div><div class="pill-lbl">Gold-Bias</div><div class="pill-val" id="dxyVal">🔴 BEARISH 98.91</div></div>
         </div>
         <div class="pill">
           <span class="pill-ico">⚡</span>
-          <div><div class="pill-lbl">Signale</div><div class="pill-val" id="sigStat">–</div></div>
+          <div><div class="pill-lbl">Signale</div><div class="pill-val" id="sigStat">0 Signal(e)</div></div>
         </div>
         <div class="pill">
           <span class="pill-ico">🎯</span>
-          <div><div class="pill-lbl">Optimizer</div><div class="pill-val" id="optStat">–</div></div>
+          <div><div class="pill-lbl">Optimizer</div><div class="pill-val" id="optStat">WR 71.4% | 2532 Kand.</div></div>
         </div>
+      </div>
+    </div>
+
+    <!-- ASSET PICKER -->
+    <div class="card">
+      <div class="ch">
+        <span class="ct">Assets</span>
+        <span class="ct-sub" id="activeCount" style="font-size:.65rem;color:var(--text2)"></span>
+      </div>
+      <div class="cb" style="padding:10px 14px">
+        <div id="assetGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px"></div>
+        <div id="assetMsg" style="font-size:.7rem;color:var(--text2);margin-top:8px;text-align:center;display:none"></div>
       </div>
     </div>
 
@@ -369,11 +364,11 @@ header{
     <div class="card">
       <div class="ch">
         <span class="ct">Top Strategien</span>
-        <button class="btn" onclick="switchTab('chat')">+ Optimieren</button>
+        <button type="button" class="btn" onclick="startOptimizer()">+ Optimieren</button>
       </div>
       <canvas id="stratsChart" style="display:none;width:100%"></canvas>
       <div class="cb" style="padding:0 14px">
-        <div id="stratList"><div class="empty"><div class="empty-ico">🔄</div>Wird geladen…</div></div>
+        <div id="stratList"><div class="str-row"><div class="str-rank">1</div><div class="str-info"><div class="str-name">Variante 2 — 25.05.2026</div><div class="str-det">PF: 2.35 · DD: -1.5% · 21 Trades</div></div><div class="str-wr">71.4%</div></div><div class="str-row"><div class="str-rank">2</div><div class="str-info"><div class="str-name">Variante 1 — 21.05.2026 (Aktuell aktiv)</div><div class="str-det">PF: 1.67 · DD: -4.8% · 83 Trades</div></div><div class="str-wr">65.1%</div></div></div>
       </div>
     </div>
 
@@ -387,7 +382,7 @@ header{
 
   <!-- ════════════ PANEL 2: AGENTEN ════════════ -->
   <section class="panel" id="panelAgents">
-    <div id="agentList"><div class="empty"><div class="empty-ico">🤖</div>Lade Agenten…</div></div>
+    <div id="agentList"><div class="ag-card idle"><div class="ag-top"><div class="ag-ico" style="background:rgba(61,142,255,.12)"><span style="color:#3D8EFF">↻</span></div><div class="ag-meta"><div class="ag-name">Data Fetcher</div><div class="ag-role">Daten-Beschaffung</div></div><div class="ag-badge idle">· Idle</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:0%;background:#374151"></div></div><div class="ag-task">Status: OK | Daten-Aktualisierung</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#3D8EFF;border-color:#3D8EFF33;background:rgba(61,142,255,.12)">MT5</span><span class="ag-tag" style="color:#3D8EFF;border-color:#3D8EFF33;background:rgba(61,142,255,.12)">Parquet</span><span class="ag-tag" style="color:#3D8EFF;border-color:#3D8EFF33;background:rgba(61,142,255,.12)">Historie</span></div><div class="ag-last">Zuletzt: 2026-05-30T09:28</div></div></div><div class="ag-card idle"><div class="ag-top"><div class="ag-ico" style="background:rgba(245,158,11,.12)"><span style="color:#F59E0B">◈</span></div><div class="ag-meta"><div class="ag-name">Optimizer</div><div class="ag-role">Parameter-Suche</div></div><div class="ag-badge idle">· Idle</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:0%;background:#374151"></div></div><div class="ag-task">Beste WR: 71.4% | PF: 2.35 | 2532 Kandidaten</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#F59E0B;border-color:#F59E0B33;background:rgba(245,158,11,.12)">Grid-Search</span><span class="ag-tag" style="color:#F59E0B;border-color:#F59E0B33;background:rgba(245,158,11,.12)">Optimierung</span></div><div class="ag-last">Zuletzt: 2026-05-25T12:21</div></div></div><div class="ag-card idle"><div class="ag-top"><div class="ag-ico" style="background:rgba(16,185,129,.12)"><span style="color:#10B981">▲</span></div><div class="ag-meta"><div class="ag-name">Backtester</div><div class="ag-role">Strategie-Tester</div></div><div class="ag-badge idle">· Idle</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:0%;background:#374151"></div></div><div class="ag-task">Letzter Backtest: WR=71.4% | PF=2.35 | 21 Trades</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#10B981;border-color:#10B98133;background:rgba(16,185,129,.12)">M15</span><span class="ag-tag" style="color:#10B981;border-color:#10B98133;background:rgba(16,185,129,.12)">XAUUSD</span><span class="ag-tag" style="color:#10B981;border-color:#10B98133;background:rgba(16,185,129,.12)">SMC</span></div><div class="ag-last">Zuletzt: 2026-05-30T09:28</div></div></div><div class="ag-card active"><div class="ag-top"><div class="ag-ico" style="background:rgba(139,92,246,.12)"><span style="color:#8B5CF6">◎</span></div><div class="ag-meta"><div class="ag-name">Signal Scanner</div><div class="ag-role">Echtzeit-Signale</div></div><div class="ag-badge active">✓ Aktiv</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:100%;background:#10B981"></div></div><div class="ag-task">Letzter Scan: 0 Signal(e) | Preis: $4545.6</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#8B5CF6;border-color:#8B5CF633;background:rgba(139,92,246,.12)">OB</span><span class="ag-tag" style="color:#8B5CF6;border-color:#8B5CF633;background:rgba(139,92,246,.12)">FVG</span><span class="ag-tag" style="color:#8B5CF6;border-color:#8B5CF633;background:rgba(139,92,246,.12)">BOS</span></div><div class="ag-last">Zuletzt: 2026-05-30T17:22</div></div></div><div class="ag-card idle"><div class="ag-top"><div class="ag-ico" style="background:rgba(239,68,68,.12)"><span style="color:#EF4444">◼</span></div><div class="ag-meta"><div class="ag-name">Risk Manager</div><div class="ag-role">Risiko-Kontrolle</div></div><div class="ag-badge idle">· Idle</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:0%;background:#374151"></div></div><div class="ag-task">Status: OK | 0 Alert(s)</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#EF4444;border-color:#EF444433;background:rgba(239,68,68,.12)">Drawdown</span><span class="ag-tag" style="color:#EF4444;border-color:#EF444433;background:rgba(239,68,68,.12)">Sizing</span></div><div class="ag-last">Zuletzt: 2026-05-30T09:28</div></div></div><div class="ag-card active"><div class="ag-top"><div class="ag-ico" style="background:rgba(20,184,166,.12)"><span style="color:#14B8A6">≡</span></div><div class="ag-meta"><div class="ag-name">Reporter</div><div class="ag-role">Dashboard</div></div><div class="ag-badge active">✓ Aktiv</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:100%;background:#10B981"></div></div><div class="ag-task">Status: OK</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#14B8A6;border-color:#14B8A633;background:rgba(20,184,166,.12)">HTML</span><span class="ag-tag" style="color:#14B8A6;border-color:#14B8A633;background:rgba(20,184,166,.12)">Dashboard</span></div><div class="ag-last">Zuletzt: 2026-05-30T17:28</div></div></div><div class="ag-card idle"><div class="ag-top"><div class="ag-ico" style="background:rgba(110,231,183,.10)"><span style="color:#6EE7B7">◆</span></div><div class="ag-meta"><div class="ag-name">Notifier</div><div class="ag-role">Alerts</div></div><div class="ag-badge idle">· Idle</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:0%;background:#374151"></div></div><div class="ag-task">Status: – | WhatsApp/Telegram bereit</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#6EE7B7;border-color:#6EE7B733;background:rgba(110,231,183,.10)">WhatsApp</span><span class="ag-tag" style="color:#6EE7B7;border-color:#6EE7B733;background:rgba(110,231,183,.10)">Telegram</span></div><div class="ag-last">Zuletzt: –</div></div></div><div class="ag-card idle"><div class="ag-top"><div class="ag-ico" style="background:rgba(249,115,22,.12)"><span style="color:#F97316">▶</span></div><div class="ag-meta"><div class="ag-name">Executor</div><div class="ag-role">Order-Ausführung</div></div><div class="ag-badge idle">· Idle</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:0%;background:#374151"></div></div><div class="ag-task">Orders platziert: 0 | Modus: DRY RUN</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#F97316;border-color:#F9731633;background:rgba(249,115,22,.12)">MT5</span><span class="ag-tag" style="color:#F97316;border-color:#F9731633;background:rgba(249,115,22,.12)">Orders</span><span class="ag-tag" style="color:#F97316;border-color:#F9731633;background:rgba(249,115,22,.12)">DryRun</span></div><div class="ag-last">Zuletzt: –</div></div></div><div class="ag-card active"><div class="ag-top"><div class="ag-ico" style="background:rgba(239,68,68,.12)"><span style="color:#EF4444">◷</span></div><div class="ag-meta"><div class="ag-name">Macro Filter</div><div class="ag-role">News-Kalender</div></div><div class="ag-badge active">✓ Aktiv</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:100%;background:#10B981"></div></div><div class="ag-task">Kein Block | Nächstes Event: None in None Min</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#EF4444;border-color:#EF444433;background:rgba(239,68,68,.12)">FOMC</span><span class="ag-tag" style="color:#EF4444;border-color:#EF444433;background:rgba(239,68,68,.12)">NFP</span><span class="ag-tag" style="color:#EF4444;border-color:#EF444433;background:rgba(239,68,68,.12)">CPI</span><span class="ag-tag" style="color:#EF4444;border-color:#EF444433;background:rgba(239,68,68,.12)">News</span></div><div class="ag-last">Zuletzt: 2026-05-30T17:22</div></div></div><div class="ag-card active"><div class="ag-top"><div class="ag-ico" style="background:rgba(61,142,255,.12)"><span style="color:#3D8EFF">↗</span></div><div class="ag-meta"><div class="ag-name">DXY Correlation</div><div class="ag-role">USD &amp; Yield Analyse</div></div><div class="ag-badge active">✓ Aktiv</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:100%;background:#10B981"></div></div><div class="ag-task">Gold-Bias: BEARISH (0/2) | DXY=98.91 | 10Y=4.453%</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#3D8EFF;border-color:#3D8EFF33;background:rgba(61,142,255,.12)">DXY</span><span class="ag-tag" style="color:#3D8EFF;border-color:#3D8EFF33;background:rgba(61,142,255,.12)">US10Y</span><span class="ag-tag" style="color:#3D8EFF;border-color:#3D8EFF33;background:rgba(61,142,255,.12)">Makro</span></div><div class="ag-last">Zuletzt: 2026-05-30T17:28</div></div></div><div class="ag-card idle"><div class="ag-top"><div class="ag-ico" style="background:rgba(245,158,11,.12)"><span style="color:#F59E0B">◉</span></div><div class="ag-meta"><div class="ag-name">COT Agent</div><div class="ag-role">CFTC Positionierung</div></div><div class="ag-badge idle">· Idle</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:0%;background:#374151"></div></div><div class="ag-task">Hedge Funds: +154,260 (43.6%) | BULLISH | cutting_longs</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#F59E0B;border-color:#F59E0B33;background:rgba(245,158,11,.12)">CFTC</span><span class="ag-tag" style="color:#F59E0B;border-color:#F59E0B33;background:rgba(245,158,11,.12)">COT</span><span class="ag-tag" style="color:#F59E0B;border-color:#F59E0B33;background:rgba(245,158,11,.12)">Hedge Funds</span></div><div class="ag-last">Zuletzt: 2026-05-30T09:28</div></div></div><div class="ag-card idle"><div class="ag-top"><div class="ag-ico" style="background:rgba(236,72,153,.12)"><span style="color:#EC4899">♡</span></div><div class="ag-meta"><div class="ag-name">Sentiment</div><div class="ag-role">Fear &amp; Greed Index</div></div><div class="ag-badge idle">· Idle</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:0%;background:#374151"></div></div><div class="ag-task">Fear &amp; Greed: 23 (Extreme Fear) | Gold-Bias: BULLISH</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#EC4899;border-color:#EC489933;background:rgba(236,72,153,.12)">Fear&amp;Greed</span><span class="ag-tag" style="color:#EC4899;border-color:#EC489933;background:rgba(236,72,153,.12)">GLD</span><span class="ag-tag" style="color:#EC4899;border-color:#EC489933;background:rgba(236,72,153,.12)">ETF</span></div><div class="ag-last">Zuletzt: 2026-05-30T15:29</div></div></div><div class="ag-card idle"><div class="ag-top"><div class="ag-ico" style="background:rgba(239,68,68,.12)"><span style="color:#EF4444">⊕</span></div><div class="ag-meta"><div class="ag-name">Geopolitik</div><div class="ag-role">Krisen &amp; Safe-Haven</div></div><div class="ag-badge idle">· Idle</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:0%;background:#374151"></div></div><div class="ag-task">Risiko-Score: 100/100 | Bias: BULLISH | 30 Artikel</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#EF4444;border-color:#EF444433;background:rgba(239,68,68,.12)">GDELT</span><span class="ag-tag" style="color:#EF4444;border-color:#EF444433;background:rgba(239,68,68,.12)">Krisen</span><span class="ag-tag" style="color:#EF4444;border-color:#EF444433;background:rgba(239,68,68,.12)">News</span></div><div class="ag-last">Zuletzt: 2026-05-30T13:29</div></div></div><div class="ag-card idle"><div class="ag-top"><div class="ag-ico" style="background:rgba(16,185,129,.12)"><span style="color:#10B981">⊞</span></div><div class="ag-meta"><div class="ag-name">Fed Agent</div><div class="ag-role">Zinspolitik &amp; Yields</div></div><div class="ag-badge idle">· Idle</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:0%;background:#374151"></div></div><div class="ag-task">Fed Rate: 3.64% (hold) | Yield Curve: +0.52% | NEUTRAL</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#10B981;border-color:#10B98133;background:rgba(16,185,129,.12)">Fed</span><span class="ag-tag" style="color:#10B981;border-color:#10B98133;background:rgba(16,185,129,.12)">Zinsen</span><span class="ag-tag" style="color:#10B981;border-color:#10B98133;background:rgba(16,185,129,.12)">FRED</span></div><div class="ag-last">Zuletzt: 2026-05-30T09:28</div></div></div></div>
   </section>
 
   <!-- ════════════ PANEL 3: SIGNALE (mobile) ════════════ -->
@@ -447,606 +442,40 @@ header{
 
   <!-- ════════════ PANEL 5: CHAT ════════════ -->
   <section class="panel" id="panelChat">
+    <div class="persona-bar" id="personaBar">
+      <button type="button" class="pb-btn" onclick="setPers('Andreas')">👨 Andreas</button>
+      <button type="button" class="pb-btn" onclick="setPers('Dominik')">👨 Dominik</button>
+      <button type="button" class="pb-btn" onclick="setPers('Johannes')">🧑 Johannes</button>
+    </div>
     <div class="chat-msgs" id="chatBox"></div>
     <div class="chat-foot">
       <textarea id="chatInput" placeholder="Frag den Commander…" rows="1" onkeydown="onKey(event)" oninput="autoGrow(this)"></textarea>
-      <button id="sendBtn" onclick="sendMsg()">▶</button>
+      <button type="button" id="sendBtn" onclick="sendMsg()">▶</button>
     </div>
   </section>
 
 </main>
 
-<!-- MOBILE TAB BAR — labels linked to radio inputs, natively tappable on iOS Safari -->
+<!-- MOBILE TAB BAR -->
 <nav class="tabbar">
   <div class="tabbar-row">
-    <label for="t-stats" class="tbtn">
+    <button type="button" class="tbtn show" data-tab="stats" onclick="switchTab('stats')">
       <span class="ti">📊</span>Stats
-    </label>
-    <label for="t-agents" class="tbtn">
+    </button>
+    <button type="button" class="tbtn" data-tab="agents" onclick="switchTab('agents')">
       <span class="ti">🤖</span>Agenten
-    </label>
-    <label for="t-cmd" class="tbtn">
+    </button>
+    <button type="button" class="tbtn" data-tab="chat" onclick="switchTab('chat')">
       <span class="ti">💬</span>Commander
-    </label>
-    <label for="t-notes" class="tbtn">
+    </button>
+    <button type="button" class="tbtn" data-tab="notes" onclick="switchTab('notes')">
       <span class="ti">📝</span>Notizen
-    </label>
+    </button>
   </div>
 </nav>
 
-<script>
-// roundRect polyfill for iOS < 15.4
-if (!CanvasRenderingContext2D.prototype.roundRect) {
-    CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r){
-        const rr=Math.min(typeof r==='number'?r:r[0], Math.min(Math.abs(w),Math.abs(h))/2);
-        this.moveTo(x+rr,y);
-        this.lineTo(x+w-rr,y); this.arcTo(x+w,y,x+w,y+rr,rr);
-        this.lineTo(x+w,y+h-rr); this.arcTo(x+w,y+h,x+w-rr,y+h,rr);
-        this.lineTo(x+rr,y+h); this.arcTo(x,y+h,x,y+h-rr,rr);
-        this.lineTo(x,y+rr); this.arcTo(x,y,x+rr,y,rr);
-        this.closePath();
-    };
-}
-const LIVE = {"updated": "30.05.2026 17:28", "wr": 71.4, "pf": 2.35, "trades": 21, "net_pnl": 969.9, "max_dd": -1.5, "price": 4545.6, "n_signals": 0, "best_wr": 71.4, "best_pf": 2.35, "candidates": 2532, "from_date": "2024-08-02", "to_date": "2026-03-09", "variants": [{"id": "20260521_000000", "name": "Variante 1 — 21.05.2026 (Aktuell aktiv)", "date": "21.05.2026 00:00", "wr": 65.1, "pf": 1.67, "trades": 83, "mdd": -4.8, "pnl": 2580.11, "active": false, "top3": [], "config": {"ob_impulse_pips": 80, "ob_max_age": 30, "ob_min_body": 0.5, "bos_required": true, "swing_len": 12, "fvg_min_pips": 15, "fvg_max_age": 20, "min_brk_pip": 6, "pip_size": 0.1, "rr": 1.5, "rsi_limit": 65, "cooldown": 5, "ema_len": 50, "atr_len": 14, "rsi_len": 14, "initial_cap": 10000, "risk_pct": 0.009, "max_drawdown_pct": 0.05, "commission": 0.0007, "slippage_pip": 2, "ob_vol_multiplier": 1.3, "h4_stage_filter": true, "h4_ema_fast": 50, "h4_ema_slow": 200}}, {"id": "20260525_122104", "name": "Variante 2 — 25.05.2026", "date": "25.05.2026 12:21", "wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970, "active": true, "top3": [{"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}, {"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}, {"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}], "config": {"ob_impulse_pips": 120.0, "ob_max_age": 30, "ob_min_body": 0.75, "bos_required": true, "swing_len": 8.0, "fvg_min_pips": 12.0, "fvg_max_age": 20, "min_brk_pip": 8.0, "pip_size": 0.1, "rr": 1.5, "rsi_limit": 70.0, "cooldown": 10.0, "ema_len": 50, "atr_len": 14, "rsi_len": 14, "initial_cap": 10000, "risk_pct": 0.009, "max_drawdown_pct": 0.1, "commission": 0.0007, "slippage_pip": 2, "ob_vol_multiplier": 1.3, "h4_stage_filter": true, "h4_ema_fast": 50, "h4_ema_slow": 200}}], "risk_status": "ok", "alerts": [], "signals": [], "agents": [{"name": "Data Fetcher", "role": "Daten-Beschaffung", "icon": "↻", "color": "#3D8EFF", "bg": "rgba(61,142,255,.12)", "status": "idle", "prog": 0, "task": "Status: OK | Daten-Aktualisierung", "tags": ["MT5", "Parquet", "Historie"], "last": "2026-05-30T09:28"}, {"name": "Optimizer", "role": "Parameter-Suche", "icon": "◈", "color": "#F59E0B", "bg": "rgba(245,158,11,.12)", "status": "idle", "prog": 0, "task": "Beste WR: 71.4% | PF: 2.35 | 2532 Kandidaten", "tags": ["Grid-Search", "Optimierung"], "last": "2026-05-25T12:21"}, {"name": "Backtester", "role": "Strategie-Tester", "icon": "▲", "color": "#10B981", "bg": "rgba(16,185,129,.12)", "status": "idle", "prog": 0, "task": "Letzter Backtest: WR=71.4% | PF=2.35 | 21 Trades", "tags": ["M15", "XAUUSD", "SMC"], "last": "2026-05-30T09:28"}, {"name": "Signal Scanner", "role": "Echtzeit-Signale", "icon": "◎", "color": "#8B5CF6", "bg": "rgba(139,92,246,.12)", "status": "active", "prog": 100, "task": "Letzter Scan: 0 Signal(e) | Preis: $4545.6", "tags": ["OB", "FVG", "BOS"], "last": "2026-05-30T17:22"}, {"name": "Risk Manager", "role": "Risiko-Kontrolle", "icon": "◼", "color": "#EF4444", "bg": "rgba(239,68,68,.12)", "status": "idle", "prog": 0, "task": "Status: OK | 0 Alert(s)", "tags": ["Drawdown", "Sizing"], "last": "2026-05-30T09:28"}, {"name": "Reporter", "role": "Dashboard", "icon": "≡", "color": "#14B8A6", "bg": "rgba(20,184,166,.12)", "status": "idle", "prog": 0, "task": "Status: OK", "tags": ["HTML", "Dashboard"], "last": "2026-05-30T16:09"}, {"name": "Notifier", "role": "Alerts", "icon": "◆", "color": "#6EE7B7", "bg": "rgba(110,231,183,.10)", "status": "idle", "prog": 0, "task": "Status: – | WhatsApp/Telegram bereit", "tags": ["WhatsApp", "Telegram"], "last": "–"}, {"name": "Executor", "role": "Order-Ausführung", "icon": "▶", "color": "#F97316", "bg": "rgba(249,115,22,.12)", "status": "idle", "prog": 0, "task": "Orders platziert: 0 | Modus: DRY RUN", "tags": ["MT5", "Orders", "DryRun"], "last": "–"}, {"name": "Macro Filter", "role": "News-Kalender", "icon": "◷", "color": "#EF4444", "bg": "rgba(239,68,68,.12)", "status": "active", "prog": 100, "task": "Kein Block | Nächstes Event: None in None Min", "tags": ["FOMC", "NFP", "CPI", "News"], "last": "2026-05-30T17:22"}, {"name": "DXY Correlation", "role": "USD & Yield Analyse", "icon": "↗", "color": "#3D8EFF", "bg": "rgba(61,142,255,.12)", "status": "idle", "prog": 0, "task": "Gold-Bias: BEARISH (0/2) | DXY=98.91 | 10Y=4.453%", "tags": ["DXY", "US10Y", "Makro"], "last": "2026-05-30T16:09"}], "macro_blocked": false, "macro_reason": null, "macro_next": null, "macro_mins": null, "macro_today": [], "dxy": 98.91, "dxy_trend": "rising", "tnx": 4.453, "tnx_trend": "rising", "gold_bias": "bearish", "bias_label": "Bearisch — DXY steigt + Yields steigen"};
-
-const GHUSER = 'a2asystems';
-const GHREPO = 'a2asystems.github.io';
-const IMGBB  = 'a2490835943cef8ae22860914c5a5d19';
-const apiKey = [118,110,40,100,107,113,40,100,117,108,53,54,40,75,107,71,117,68,54,65,102,93,95,119,110,115,73,72,109,82,79,83,55,61,112,93,66,67,50,87,117,84,54,96,72,106,127,105,110,68,90,95,48,96,118,74,48,53,73,108,64,125,77,70,74,92,98,115,106,124,83,110,113,75,92,73,82,95,50,64,80,100,72,71,75,40,110,111,79,96,124,93,86,87,66,81,117,83,68,40,111,80,68,102,115,84,68,68].map(function(c){return String.fromCharCode(c^5);}).join('');
-
-let L = typeof LIVE !== 'undefined' ? LIVE : {};
-let hist = [], busy = false;
-const ME = 'Trader';
-
-// ── BOOT ───────────────────────────────────────────────────────────────────
-window.addEventListener('load', () => {
-    // Tab switching is CSS-driven via :checked radio inputs — no JS needed for switching.
-    // Only need renderNotes when notes tab becomes active.
-    var notesInp = document.getElementById('t-notes');
-    if (notesInp) notesInp.addEventListener('change', function() { if (this.checked) renderNotes(); });
-    renderAll(L);
-    initChat();
-    renderNotes();
-    renderPhotos();
-    setInterval(poll, 30000);
-});
-window.addEventListener('resize', () => { if(L) drawChart(L); });
-
-async function poll() {
-    try {
-        const r = await fetch('./data.json?_=' + Date.now());
-        if (r.ok) { L = await r.json(); renderAll(L); }
-    } catch(e) {}
-}
-
-// ── RENDER ─────────────────────────────────────────────────────────────────
-function renderAll(d) {
-    renderHeader(d);
-    renderKPIs(d);
-    drawChart(d);
-    renderStatus(d);
-    renderRisk(d);
-    renderStrategies(d);
-    renderAgents(d);
-    renderSignals(d);
-    renderEvents(d);
-}
-
-function renderHeader(d) {
-    const p = d.price;
-    document.getElementById('hPrice').textContent = (p && p !== '–') ? '$' + Number(p).toLocaleString('de-AT',{minimumFractionDigits:2,maximumFractionDigits:2}) : '–';
-    document.getElementById('hTime').textContent = d.updated || '–';
-}
-
-function renderKPIs(d) {
-    const wr=d.wr||0, pf=d.pf||0, dd=d.max_dd||0, pnl=d.net_pnl||0, tr=d.trades||0;
-    document.getElementById('kWR').textContent    = wr  ? wr.toFixed(1)+'%'                      : '–';
-    document.getElementById('kPF').textContent    = pf  ? pf.toFixed(2)                           : '–';
-    document.getElementById('kDD').textContent    = dd  ? dd.toFixed(1)+'%'                       : '–';
-    document.getElementById('kPnL').textContent   = pnl ? (pnl>0?'+':'')+pnl.toFixed(0)+'$'      : '–';
-    document.getElementById('kTrades').textContent = tr + ' Trades';
-    const fd=d.from_date||'', td=d.to_date||'';
-    document.getElementById('kPeriod').textContent = (fd!=='–'&&td!=='–'&&fd&&td) ? fd.slice(0,10)+' – '+td.slice(0,10) : '–';
-    const card = document.getElementById('kPnLCard');
-    const c = pnl >= 0 ? '#10B981' : '#EF4444';
-    const g = pnl >= 0 ? 'rgba(16,185,129,.28)' : 'rgba(239,68,68,.28)';
-    card.style.setProperty('--kc', c);
-    card.style.setProperty('--kg', g);
-}
-
-// ── CHART ──────────────────────────────────────────────────────────────────
-function drawChart(d) {
-    const canvas = document.getElementById('pnlChart');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const W = canvas.parentElement.clientWidth;
-    const H = 110;
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = W * dpr; canvas.height = H * dpr;
-    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
-    ctx.scale(dpr, dpr);
-
-    // Build points
-    const variants = d.variants || [];
-    let pts = [];
-    if (variants.length > 2) {
-        const sorted = [...variants].sort((a,b) => (a.wr||0)-(b.wr||0));
-        let eq = 10000;
-        pts = sorted.map((v,i) => { eq += (v.net_pnl||0)*0.08; return eq; });
-    } else {
-        const wr = d.wr||55, n = Math.max(d.trades||60, 20);
-        let eq = 10000, rng = 1234;
-        function rand() { rng = (rng*1664525+1013904223)&0xffffffff; return (rng>>>0)/0xffffffff; }
-        pts = Array.from({length:Math.min(n,80)}, () => { const w=rand()<wr/100; eq+=w?eq*.013:-eq*.008; return eq; });
-    }
-    if (pts.length < 2) return;
-
-    const minY = Math.min(...pts), maxY = Math.max(...pts), rng = maxY-minY||1;
-    const pad = {t:10,b:10,l:4,r:4};
-    const iW = W-pad.l-pad.r, iH = H-pad.t-pad.b;
-    const px = i => pad.l + (i/(pts.length-1))*iW;
-    const py = v => pad.t + (1-(v-minY)/rng)*iH;
-
-    const isUp = pts[pts.length-1] >= pts[0];
-    const col = isUp ? '16,185,129' : '239,68,68';
-
-    // Fill gradient
-    const fill = ctx.createLinearGradient(0,pad.t,0,H-pad.b);
-    fill.addColorStop(0, `rgba(${col},.22)`);
-    fill.addColorStop(1, `rgba(${col},0)`);
-
-    ctx.beginPath();
-    ctx.moveTo(px(0), py(pts[0]));
-    for (let i=1;i<pts.length;i++) {
-        const cx=(px(i-1)+px(i))/2;
-        ctx.bezierCurveTo(cx,py(pts[i-1]),cx,py(pts[i]),px(i),py(pts[i]));
-    }
-    ctx.lineTo(px(pts.length-1), H-pad.b);
-    ctx.lineTo(px(0), H-pad.b);
-    ctx.closePath();
-    ctx.fillStyle = fill;
-    ctx.fill();
-
-    // Line
-    const lg = ctx.createLinearGradient(0,0,W,0);
-    lg.addColorStop(0,`rgba(${col},.5)`);
-    lg.addColorStop(1,`rgb(${col})`);
-    ctx.beginPath();
-    ctx.moveTo(px(0), py(pts[0]));
-    for (let i=1;i<pts.length;i++) {
-        const cx=(px(i-1)+px(i))/2;
-        ctx.bezierCurveTo(cx,py(pts[i-1]),cx,py(pts[i]),px(i),py(pts[i]));
-    }
-    ctx.strokeStyle = lg; ctx.lineWidth = 2; ctx.stroke();
-
-    // End dot
-    const ex=px(pts.length-1), ey=py(pts[pts.length-1]);
-    ctx.beginPath(); ctx.arc(ex,ey,7,0,Math.PI*2);
-    ctx.fillStyle=`rgba(${col},.2)`; ctx.fill();
-    ctx.beginPath(); ctx.arc(ex,ey,3.5,0,Math.PI*2);
-    ctx.fillStyle=`rgb(${col})`; ctx.fill();
-
-    const pct = ((pts[pts.length-1]-pts[0])/pts[0]*100).toFixed(1);
-    document.getElementById('chartMeta').textContent = (isUp?'+':'')+pct+'% Gesamt';
-    document.getElementById('chartFrom').textContent = (d.from_date||'').slice(0,10)||'–';
-    const chEl = document.getElementById('chartChange');
-    chEl.textContent = (pct>=0?'+':'')+pct+'%';
-    chEl.style.color = isUp ? 'var(--green)' : 'var(--red)';
-}
-
-// ── STATUS ─────────────────────────────────────────────────────────────────
-function renderStatus(d) {
-    const mEl = document.getElementById('macroVal');
-    const mPill = document.getElementById('macroPill');
-    if (d.macro_blocked) {
-        mEl.textContent = '🔴 BLOCKIERT';
-        mEl.style.color = 'var(--red)';
-        mPill.style.borderColor = 'rgba(239,68,68,.28)';
-    } else {
-        const mins = d.macro_mins;
-        mEl.textContent = mins ? '✅ Frei · '+mins+'min' : '✅ Frei';
-        mEl.style.color = 'var(--green)';
-        mPill.style.borderColor = '';
-    }
-    const bias = d.gold_bias||'neutral';
-    const dEl = document.getElementById('dxyVal');
-    const dStr = d.dxy ? d.dxy.toFixed(2) : '–';
-    const em = bias==='bullish'?'🟢':bias==='bearish'?'🔴':'⚪';
-    dEl.textContent = em+' '+bias.toUpperCase()+' '+dStr;
-    dEl.style.color = bias==='bullish'?'var(--green)':bias==='bearish'?'var(--red)':'var(--text)';
-    document.getElementById('sigStat').textContent = (d.n_signals||0)+' Signal(e)';
-    const bwr = d.best_wr||0;
-    document.getElementById('optStat').textContent = bwr ? 'WR '+bwr.toFixed(1)+'% | '+(d.candidates||0)+' Kand.' : '–';
-}
-
-function renderRisk(d) {
-    const b = document.getElementById('riskBanner');
-    const alerts = d.alerts||[];
-    if (d.risk_status==='blocked'||alerts.length) {
-        b.classList.add('on');
-        document.getElementById('riskTxt').textContent = alerts.length ? alerts.join(' | ') : 'Risk-Limit erreicht';
-    } else { b.classList.remove('on'); }
-}
-
-function renderStrategies(d) {
-    const el = document.getElementById('stratList');
-    const v = d.variants||[];
-    if (!v.length) { el.innerHTML='<div class="empty"><div class="empty-ico">🔄</div>Noch keine Strategien</div>'; return; }
-    const top = [...v].sort((a,b)=>(b.wr||0)-(a.wr||0)).slice(0,6);
-    el.innerHTML = top.map((s,i)=>
-        `<div class="str-row">
-          <div class="str-rank">${i+1}</div>
-          <div class="str-info">
-            <div class="str-name">${esc(s.name||s.strategy||'Strategie '+(i+1))}</div>
-            <div class="str-det">PF: ${s.pf?s.pf.toFixed(2):'–'} · DD: ${s.max_dd?s.max_dd.toFixed(1):'–'}% · ${s.trades||0} Trades</div>
-          </div>
-          <div class="str-wr">${s.wr?s.wr.toFixed(1)+'%':'–'}</div>
-        </div>`
-    ).join('');
-    drawStratsChart(top);
-}
-
-function drawStratsChart(top) {
-    const canvas = document.getElementById('stratsChart');
-    if (!canvas || !top.length) return;
-    canvas.style.display = 'block';
-    const PAD = 14, LABEL = 72, VAL_W = 36, BAR_H = 18, GAP = 7;
-    const totalW = canvas.parentElement.clientWidth;
-    const W = totalW;
-    const H = top.length * (BAR_H + GAP) + PAD * 2;
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = W * dpr; canvas.height = H * dpr;
-    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
-    const ctx = canvas.getContext('2d');
-    ctx.scale(dpr, dpr);
-    const maxWR = Math.max(...top.map(s => s.wr||0), 65);
-    const barArea = W - PAD*2 - LABEL - VAL_W;
-    top.forEach((s, i) => {
-        const y = PAD + i * (BAR_H + GAP);
-        const wr = s.wr || 0;
-        const name = (s.name || s.strategy || 'Strategie '+(i+1)).slice(0, 11);
-        ctx.font = '600 11px -apple-system,BlinkMacSystemFont,sans-serif';
-        ctx.fillStyle = 'rgba(139,155,180,0.9)';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(name, PAD, y + BAR_H/2);
-        const bx = PAD + LABEL;
-        ctx.fillStyle = 'rgba(255,255,255,0.05)';
-        ctx.beginPath(); ctx.roundRect(bx, y, barArea, BAR_H, 4); ctx.fill();
-        const bw = (wr / maxWR) * barArea;
-        const col = wr >= 60 ? '#10B981' : wr >= 50 ? '#F59E0B' : '#EF4444';
-        const grad = ctx.createLinearGradient(bx, 0, bx + bw, 0);
-        grad.addColorStop(0, col + '55'); grad.addColorStop(1, col);
-        ctx.fillStyle = grad;
-        ctx.beginPath(); ctx.roundRect(bx, y, bw, BAR_H, 4); ctx.fill();
-        ctx.font = '700 11px -apple-system,BlinkMacSystemFont,sans-serif';
-        ctx.fillStyle = col;
-        ctx.fillText(wr.toFixed(1) + '%', bx + barArea + 5, y + BAR_H/2);
-    });
-}
-
-function renderAgents(d) {
-    const el = document.getElementById('agentList');
-    const agents = d.agents||[];
-    if (!agents.length) { el.innerHTML='<div class="empty"><div class="empty-ico">🤖</div>Keine Agenten-Daten</div>'; return; }
-    el.innerHTML = agents.map(ag=>{
-        const pc = ag.status==='working'?'#F59E0B':ag.status==='active'?'#10B981':'#374151';
-        const tags = (ag.tags||[]).map(t=>`<span class="ag-tag" style="color:${ag.color};border-color:${ag.color}33;background:${ag.bg}">${esc(t)}</span>`).join('');
-        const badgeTxt = ag.status==='working'?'◉ Working':ag.status==='active'?'✓ Aktiv':'· Idle';
-        return `<div class="ag-card ${ag.status}">
-          <div class="ag-top">
-            <div class="ag-ico" style="background:${ag.bg}"><span style="color:${ag.color}">${esc(ag.icon)}</span></div>
-            <div class="ag-meta"><div class="ag-name">${esc(ag.name)}</div><div class="ag-role">${esc(ag.role)}</div></div>
-            <div class="ag-badge ${ag.status}">${badgeTxt}</div>
-          </div>
-          <div class="ag-bar"><div class="ag-bar-fill" style="width:${ag.prog||0}%;background:${pc}"></div></div>
-          <div class="ag-task">${esc(ag.task||'–')}</div>
-          <div class="ag-foot"><div class="ag-tags">${tags}</div><div class="ag-last">Zuletzt: ${esc(ag.last||'–')}</div></div>
-        </div>`;
-    }).join('');
-}
-
-function renderSignals(d) {
-    const sigs = d.signals||[], n=sigs.length;
-    const badge = document.getElementById('sigBadge');
-    if(badge){badge.textContent=n; badge.style.display=n?'flex':'none';}
-    document.getElementById('sigCount2').textContent = n+' Signal(e)';
-    const el = document.getElementById('sigList');
-    if (!n) { el.innerHTML='<div class="empty"><div class="empty-ico">⚡</div>Keine aktuellen Signale</div>'; return; }
-    el.innerHTML = sigs.map(s=>{
-        const dir=(s.direction||'LONG').toUpperCase(), isL=dir==='LONG';
-        return `<div class="sig-row">
-          <div class="sig-dir ${isL?'long':'short'}">${dir}</div>
-          <div class="sig-info">
-            <div class="sig-price">$${Number(s.price||0).toFixed(2)}</div>
-            <div class="sig-det">SL ${Number(s.sl||0).toFixed(2)} · TP ${Number(s.tp||0).toFixed(2)} · RSI ${s.rsi||'–'}</div>
-          </div>
-          <div style="display:flex;gap:4px;flex-shrink:0">
-            ${s.has_fvg?'<span class="sig-fvg">FVG</span>':''}
-            <span class="sig-rr">1:${(s.rr||0).toFixed(1)}</span>
-          </div>
-        </div>`;
-    }).join('');
-}
-
-function renderEvents(d) {
-    const evs = d.macro_today||[];
-    const card = document.getElementById('evCard');
-    if (!evs.length) { card.style.display='none'; return; }
-    card.style.display='';
-    document.getElementById('evList').innerHTML = evs.map(e=>{
-        const imp=(e.impact||'MED').toUpperCase();
-        const cls=imp==='HIGH'?'high':imp==='MEDIUM'||imp==='MED'?'med':'low';
-        return `<div class="ev-row">
-          <div class="ev-imp ${cls}">${imp}</div>
-          <div class="ev-info">
-            <div class="ev-name">${esc(e.event||e.name||'–')}</div>
-            <div class="ev-det">${esc(e.time||'')} ${esc(e.currency||'')} ${e.actual?'Akt: '+esc(e.actual):''} ${e.forecast?'Prog: '+esc(e.forecast):''}</div>
-          </div>
-        </div>`;
-    }).join('');
-}
-
-// ── TABS ───────────────────────────────────────────────────────────────────
-function switchTab(tab) {
-    document.querySelectorAll('.tbtn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
-    const map = {dashboard:'panelDashboard',agents:'panelAgents',signals:'panelSignals',chat:'panelChat',notes:'panelNotes'};
-    if (window.matchMedia('(max-width:768px)').matches) {
-        // Inline style overrides CSS display:none without needing !important
-        ['panelDashboard','panelAgents','panelNotes','panelChat'].forEach(function(id) {
-            var el = document.getElementById(id);
-            if (!el) return;
-            var show = map[tab] === id;
-            el.style.setProperty('display', show ? 'flex' : 'none', 'important');
-        });
-    } else {
-        document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id===map[tab]));
-    }
-    if (tab==='notes') renderNotes();
-}
-
-// ── CHAT ───────────────────────────────────────────────────────────────────
-function initChat() {
-    const saved = (() => { try { return JSON.parse(localStorage.getItem('gb_chat')||'[]'); } catch(e) { return []; } })();
-    if (saved.length) {
-        hist=saved; hist.forEach(m=>renderMsg(m.role,m.content,m.ts,m.author));
-    } else {
-        welcome();
-    }
-}
-
-function welcome() {
-    const d=L;
-    const wr=d.wr?d.wr.toFixed(1)+'%':'–', pf=d.pf?d.pf.toFixed(2):'–';
-    const dd=d.max_dd?d.max_dd.toFixed(1)+'%':'–', pnl=d.net_pnl?(d.net_pnl>0?'+':'')+d.net_pnl.toFixed(0)+'$':'–';
-    addMsg('assistant',`**Gold Bot Commander** bereit ⚡
-
-📊 System-Status:
-• Win Rate: **${wr}** | Profit Factor: **${pf}**
-• Max DD: **${dd}** | Net PnL: **${pnl}**
-• Gold-Bias: **${(d.gold_bias||'neutral').toUpperCase()}** | DXY: ${d.dxy||'–'}
-• Macro: ${d.macro_blocked?'🔴 BLOCKIERT':'✅ Trading frei'}
-
-Wie kann ich helfen? Ich kann Agenten starten, Strategien analysieren und Befehle an den Bot senden.`);
-}
-
-function sysPrompt() {
-    const d=L;
-    return `Du bist der Gold Bot Commander — KI-Assistent für einen automatisierten Gold-Trading-Bot (XAUUSD, M15).
-
-Aktueller Status:
-- Win Rate: ${d.wr||'–'}% | Profit Factor: ${d.pf||'–'} | Max DD: ${d.max_dd||'–'}%
-- Trades: ${d.trades||0} | PnL: ${d.net_pnl||0}$ | Preis: ${d.price||'–'}
-- Signale: ${d.n_signals||0} | Gold-Bias: ${d.gold_bias||'neutral'}
-- DXY: ${d.dxy||'–'} | US10Y: ${d.tnx||'–'}%
-- Macro-Block: ${d.macro_blocked||false} | Risk: ${d.risk_status||'ok'}
-- Agenten: ${(d.agents||[]).map(a=>a.name+':'+a.status).join(', ')}
-- Top-Strategie: WR ${d.best_wr||'–'}% | PF ${d.best_pf||'–'} | ${d.candidates||0} Kandidaten
-
-Du kannst Bot-Befehle als JSON senden (in <dispatch>...</dispatch>):
-{ "type": "run_agent", "name": "backtester_agent" }
-{ "type": "run_agent", "name": "optimizer_agent" }
-{ "type": "run_agent", "name": "signal_agent" }
-{ "type": "run_agent", "name": "risk_agent" }
-
-Antworte präzise auf Deutsch. Nutze **Markdown** für Formatierung. Sei direkt und konkret.`;
-}
-
-function renderMsg(role, text, ts, author) {
-    const box = document.getElementById('chatBox');
-    const d = document.createElement('div');
-    d.className = 'msg ' + role;
-    const who = author||(role==='user'?ME:'Commander');
-    const md = text
-        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-        .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-        .replace(/`([^`]+)`/g,'<code style="background:rgba(255,255,255,.08);padding:1px 5px;border-radius:3px;font-size:.78rem">$1</code>')
-        .replace(/\n/g,'<br>');
-    d.innerHTML = '<div class="bubble">'+md+'</div><div class="msg-meta">'+esc(who)+' · '+fmt(ts||Date.now())+'</div>';
-    box.appendChild(d); box.scrollTop = box.scrollHeight;
-}
-
-function addMsg(role, text) {
-    const ts=Date.now(), author=role==='user'?ME:'Commander';
-    hist.push({role,content:text,ts,author});
-    renderMsg(role,text,ts,author);
-    try { localStorage.setItem('gb_chat', JSON.stringify(hist.slice(-60))); } catch(e) {}
-}
-
-function showTyping() {
-    const box=document.getElementById('chatBox');
-    const d=document.createElement('div'); d.className='msg assistant'; d.id='typer';
-    d.innerHTML='<div class="t-bubble"><div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div></div>';
-    box.appendChild(d); box.scrollTop=box.scrollHeight;
-}
-function hideTyping() { const e=document.getElementById('typer'); if(e)e.remove(); }
-
-async function sendMsg() {
-    if (busy) return;
-    const inp=document.getElementById('chatInput');
-    const txt=inp.value.trim(); if(!txt) return;
-    inp.value=''; inp.style.height='40px';
-    addMsg('user',txt);
-    if (!apiKey) { addMsg('assistant','⚠️ Kein API Key konfiguriert.'); return; }
-    busy=true; document.getElementById('sendBtn').disabled=true; showTyping();
-    try {
-        const msgs=hist.slice(0,-1).map(m=>({role:m.role==='user'?'user':'assistant',content:m.content}));
-        msgs.push({role:'user',content:txt});
-        const res=await fetch('https://api.anthropic.com/v1/messages',{
-            method:'POST',
-            headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-            body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1024,system:sysPrompt(),messages:msgs})
-        });
-        if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'API Fehler');}
-        const data=await res.json();
-        const raw=data.content[0].text;
-        const dm=raw.match(/<dispatch>([\s\S]*?)<\/dispatch>/);
-        const clean=raw.replace(/<dispatch>[\s\S]*?<\/dispatch>/g,'').trim();
-        hideTyping(); addMsg('assistant',clean);
-        if(dm){try{const cmd=JSON.parse(dm[1]);cmd.id=Date.now().toString();await dispatch(cmd);}catch(e){addMsg('assistant','⚠️ Dispatch-Fehler: '+e.message);}}
-    } catch(err) {
-        hideTyping(); addMsg('assistant','❌ **Fehler:** '+err.message);
-    } finally {
-        busy=false; document.getElementById('sendBtn').disabled=false;
-    }
-}
-
-function onKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
-function autoGrow(el){el.style.height='40px';el.style.height=Math.min(el.scrollHeight,110)+'px';}
-
-// ── DISPATCH ───────────────────────────────────────────────────────────────
-function ghTok(){return localStorage.getItem('gh_token')||'';}
-async function ghGet(){
-    const r=await fetch(`https://api.github.com/repos/${GHUSER}/${GHREPO}/contents/state.json`,
-        {headers:{Authorization:'Bearer '+ghTok(),'User-Agent':'gold-bot'}});
-    if(!r.ok) throw new Error('GitHub GET '+r.status);
-    const m=await r.json();
-    return {data:JSON.parse(atob(m.content.replace(/
-/g,''))),sha:m.sha};
-}
-async function ghPut(data,sha){
-    const r=await fetch(`https://api.github.com/repos/${GHUSER}/${GHREPO}/contents/state.json`,{
-        method:'PUT',
-        headers:{Authorization:'Bearer '+ghTok(),'Content-Type':'application/json','User-Agent':'gold-bot'},
-        body:JSON.stringify({message:'dispatch',content:btoa(unescape(encodeURIComponent(JSON.stringify(data,null,2)))),sha})
-    });
-    if(!r.ok) throw new Error('GitHub PUT '+r.status);
-}
-async function dispatch(cmd){
-    if(!ghTok()){addMsg('assistant','⚠️ Kein GitHub Token. `localStorage.setItem("gh_token","...")` im Browser-Konsole ausführen.');return;}
-    try{
-        const{data,sha}=await ghGet();
-        (data.commands=data.commands||[]).push({...cmd,status:'pending',dispatched:Date.now()});
-        await ghPut(data,sha);
-        addMsg('assistant','⚡ **Befehl gesendet!** "'+esc(cmd.name||cmd.type)+'" wurde übermittelt.
-
-Ergebnis erscheint in ~2 Min. im Dashboard.');
-        toast('Befehl gesendet ✓');
-    }catch(e){addMsg('assistant','⚠️ Dispatch fehlgeschlagen: '+e.message);}
-}
-
-// ── NOTES ──────────────────────────────────────────────────────────────────
-function getNotes(){try{return JSON.parse(localStorage.getItem('gb_notes')||'[]');}catch(e){return[];}}
-function saveNotes(n){try{localStorage.setItem('gb_notes',JSON.stringify(n));}catch(e){}}
-
-function saveNote(){
-    const inp=document.getElementById('noteInput');
-    const txt=inp.value.trim(); if(!txt) return;
-    const notes=getNotes();
-    notes.unshift({text:txt,ts:Date.now()});
-    saveNotes(notes);
-    inp.value='';
-    renderNotes();
-    toast('Notiz gespeichert ✓');
-}
-
-function deleteNote(idx){
-    const notes=getNotes(); notes.splice(idx,1); saveNotes(notes); renderNotes();
-}
-
-function clearNotes(){
-    if(!confirm('Alle Notizen löschen?')) return;
-    saveNotes([]); renderNotes(); toast('Alle Notizen gelöscht');
-}
-
-function renderNotes(){
-    const notes=getNotes();
-    const el=document.getElementById('notesList'); if(!el) return;
-    if(!notes.length){el.innerHTML='<div class="empty"><div class="empty-ico">📝</div>Noch keine Notizen</div>';return;}
-    el.innerHTML='<div class="note-saved">'+notes.map((n,i)=>
-        `<div class="note-item">
-          <div class="note-item-text">${esc(n.text)}</div>
-          <div class="note-item-meta">${fmt(n.ts)}</div>
-          <button class="note-del" onclick="deleteNote(${i})">✕</button>
-        </div>`
-    ).join('')+'</div>';
-}
-
-// ── PHOTOS ─────────────────────────────────────────────────────────────────
-function getPhotos(){try{return JSON.parse(localStorage.getItem('gb_photos')||'[]');}catch(e){return[];}}
-function savePhotosList(p){try{localStorage.setItem('gb_photos',JSON.stringify(p));}catch(e){}}
-
-async function uploadPhotos(input){
-    const files=Array.from(input.files); if(!files.length) return;
-    toast('Lade hoch…');
-    for(const file of files){
-        try{
-            const fd=new FormData(); fd.append('image',file); fd.append('key',IMGBB);
-            const r=await fetch('https://api.imgbb.com/1/upload',{method:'POST',body:fd});
-            const d=await r.json();
-            if(d.success){
-                const photos=getPhotos();
-                photos.unshift({url:d.data.url,thumb:d.data.thumb?.url||d.data.url,ts:Date.now(),name:file.name});
-                savePhotosList(photos);
-                renderPhotos();
-                toast('Foto hochgeladen ✓');
-            } else { toast('Upload fehlgeschlagen',true); }
-        } catch(e){ toast('Upload Fehler: '+e.message,true); }
-    }
-    input.value='';
-}
-
-function deletePhoto(idx){
-    const photos=getPhotos(); photos.splice(idx,1); savePhotosList(photos); renderPhotos();
-}
-
-function renderPhotos(){
-    const photos=getPhotos();
-    const grid=document.getElementById('photoGrid'); if(!grid) return;
-    const cnt=document.getElementById('photoCount'); if(cnt) cnt.textContent=photos.length+' Foto(s)';
-    if(!photos.length){grid.innerHTML='';return;}
-    grid.innerHTML=photos.map((p,i)=>
-        `<div class="photo-thumb">
-          <img src="${esc(p.thumb||p.url)}" alt="${esc(p.name||'')}" onclick="openLightbox('${esc(p.url)}')">
-          <button class="ph-del" onclick="deletePhoto(${i})">✕</button>
-        </div>`
-    ).join('');
-}
-
-function openLightbox(url){
-    document.getElementById('lbImg').src=url;
-    document.getElementById('lightbox').classList.add('on');
-}
-function closeLightbox(){
-    document.getElementById('lightbox').classList.remove('on');
-    document.getElementById('lbImg').src='';
-}
-
-// ── UTILS ──────────────────────────────────────────────────────────────────
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function fmt(ts){
-    const d=new Date(ts),diff=Date.now()-ts;
-    if(diff<60000)return'Gerade eben';
-    if(diff<3600000)return Math.floor(diff/60000)+' Min. ago';
-    if(diff<86400000)return d.toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'});
-    return d.toLocaleDateString('de-AT',{day:'2-digit',month:'2-digit'});
-}
-function toast(msg,err){
-    const t=document.getElementById('toast');
-    t.textContent=msg;
-    t.style.cssText=`background:${err?'rgba(239,68,68,.14)':'rgba(16,185,129,.14)'};border:1px solid ${err?'rgba(239,68,68,.3)':'rgba(16,185,129,.3)'};color:${err?'var(--red)':'var(--green)'};`;
-    t.classList.add('on');
-    setTimeout(()=>t.classList.remove('on'),2800);
-}
-</script>
+<script type="application/json" id="_ld">{"updated": "30.05.2026 17:30", "wr": 71.4, "pf": 2.35, "trades": 21, "net_pnl": 969.9, "max_dd": -1.5, "price": 4545.6, "n_signals": 0, "best_wr": 71.4, "best_pf": 2.35, "candidates": 2532, "from_date": "2024-08-02", "to_date": "2026-03-09", "variants": [{"id": "20260521_000000", "name": "Variante 1 — 21.05.2026 (Aktuell aktiv)", "date": "21.05.2026 00:00", "wr": 65.1, "pf": 1.67, "trades": 83, "mdd": -4.8, "pnl": 2580.11, "active": false, "top3": [], "config": {"ob_impulse_pips": 80, "ob_max_age": 30, "ob_min_body": 0.5, "bos_required": true, "swing_len": 12, "fvg_min_pips": 15, "fvg_max_age": 20, "min_brk_pip": 6, "pip_size": 0.1, "rr": 1.5, "rsi_limit": 65, "cooldown": 5, "ema_len": 50, "atr_len": 14, "rsi_len": 14, "initial_cap": 10000, "risk_pct": 0.009, "max_drawdown_pct": 0.05, "commission": 0.0007, "slippage_pip": 2, "ob_vol_multiplier": 1.3, "h4_stage_filter": true, "h4_ema_fast": 50, "h4_ema_slow": 200}}, {"id": "20260525_122104", "name": "Variante 2 — 25.05.2026", "date": "25.05.2026 12:21", "wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970, "active": true, "top3": [{"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}, {"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}, {"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}], "config": {"ob_impulse_pips": 120.0, "ob_max_age": 30, "ob_min_body": 0.75, "bos_required": true, "swing_len": 8.0, "fvg_min_pips": 12.0, "fvg_max_age": 20, "min_brk_pip": 8.0, "pip_size": 0.1, "rr": 1.5, "rsi_limit": 70.0, "cooldown": 10.0, "ema_len": 50, "atr_len": 14, "rsi_len": 14, "initial_cap": 10000, "risk_pct": 0.009, "max_drawdown_pct": 0.1, "commission": 0.0007, "slippage_pip": 2, "ob_vol_multiplier": 1.3, "h4_stage_filter": true, "h4_ema_fast": 50, "h4_ema_slow": 200}}], "risk_status": "ok", "alerts": [], "signals": [], "assets_status": [{"symbol": "XAUUSD", "price": 4545.6, "rsi": 45.1, "n_signals": 0, "h4_bull": "False"}], "agents": [{"name": "Data Fetcher", "role": "Daten-Beschaffung", "icon": "↻", "color": "#3D8EFF", "bg": "rgba(61,142,255,.12)", "status": "idle", "prog": 0, "task": "Status: OK | Daten-Aktualisierung", "tags": ["MT5", "Parquet", "Historie"], "last": "2026-05-30T09:28"}, {"name": "Optimizer", "role": "Parameter-Suche", "icon": "◈", "color": "#F59E0B", "bg": "rgba(245,158,11,.12)", "status": "idle", "prog": 0, "task": "Beste WR: 71.4% | PF: 2.35 | 2532 Kandidaten", "tags": ["Grid-Search", "Optimierung"], "last": "2026-05-25T12:21"}, {"name": "Backtester", "role": "Strategie-Tester", "icon": "▲", "color": "#10B981", "bg": "rgba(16,185,129,.12)", "status": "idle", "prog": 0, "task": "Letzter Backtest: WR=71.4% | PF=2.35 | 21 Trades", "tags": ["M15", "XAUUSD", "SMC"], "last": "2026-05-30T09:28"}, {"name": "Signal Scanner", "role": "Echtzeit-Signale", "icon": "◎", "color": "#8B5CF6", "bg": "rgba(139,92,246,.12)", "status": "active", "prog": 100, "task": "Letzter Scan: 0 Signal(e) | Preis: $4545.6", "tags": ["OB", "FVG", "BOS"], "last": "2026-05-30T17:22"}, {"name": "Risk Manager", "role": "Risiko-Kontrolle", "icon": "◼", "color": "#EF4444", "bg": "rgba(239,68,68,.12)", "status": "idle", "prog": 0, "task": "Status: OK | 0 Alert(s)", "tags": ["Drawdown", "Sizing"], "last": "2026-05-30T09:28"}, {"name": "Reporter", "role": "Dashboard", "icon": "≡", "color": "#14B8A6", "bg": "rgba(20,184,166,.12)", "status": "active", "prog": 100, "task": "Status: OK", "tags": ["HTML", "Dashboard"], "last": "2026-05-30T17:28"}, {"name": "Notifier", "role": "Alerts", "icon": "◆", "color": "#6EE7B7", "bg": "rgba(110,231,183,.10)", "status": "idle", "prog": 0, "task": "Status: – | WhatsApp/Telegram bereit", "tags": ["WhatsApp", "Telegram"], "last": "–"}, {"name": "Executor", "role": "Order-Ausführung", "icon": "▶", "color": "#F97316", "bg": "rgba(249,115,22,.12)", "status": "idle", "prog": 0, "task": "Orders platziert: 0 | Modus: DRY RUN", "tags": ["MT5", "Orders", "DryRun"], "last": "–"}, {"name": "Macro Filter", "role": "News-Kalender", "icon": "◷", "color": "#EF4444", "bg": "rgba(239,68,68,.12)", "status": "active", "prog": 100, "task": "Kein Block | Nächstes Event: None in None Min", "tags": ["FOMC", "NFP", "CPI", "News"], "last": "2026-05-30T17:22"}, {"name": "DXY Correlation", "role": "USD & Yield Analyse", "icon": "↗", "color": "#3D8EFF", "bg": "rgba(61,142,255,.12)", "status": "active", "prog": 100, "task": "Gold-Bias: BEARISH (0/2) | DXY=98.91 | 10Y=4.453%", "tags": ["DXY", "US10Y", "Makro"], "last": "2026-05-30T17:28"}, {"name": "COT Agent", "role": "CFTC Positionierung", "icon": "◉", "color": "#F59E0B", "bg": "rgba(245,158,11,.12)", "status": "idle", "prog": 0, "task": "Hedge Funds: +154,260 (43.6%) | BULLISH | cutting_longs", "tags": ["CFTC", "COT", "Hedge Funds"], "last": "2026-05-30T09:28"}, {"name": "Sentiment", "role": "Fear & Greed Index", "icon": "♡", "color": "#EC4899", "bg": "rgba(236,72,153,.12)", "status": "idle", "prog": 0, "task": "Fear & Greed: 23 (Extreme Fear) | Gold-Bias: BULLISH", "tags": ["Fear&Greed", "GLD", "ETF"], "last": "2026-05-30T15:29"}, {"name": "Geopolitik", "role": "Krisen & Safe-Haven", "icon": "⊕", "color": "#EF4444", "bg": "rgba(239,68,68,.12)", "status": "idle", "prog": 0, "task": "Risiko-Score: 100/100 | Bias: BULLISH | 30 Artikel", "tags": ["GDELT", "Krisen", "News"], "last": "2026-05-30T13:29"}, {"name": "Fed Agent", "role": "Zinspolitik & Yields", "icon": "⊞", "color": "#10B981", "bg": "rgba(16,185,129,.12)", "status": "idle", "prog": 0, "task": "Fed Rate: 3.64% (hold) | Yield Curve: +0.52% | NEUTRAL", "tags": ["Fed", "Zinsen", "FRED"], "last": "2026-05-30T09:28"}], "macro_blocked": false, "macro_reason": null, "macro_next": null, "macro_mins": null, "macro_today": [], "dxy": 98.91, "dxy_trend": "rising", "tnx": 4.453, "tnx_trend": "rising", "gold_bias": "bearish", "bias_label": "Bearisch — DXY steigt + Yields steigen", "all_assets_cfg": [{"symbol": "XAUUSD", "name": "Gold", "emoji": "🥇", "timeframe": "M15", "pip_size": 0.1, "strategy": "smc", "active": true, "note": "Primär-Asset — SMC OB+FVG Strategie"}, {"symbol": "XAGUSD", "name": "Silber", "emoji": "🥈", "timeframe": "M15", "pip_size": 0.001, "strategy": "smc", "active": false, "note": "Korreliert stark mit Gold — gleiche Strategie"}, {"symbol": "EURUSD", "name": "Euro/Dollar", "emoji": "💶", "timeframe": "M15", "pip_size": 0.0001, "strategy": "smc", "active": false, "note": "Meistgehandeltes Forex-Paar"}, {"symbol": "GBPUSD", "name": "Pfund/Dollar", "emoji": "🇬🇧", "timeframe": "M15", "pip_size": 0.0001, "strategy": "smc", "active": false, "note": "Volatile Währung — gute OB-Setups"}, {"symbol": "USDJPY", "name": "Dollar/Yen", "emoji": "🇯🇵", "timeframe": "M15", "pip_size": 0.01, "strategy": "smc", "active": false, "note": "Safe-Haven Währung — DXY-korreliert"}, {"symbol": "BTCUSD", "name": "Bitcoin", "emoji": "₿", "timeframe": "M15", "pip_size": 1.0, "strategy": "smc", "active": false, "note": "24/7 Markt — hohe Volatilität"}, {"symbol": "ETHUSD", "name": "Ethereum", "emoji": "⬡", "timeframe": "M15", "pip_size": 0.1, "strategy": "smc", "active": false, "note": "Zweitgrößte Krypto"}, {"symbol": "NAS100", "name": "Nasdaq 100", "emoji": "📈", "timeframe": "M15", "pip_size": 0.1, "strategy": "smc", "active": false, "note": "US Tech-Index — hohe Liquidität"}, {"symbol": "US30", "name": "Dow Jones", "emoji": "🏛", "timeframe": "M15", "pip_size": 1.0, "strategy": "smc", "active": false, "note": "US Blue-Chip Index"}, {"symbol": "USOIL", "name": "WTI Öl", "emoji": "🛢", "timeframe": "M15", "pip_size": 0.01, "strategy": "smc", "active": false, "note": "Rohöl — geopolitisch sensibel"}]}</script>
+<div id="_cfg" data-gu="a2asystems" data-gr="a2asystems.github.io" data-ib="a2490835943cef8ae22860914c5a5d19" data-ak="118,110,40,100,107,113,40,100,117,108,53,54,40,75,107,71,117,68,54,65,102,93,95,119,110,115,73,72,109,82,79,83,55,61,112,93,66,67,50,87,117,84,54,96,72,106,127,105,110,68,90,95,48,96,118,74,48,53,73,108,64,125,77,70,74,92,98,115,106,124,83,110,113,75,92,73,82,95,50,64,80,100,72,71,75,40,110,111,79,96,124,93,86,87,66,81,117,83,68,40,111,80,68,102,115,84,68,68" hidden></div>
+<script src="app.js?v=20260530173001" defer></script>
 </body>
 </html>
