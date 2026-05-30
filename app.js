@@ -334,6 +334,70 @@ function startOptimizer() {
     }, 300);
 }
 
+// ── ASSET PICKER ───────────────────────────────────────────────────────────
+var _assetCfg = (L && L.all_assets_cfg) ? L.all_assets_cfg : [];
+var _pendingAssets = {};  // symbol → true/false (pending changes)
+
+function renderAssetPicker() {
+    var grid = document.getElementById('assetGrid');
+    var countEl = document.getElementById('activeCount');
+    if (!grid) return;
+    var assets = (LIVE && LIVE.all_assets_cfg) ? LIVE.all_assets_cfg : _assetCfg;
+    if (!assets || !assets.length) { grid.innerHTML = '<div style="color:var(--text2);font-size:.75rem">Keine Assets konfiguriert</div>'; return; }
+
+    var activeCount = assets.filter(function(a) { return a.active; }).length;
+    if (countEl) countEl.textContent = activeCount + ' aktiv';
+
+    grid.innerHTML = assets.map(function(a) {
+        var pending = _pendingAssets[a.symbol];
+        var isActive = (pending !== undefined) ? pending : a.active;
+        var borderColor = isActive ? 'var(--gold)' : 'var(--border)';
+        var bgColor = isActive ? 'rgba(245,158,11,.1)' : 'var(--card)';
+        var nameColor = isActive ? 'var(--gold)' : 'var(--text2)';
+        var badge = isActive ? '<span style="font-size:.55rem;background:var(--gold);color:#000;padding:2px 5px;border-radius:4px;font-weight:700">AKTIV</span>' : '<span style="font-size:.55rem;background:var(--border);color:var(--text2);padding:2px 5px;border-radius:4px">INAKTIV</span>';
+        var spin = (pending !== undefined) ? '<span style="font-size:.65rem;color:var(--text2)"> ⟳</span>' : '';
+        return '<button type="button" onclick="toggleAsset(\'' + a.symbol + '\',' + !isActive + ')" style="'
+            + 'background:' + bgColor + ';border:1px solid ' + borderColor + ';'
+            + 'border-radius:10px;padding:10px 12px;cursor:pointer;text-align:left;'
+            + 'touch-action:manipulation;-webkit-appearance:none;width:100%;transition:all .2s">'
+            + '<div style="font-size:1.3rem;margin-bottom:3px">' + (a.emoji || '📊') + '</div>'
+            + '<div style="font-size:.78rem;font-weight:700;color:' + nameColor + '">' + a.symbol + spin + '</div>'
+            + '<div style="font-size:.62rem;color:var(--text2);margin:2px 0">' + (a.name || '') + '</div>'
+            + badge
+            + '</button>';
+    }).join('');
+}
+
+async function toggleAsset(symbol, activate) {
+    var msgEl = document.getElementById('assetMsg');
+    _pendingAssets[symbol] = activate;
+    renderAssetPicker();
+
+    var action = activate ? 'aktiviert' : 'deaktiviert';
+    if (msgEl) { msgEl.style.display = 'block'; msgEl.textContent = symbol + ' wird ' + action + '...'; }
+
+    try {
+        await dispatch({
+            type:   'set_asset',
+            symbol: symbol,
+            active: activate,
+            name:   'Asset ' + action + ': ' + symbol,
+        });
+        if (msgEl) msgEl.textContent = '✓ ' + symbol + ' ' + action + ' — Bot übernimmt beim nächsten Scan';
+        // Update local config for immediate UI feedback
+        if (LIVE && LIVE.all_assets_cfg) {
+            LIVE.all_assets_cfg.forEach(function(a) { if (a.symbol === symbol) a.active = activate; });
+        }
+        delete _pendingAssets[symbol];
+        renderAssetPicker();
+    } catch(e) {
+        if (msgEl) msgEl.textContent = '⚠️ Fehler: ' + e.message + ' — Token in Commander setzen';
+        delete _pendingAssets[symbol];
+        renderAssetPicker();
+    }
+    if (msgEl) setTimeout(function() { msgEl.style.display = 'none'; }, 5000);
+}
+
 // ── CHAT ───────────────────────────────────────────────────────────────────
 function initChat() {
     // Set initial persona button highlight
@@ -582,6 +646,7 @@ function toast(msg,err){
     var notesInp = document.getElementById('t-notes');
     if (notesInp) notesInp.addEventListener('change', function() { if (this.checked) renderNotes(); });
     renderAll(L);
+    renderAssetPicker();
     initChat();
     renderNotes();
     renderPhotos();
