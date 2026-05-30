@@ -528,6 +528,38 @@ function autoGrow(el){el.style.height='40px';el.style.height=Math.min(el.scrollH
 
 // ── DISPATCH ───────────────────────────────────────────────────────────────
 function ghTok(){return localStorage.getItem('gh_token')||'';}
+
+function setGhToken() {
+    var current = ghTok();
+    var val = prompt(
+        'GitHub Personal Access Token eingeben\n(Berechtigungen: repo + contents)',
+        current || ''
+    );
+    if (val === null) return; // cancelled
+    val = val.trim();
+    if (!val) {
+        localStorage.removeItem('gh_token');
+        toast('Token gelöscht');
+        updateTokenBtn();
+        return;
+    }
+    try {
+        localStorage.setItem('gh_token', val);
+        toast('Token gespeichert ✓');
+        updateTokenBtn();
+    } catch(e) {
+        toast('Speichern fehlgeschlagen: ' + e.message, true);
+    }
+}
+
+function updateTokenBtn() {
+    var btn = document.getElementById('tokenBtn');
+    if (!btn) return;
+    var has = !!ghTok();
+    btn.textContent = has ? '🔑 Token ✓' : '🔑 Token setzen';
+    btn.style.borderColor = has ? 'rgba(16,185,129,.4)' : 'rgba(239,68,68,.4)';
+    btn.style.color = has ? 'var(--green)' : 'var(--red)';
+}
 async function ghGet(){
     const r=await fetch(`https://api.github.com/repos/${GHUSER}/${GHREPO}/contents/state.json`,
         {headers:{Authorization:'Bearer '+ghTok(),'User-Agent':'gold-bot'}});
@@ -544,7 +576,15 @@ async function ghPut(data,sha){
     if(!r.ok) throw new Error('GitHub PUT '+r.status);
 }
 async function dispatch(cmd){
-    if(!ghTok()){addMsg('assistant','⚠️ Kein GitHub Token. `localStorage.setItem("gh_token","...")` im Browser-Konsole ausführen.');return;}
+    if(!ghTok()){
+        // Only show token-missing message if it wasn't shown just recently
+        var lastWarn = parseInt(sessionStorage.getItem('_noTokWarn')||'0');
+        if (Date.now() - lastWarn > 30000) {
+            addMsg('assistant','⚠️ **Kein GitHub Token gesetzt.**\n\nTippe oben auf **🔑 Token setzen** um deinen GitHub Token einzugeben.', true);
+            sessionStorage.setItem('_noTokWarn', Date.now().toString());
+        }
+        return;
+    }
     try{
         const{data,sha}=await ghGet();
         (data.commands=data.commands||[]).push({...cmd,status:'pending',dispatched:Date.now()});
@@ -667,5 +707,6 @@ function toast(msg,err){
     initChat();
     renderNotes();
     renderPhotos();
+    updateTokenBtn();
     setInterval(poll, 30000);
 })();
