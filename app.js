@@ -414,6 +414,7 @@ function switchTab(tab) {
     });
     if (tab === 'notes') renderNotes();
     if (tab === 'chat' && document.getElementById('chatBox') && !document.getElementById('chatBox').children.length) initChat();
+    if (tab === 'poly') initPolyChat();
 }
 
 function startOptimizer() {
@@ -562,6 +563,9 @@ function renderMsg(role, text, ts, author) {
         .replace(/\n/g,'<br>');
     d.innerHTML = '<div class="bubble">'+md+'</div><div class="msg-meta">'+esc(who)+' · '+fmt(ts||Date.now())+'</div>';
     box.appendChild(d); box.scrollTop = box.scrollHeight;
+    // Mirror to poly chat if initialized
+    const polyBox = document.getElementById('polyChatBox');
+    if (polyBox && polyBox._ready) { polyBox.appendChild(d.cloneNode(true)); polyBox.scrollTop = polyBox.scrollHeight; }
 }
 
 function addMsg(role, text, auto) {
@@ -580,12 +584,15 @@ function addMsg(role, text, auto) {
 }
 
 function showTyping() {
-    const box=document.getElementById('chatBox');
-    const d=document.createElement('div'); d.className='msg assistant'; d.id='typer';
-    d.innerHTML='<div class="t-bubble"><div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div></div>';
-    box.appendChild(d); box.scrollTop=box.scrollHeight;
+    ['chatBox','polyChatBox'].forEach(function(boxId) {
+        const box=document.getElementById(boxId);
+        if(!box || (boxId==='polyChatBox' && !box._ready)) return;
+        const d=document.createElement('div'); d.className='msg assistant'; d.id=boxId==='chatBox'?'typer':'polyTyper';
+        d.innerHTML='<div class="t-bubble"><div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div></div>';
+        box.appendChild(d); box.scrollTop=box.scrollHeight;
+    });
 }
-function hideTyping() { const e=document.getElementById('typer'); if(e)e.remove(); }
+function hideTyping() { ['typer','polyTyper'].forEach(function(id){const e=document.getElementById(id);if(e)e.remove();}); }
 
 async function sendMsg() {
     if (busy) return;
@@ -594,7 +601,7 @@ async function sendMsg() {
     inp.value=''; inp.style.height='40px';
     addMsg('user',txt);
     if (!apiKey) { addMsg('assistant','⚠️ Kein API Key konfiguriert.'); return; }
-    busy=true; document.getElementById('sendBtn').disabled=true; showTyping();
+    busy=true; document.getElementById('sendBtn').disabled=true; const _pSend=document.getElementById('polySendBtn'); if(_pSend)_pSend.disabled=true; showTyping();
     try {
         const msgs=hist.slice(0,-1).map(m=>({role:m.role==='user'?'user':'assistant',content:m.content}));
         msgs.push({role:'user',content:txt});
@@ -613,11 +620,33 @@ async function sendMsg() {
     } catch(err) {
         hideTyping(); addMsg('assistant','❌ **Fehler:** '+err.message);
     } finally {
-        busy=false; document.getElementById('sendBtn').disabled=false;
+        busy=false; document.getElementById('sendBtn').disabled=false; const _pS2=document.getElementById('polySendBtn'); if(_pS2)_pS2.disabled=false;
     }
 }
 
 function onKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
+
+function initPolyChat() {
+    const box=document.getElementById('polyChatBox');
+    if(!box||box._ready) return;
+    // Ensure main chat is initialized
+    const mainBox=document.getElementById('chatBox');
+    if(mainBox&&!mainBox.children.length) initChat();
+    box._ready=true;
+    // Clone existing messages into poly chat
+    if(mainBox) { Array.from(mainBox.children).forEach(function(c){box.appendChild(c.cloneNode(true));}); }
+    box.scrollTop=box.scrollHeight;
+}
+function sendPolyMsg() {
+    if(busy) return;
+    const polyInp=document.getElementById('polyChatInput');
+    const txt=polyInp.value.trim(); if(!txt) return;
+    polyInp.value=''; polyInp.style.height='40px';
+    // Inject into main input and delegate
+    const mainInp=document.getElementById('chatInput');
+    if(mainInp) { mainInp.value=txt; sendMsg(); }
+}
+function onPolyKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendPolyMsg();}}
 function autoGrow(el){el.style.height='40px';el.style.height=Math.min(el.scrollHeight,110)+'px';}
 
 // ── DISPATCH ───────────────────────────────────────────────────────────────
