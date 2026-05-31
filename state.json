@@ -1,14 +1,38 @@
 {
   "chat": [],
-  "strategies": [],
+  "strategies": [
+    {
+      "id": "1780257658534",
+      "name": "signal_agent",
+      "source": "commander",
+      "author": "Commander",
+      "date": "31.05.2026 22:01",
+      "wr": 55.4,
+      "pf": 1.52,
+      "trades": 65,
+      "mdd": -5.3,
+      "pnl": 1916,
+      "rr": null,
+      "desc": "Backtest: {}",
+      "active": false
+    }
+  ],
   "images": [],
   "commands": [
     {
       "type": "run_agent",
       "name": "signal_agent",
       "id": "1780257658534",
-      "status": "running",
-      "dispatched": 1780257658939
+      "status": "done",
+      "dispatched": 1780257658939,
+      "result": {
+        "wr": 55.4,
+        "pf": 1.52,
+        "trades": 65,
+        "mdd": -5.3,
+        "pnl": 1916.0,
+        "rr": null
+      }
     }
   ]
 }
