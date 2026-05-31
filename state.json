@@ -90,9 +90,16 @@
         "pf": 1.52,
         "trades": 65,
         "mdd": -5.3,
-        "pnl": 1916.0,
+        "pnl": 1916,
         "rr": null
       }
+    },
+    {
+      "type": "run_agent",
+      "name": "backtester_agent",
+      "id": "1780259073509",
+      "status": "pending",
+      "dispatched": 1780259073921
     }
   ]
 }
