@@ -38,7 +38,7 @@
       "type": "run_agent",
       "name": "optimizer_agent",
       "id": "1780257764201",
-      "status": "pending",
+      "status": "running",
       "dispatched": 1780257764506
     }
   ]
