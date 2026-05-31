@@ -2,6 +2,21 @@
   "chat": [],
   "strategies": [
     {
+      "id": "1780257813424",
+      "name": "optimizer_agent",
+      "source": "commander",
+      "author": "Commander",
+      "date": "31.05.2026 22:05",
+      "wr": 55.4,
+      "pf": 1.52,
+      "trades": 65,
+      "mdd": -5.3,
+      "pnl": 1916,
+      "rr": null,
+      "desc": "Backtest: {}",
+      "active": false
+    },
+    {
       "id": "1780257764201",
       "name": "optimizer_agent",
       "source": "commander",
@@ -68,8 +83,16 @@
       "type": "run_agent",
       "name": "optimizer_agent",
       "id": "1780257813424",
-      "status": "running",
-      "dispatched": 1780257813727
+      "status": "done",
+      "dispatched": 1780257813727,
+      "result": {
+        "wr": 55.4,
+        "pf": 1.52,
+        "trades": 65,
+        "mdd": -5.3,
+        "pnl": 1916.0,
+        "rr": null
+      }
     }
   ]
 }
