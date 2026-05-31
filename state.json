@@ -60,9 +60,16 @@
         "pf": 1.52,
         "trades": 65,
         "mdd": -5.3,
-        "pnl": 1916.0,
+        "pnl": 1916,
         "rr": null
       }
+    },
+    {
+      "type": "run_agent",
+      "name": "optimizer_agent",
+      "id": "1780257813424",
+      "status": "pending",
+      "dispatched": 1780257813727
     }
   ]
 }
