@@ -1,1 +1,14 @@
-{"chat":[],"strategies":[],"images":[],"commands":[]}
+{
+  "chat": [],
+  "strategies": [],
+  "images": [],
+  "commands": [
+    {
+      "type": "run_agent",
+      "name": "signal_agent",
+      "id": "1780257658534",
+      "status": "pending",
+      "dispatched": 1780257658939
+    }
+  ]
+}
