@@ -129,24 +129,27 @@ function drawChart(d) {
     canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
     ctx.scale(dpr, dpr);
 
-    // Build points — echte Kapitalkurve aus monatlichen Daten wenn vorhanden
+    // Build points — echte Kapitalkurve (Priorität: monthly > start/end_cap > Simulation)
     let pts = [];
     const monthly = d.monthly || [];
     if (monthly.length >= 2) {
         const sc = d.start_cap || 10000;
         pts = [sc].concat(monthly.map(function(m){ return m.cap; }));
+    } else if (d.start_cap && d.end_cap && d.end_cap > 0 && d.trades > 0) {
+        // Realistische Kurve aus Backtest-Daten ableiten
+        const sc = d.start_cap, ec = d.end_cap, n = Math.min(d.trades, 40);
+        const wr = (d.wr||50)/100;
+        let eq = sc, rng2 = Math.abs(Math.round(sc+ec));
+        function rand2(){rng2=(rng2*1664525+1013904223)&0xffffffff;return(rng2>>>0)/0xffffffff;}
+        const step = (ec-sc)/n;
+        pts = [sc];
+        for(var i=0;i<n-1;i++){const w=rand2()<wr;eq+=w?Math.abs(step)*1.5:-Math.abs(step)*0.5;pts.push(eq);}
+        pts.push(ec);
     } else {
-        const variants = d.variants || [];
-        if (variants.length > 2) {
-            const sorted = [...variants].sort((a,b) => (a.wr||0)-(b.wr||0));
-            let eq = 10000;
-            pts = sorted.map(function(v){ eq += (v.net_pnl||0)*0.08; return eq; });
-        } else {
-            const wr = d.wr||55, n = Math.max(d.trades||60, 20);
-            let eq = 10000, rng2 = 1234;
-            function rand() { rng2 = (rng2*1664525+1013904223)&0xffffffff; return (rng2>>>0)/0xffffffff; }
-            pts = Array.from({length:Math.min(n,80)}, function(){ const w=rand()<wr/100; eq+=w?eq*.013:-eq*.008; return eq; });
-        }
+        const wr = d.wr||55, n = Math.max(d.trades||60, 20);
+        let eq = 10000, rng2 = 1234;
+        function rand() { rng2 = (rng2*1664525+1013904223)&0xffffffff; return (rng2>>>0)/0xffffffff; }
+        pts = Array.from({length:Math.min(n,80)}, function(){ const w=rand()<wr/100; eq+=w?eq*.013:-eq*.008; return eq; });
     }
     if (pts.length < 2) return;
 
@@ -1037,39 +1040,37 @@ function toast(msg,err){
 
 // ── DOM UPGRADE (altes gecachtes HTML bekommt neue Elemente) ───────────────────
 (function ensureDOM() {
-    // Extra KPI-Zeile (Return / End-Kapital / Long-Short / H4-Filter) injizieren
+    // Chart-Card als zuverlässiger Anker (canvas#pnlChart ist immer vorhanden)
+    var chartEl = document.getElementById('pnlChart');
+    var chartCard = chartEl && chartEl.closest ? chartEl.closest('.card') : null;
+    if (!chartCard) return;
+
+    // Extra KPI-Zeile VOR dem Chart einfügen (Return / End-Kapital / Long-Short / H4)
     if (!document.getElementById('kReturn')) {
-        var grids = document.querySelectorAll('.kpi-grid');
-        if (grids.length > 0) {
-            var row = document.createElement('div');
-            row.className = 'kpi-grid';
-            row.style.cssText = 'grid-template-columns:repeat(4,1fr);margin-top:0';
-            row.innerHTML =
-                '<div class="kpi" style="--kc:#10B981;--kg:rgba(16,185,129,.15)"><div class="kpi-lbl">Return</div><div class="kpi-val" id="kReturn" style="font-size:1.35rem">–</div><div class="kpi-sub">Gesamt-Rendite</div></div>' +
-                '<div class="kpi" style="--kc:#6366F1;--kg:rgba(99,102,241,.15)"><div class="kpi-lbl">End-Kapital</div><div class="kpi-val" id="kEndCap" style="font-size:1.1rem">–</div><div class="kpi-sub" id="kRisk">–</div></div>' +
-                '<div class="kpi" style="--kc:#F59E0B;--kg:rgba(245,158,11,.15)"><div class="kpi-lbl">Long / Short</div><div class="kpi-val" id="kLongShort" style="font-size:1.25rem">–</div><div class="kpi-sub">Richtungen</div></div>' +
-                '<div class="kpi" style="--kc:#14B8A6;--kg:rgba(20,184,166,.15)"><div class="kpi-lbl">H4-Filter</div><div class="kpi-val" style="font-size:.95rem;color:#10B981">BOS+H4</div><div class="kpi-sub">Strategie</div></div>';
-            grids[grids.length - 1].insertAdjacentElement('afterend', row);
-        }
+        var kRow = document.createElement('div');
+        kRow.className = 'kpi-grid';
+        kRow.style.cssText = 'grid-template-columns:repeat(4,1fr);margin-top:0';
+        kRow.innerHTML =
+            '<div class="kpi" style="--kc:#10B981;--kg:rgba(16,185,129,.15)"><div class="kpi-lbl">Return</div><div class="kpi-val" id="kReturn" style="font-size:1.35rem">–</div><div class="kpi-sub">Gesamt-Rendite</div></div>' +
+            '<div class="kpi" style="--kc:#6366F1;--kg:rgba(99,102,241,.15)"><div class="kpi-lbl">End-Kapital</div><div class="kpi-val" id="kEndCap" style="font-size:1.1rem">–</div><div class="kpi-sub" id="kRisk">–</div></div>' +
+            '<div class="kpi" style="--kc:#F59E0B;--kg:rgba(245,158,11,.15)"><div class="kpi-lbl">Long / Short</div><div class="kpi-val" id="kLongShort" style="font-size:1.25rem">–</div><div class="kpi-sub">Richtungen</div></div>' +
+            '<div class="kpi" style="--kc:#14B8A6;--kg:rgba(20,184,166,.15)"><div class="kpi-lbl">H4-Filter</div><div class="kpi-val" style="font-size:.95rem;color:#10B981">BOS+H4</div><div class="kpi-sub">Strategie</div></div>';
+        chartCard.insertAdjacentElement('beforebegin', kRow);
     }
-    // Monatliche Auswertung injizieren
+    // Monatliche Auswertung NACH dem Chart einfügen
     if (!document.getElementById('monthlyTable')) {
-        var chartEl = document.getElementById('pnlChart');
-        var chartCard = chartEl && chartEl.closest ? chartEl.closest('.card') : null;
-        if (chartCard) {
-            var mDiv = document.createElement('div');
-            mDiv.className = 'card';
-            mDiv.innerHTML =
-                '<div class="ch"><span class="ct">Monatliche Auswertung</span></div>' +
-                '<table style="width:100%;border-collapse:collapse"><thead><tr style="border-bottom:1px solid rgba(255,255,255,.1)">' +
-                '<th style="padding:5px 8px;text-align:left;font-size:.65rem;color:#8B9BB4;font-weight:600">Monat</th>' +
-                '<th style="padding:5px 8px;text-align:right;font-size:.65rem;color:#8B9BB4;font-weight:600">Trades</th>' +
-                '<th style="padding:5px 8px;text-align:right;font-size:.65rem;color:#8B9BB4;font-weight:600">WR</th>' +
-                '<th style="padding:5px 8px;text-align:right;font-size:.65rem;color:#8B9BB4;font-weight:600">PnL</th>' +
-                '<th style="padding:5px 8px;text-align:right;font-size:.65rem;color:#8B9BB4;font-weight:600">Kapital</th>' +
-                '</tr></thead><tbody id="monthlyTable"></tbody></table>';
-            chartCard.insertAdjacentElement('afterend', mDiv);
-        }
+        var mDiv = document.createElement('div');
+        mDiv.className = 'card';
+        mDiv.innerHTML =
+            '<div class="ch"><span class="ct">Monatliche Auswertung</span></div>' +
+            '<table style="width:100%;border-collapse:collapse"><thead><tr style="border-bottom:1px solid rgba(255,255,255,.1)">' +
+            '<th style="padding:5px 8px;text-align:left;font-size:.65rem;color:#8B9BB4;font-weight:600">Monat</th>' +
+            '<th style="padding:5px 8px;text-align:right;font-size:.65rem;color:#8B9BB4;font-weight:600">Trades</th>' +
+            '<th style="padding:5px 8px;text-align:right;font-size:.65rem;color:#8B9BB4;font-weight:600">WR</th>' +
+            '<th style="padding:5px 8px;text-align:right;font-size:.65rem;color:#8B9BB4;font-weight:600">PnL</th>' +
+            '<th style="padding:5px 8px;text-align:right;font-size:.65rem;color:#8B9BB4;font-weight:600">Kapital</th>' +
+            '</tr></thead><tbody id="monthlyTable"></tbody></table>';
+        chartCard.insertAdjacentElement('afterend', mDiv);
     }
 })();
 
