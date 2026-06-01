@@ -113,18 +113,24 @@ function drawChart(d) {
     canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
     ctx.scale(dpr, dpr);
 
-    // Build points
-    const variants = d.variants || [];
+    // Build points — echte Kapitalkurve aus monatlichen Daten wenn vorhanden
     let pts = [];
-    if (variants.length > 2) {
-        const sorted = [...variants].sort((a,b) => (a.wr||0)-(b.wr||0));
-        let eq = 10000;
-        pts = sorted.map((v,i) => { eq += (v.net_pnl||0)*0.08; return eq; });
+    const monthly = d.monthly || [];
+    if (monthly.length >= 2) {
+        const sc = d.start_cap || 10000;
+        pts = [sc].concat(monthly.map(function(m){ return m.cap; }));
     } else {
-        const wr = d.wr||55, n = Math.max(d.trades||60, 20);
-        let eq = 10000, rng = 1234;
-        function rand() { rng = (rng*1664525+1013904223)&0xffffffff; return (rng>>>0)/0xffffffff; }
-        pts = Array.from({length:Math.min(n,80)}, () => { const w=rand()<wr/100; eq+=w?eq*.013:-eq*.008; return eq; });
+        const variants = d.variants || [];
+        if (variants.length > 2) {
+            const sorted = [...variants].sort((a,b) => (a.wr||0)-(b.wr||0));
+            let eq = 10000;
+            pts = sorted.map(function(v){ eq += (v.net_pnl||0)*0.08; return eq; });
+        } else {
+            const wr = d.wr||55, n = Math.max(d.trades||60, 20);
+            let eq = 10000, rng2 = 1234;
+            function rand() { rng2 = (rng2*1664525+1013904223)&0xffffffff; return (rng2>>>0)/0xffffffff; }
+            pts = Array.from({length:Math.min(n,80)}, function(){ const w=rand()<wr/100; eq+=w?eq*.013:-eq*.008; return eq; });
+        }
     }
     if (pts.length < 2) return;
 
@@ -689,12 +695,25 @@ Live-Daten:
 - Top-Strategie: WR ${d.best_wr||'–'}% | ${d.candidates||0} Kandidaten
 
 Bot-Befehle (JSON in <dispatch>...</dispatch>):
-{ "type": "run_agent", "name": "backtester_agent" }
-{ "type": "run_agent", "name": "optimizer_agent" }
-{ "type": "run_agent", "name": "signal_agent" }
-{ "type": "run_agent", "name": "polymarket_agent" }
 
-Ergebnisse erscheinen in ~2 Min. im Dashboard. Antworte kurz und direkt auf Deutsch.`;
+Backtest mit Parametern:
+{"type":"run_agent","name":"backtester_agent","task":{"symbol":"XAUUSD","initial_cap":10000,"risk_pct":0.10,"allow_short":true,"from_date":"2026-01-01"}}
+
+Parameter:
+- initial_cap: Startkapital USD (z.B. 10000, 50000, 100000)
+- risk_pct: Risiko/Trade als Dezimal (0.02=2%, 0.05=5%, 0.10=10%)
+- allow_short: true=Long+Short, false=nur Long
+- from_date: "2026-01-01" oder "2026" fuer Jahr
+- to_date: Enddatum optional
+
+Weitere Agenten:
+{"type":"run_agent","name":"optimizer_agent"}
+{"type":"run_agent","name":"signal_agent"}
+{"type":"run_agent","name":"polymarket_agent"}
+
+WICHTIG: Wenn der User Backtest-Parameter nennt (Kapital, Risiko, Long/Short, Zeitraum), extrahiere sie sofort und sende den dispatch-Befehl ohne Rueckfrage.
+
+Ergebnisse erscheinen in ~2 Min. im Dashboard. Antworte kurz auf Deutsch.`;
 }
 
 function renderMsg(role, text, ts, author) {
