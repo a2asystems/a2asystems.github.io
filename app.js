@@ -496,6 +496,69 @@ async function toggleAsset(symbol, activate) {
 }
 
 // ── CHAT ───────────────────────────────────────────────────────────────────
+var _chatSha = null;
+
+async function syncChat() {
+    if (!ghTok() || !GHUSER || !GHREPO) return;
+    try {
+        const r = await fetch(
+            'https://api.github.com/repos/'+GHUSER+'/'+GHREPO+'/contents/chat.json',
+            {headers:{Authorization:'Bearer '+ghTok(),'User-Agent':'gold-bot','Cache-Control':'no-cache'}}
+        );
+        if (r.status === 404) return;
+        if (!r.ok) return;
+        const m = await r.json();
+        _chatSha = m.sha;
+        const remote = JSON.parse(atob(m.content.replace(/\n/g,'')));
+        const knownTs = new Set(hist.map(function(h){return h.ts;}));
+        const newMsgs = remote.filter(function(msg){return !msg.auto && !knownTs.has(msg.ts);});
+        if (newMsgs.length > 0) {
+            // Sort by timestamp before inserting
+            newMsgs.sort(function(a,b){return a.ts-b.ts;});
+            const box = document.getElementById('chatBox');
+            if (box && newMsgs.length > 0 && hist.length > 0) {
+                const sep = document.createElement('div');
+                sep.style.cssText = 'text-align:center;font-size:.6rem;color:var(--text3);padding:6px 0;border-top:1px dashed var(--border);margin-top:4px';
+                sep.textContent = '— ' + newMsgs.length + ' neue Nachricht(en) —';
+                box.appendChild(sep);
+            }
+            newMsgs.forEach(function(msg){
+                hist.push(msg);
+                renderMsg(msg.role, msg.content, msg.ts, msg.author);
+            });
+        }
+    } catch(e) { console.warn('syncChat:', e); }
+}
+
+async function pushChatMsg(entry) {
+    if (!ghTok() || !GHUSER || !GHREPO) return;
+    for (var attempt=0; attempt<3; attempt++) {
+        try {
+            var rGet = await fetch(
+                'https://api.github.com/repos/'+GHUSER+'/'+GHREPO+'/contents/chat.json',
+                {headers:{Authorization:'Bearer '+ghTok(),'User-Agent':'gold-bot'}}
+            );
+            var messages = [], sha = null;
+            if (rGet.ok) {
+                var mf = await rGet.json();
+                sha = mf.sha; _chatSha = sha;
+                messages = JSON.parse(atob(mf.content.replace(/\n/g,'')));
+            }
+            messages.push(entry);
+            messages = messages.slice(-300);
+            var body = {message:'Chat update', content:btoa(unescape(encodeURIComponent(JSON.stringify(messages))))};
+            if (sha) body.sha = sha;
+            var rPut = await fetch(
+                'https://api.github.com/repos/'+GHUSER+'/'+GHREPO+'/contents/chat.json',
+                {method:'PUT', headers:{Authorization:'Bearer '+ghTok(),'Content-Type':'application/json','User-Agent':'gold-bot'}, body:JSON.stringify(body)}
+            );
+            if (rPut.status===409) { await new Promise(function(r){setTimeout(r,800+Math.random()*400);}); continue; }
+            if (rPut.ok) { _chatSha = (await rPut.json()).content.sha; break; }
+            break;
+        } catch(e) { break; }
+    }
+}
+
 function initChat() {
     document.querySelectorAll('.pb-btn').forEach(b => b.classList.toggle('active', b.textContent.includes(ME)));
     // Load saved conversation (never includes auto-generated welcome messages)
@@ -513,6 +576,8 @@ function initChat() {
         saved.forEach(function(m) { renderMsg(m.role, m.content, m.ts, m.author); });
     }
     welcome(); // always show fresh status at bottom
+    // Pull shared messages from GitHub (other users' messages)
+    setTimeout(syncChat, 1500);
 }
 
 function welcome() {
@@ -582,6 +647,8 @@ function addMsg(role, text, auto) {
             const toSave = hist.filter(function(m){ return !m.auto; }).slice(-60);
             localStorage.setItem('gb_chat', JSON.stringify(toSave));
         } catch(e) { console.warn('localStorage nicht verfügbar:', e); }
+        // Push to GitHub so other users (Andreas, Johannes) see this message
+        pushChatMsg(entry);
     }
 }
 
@@ -836,4 +903,5 @@ function toast(msg,err){
     renderPhotos();
     updateTokenBtn();
     setInterval(poll, 30000);
+    setInterval(syncChat, 60000); // Sync chat across all users every 60s
 })();
