@@ -212,9 +212,31 @@
         "pf": 1.52,
         "trades": 65,
         "mdd": -5.3,
-        "pnl": 1916.0,
+        "pnl": 1916,
         "rr": null
       }
+    },
+    {
+      "type": "run_agent",
+      "name": "backtester_agent",
+      "config": {
+        "account_size": 10000,
+        "risk_per_trade_pct": 10,
+        "risk_per_trade_usd": 1000,
+        "charts": [
+          "M15",
+          "H1",
+          "H4"
+        ],
+        "period_start": "2026-01-01",
+        "period_end": "2026-05-20",
+        "instrument": "XAUUSD",
+        "use_top_strategy": true,
+        "output": "real_numbers_only"
+      },
+      "id": "1780317026388",
+      "status": "pending",
+      "dispatched": 1780317026923
     }
   ]
 }
