@@ -177,6 +177,14 @@
       "name": "Asset aktiviert: XAGUSD",
       "status": "pending",
       "dispatched": 1780312448064
+    },
+    {
+      "type": "set_asset",
+      "symbol": "XAGUSD",
+      "active": false,
+      "name": "Asset deaktiviert: XAGUSD",
+      "status": "pending",
+      "dispatched": 1780312967984
     }
   ]
 }
