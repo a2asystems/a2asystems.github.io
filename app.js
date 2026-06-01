@@ -59,10 +59,10 @@ function renderHeader(d) {
 
 function renderKPIs(d) {
     const wr=d.wr||0, pf=d.pf||0, dd=d.max_dd||0, pnl=d.net_pnl||0, tr=d.trades||0;
-    document.getElementById('kWR').textContent    = wr  ? wr.toFixed(1)+'%'                      : '–';
-    document.getElementById('kPF').textContent    = pf  ? pf.toFixed(2)                           : '–';
-    document.getElementById('kDD').textContent    = dd  ? dd.toFixed(1)+'%'                       : '–';
-    document.getElementById('kPnL').textContent   = pnl ? (pnl>0?'+':'')+pnl.toFixed(0)+'$'      : '–';
+    document.getElementById('kWR').textContent    = wr  ? wr.toFixed(1)+'%'                 : '–';
+    document.getElementById('kPF').textContent    = pf  ? pf.toFixed(2)                      : '–';
+    document.getElementById('kDD').textContent    = dd  ? dd.toFixed(1)+'%'                  : '–';
+    document.getElementById('kPnL').textContent   = pnl ? (pnl>0?'+':'')+pnl.toFixed(0)+'$' : '–';
     document.getElementById('kTrades').textContent = tr + ' Trades';
     const fd=d.from_date||'', td=d.to_date||'';
     document.getElementById('kPeriod').textContent = (fd!=='–'&&td!=='–'&&fd&&td) ? fd.slice(0,10)+' – '+td.slice(0,10) : '–';
@@ -71,6 +71,34 @@ function renderKPIs(d) {
     const g = pnl >= 0 ? 'rgba(16,185,129,.28)' : 'rgba(239,68,68,.28)';
     card.style.setProperty('--kc', c);
     card.style.setProperty('--kg', g);
+    // Zusatz-KPIs: Start/End-Kapital, Return, Long/Short
+    const ec = d.end_cap||0, sc = d.start_cap||10000, ret = d.return_pct||0;
+    const elRet  = document.getElementById('kReturn');
+    const elCap  = document.getElementById('kEndCap');
+    const elLS   = document.getElementById('kLongShort');
+    const elRisk = document.getElementById('kRisk');
+    if (elRet)  { elRet.textContent  = ret  ? (ret>0?'+':'')+ret.toFixed(1)+'%'   : '–'; elRet.style.color = ret>=0?'#10B981':'#EF4444'; }
+    if (elCap)  { elCap.textContent  = ec   ? '$'+ec.toLocaleString('de-DE',{maximumFractionDigits:0}) : '–'; }
+    if (elLS)   { const l=d.longs||0, s=d.shorts||0; elLS.textContent = (l||s) ? l+'L / '+s+'S' : '–'; }
+    if (elRisk) { elRisk.textContent = d.risk_pct ? (d.risk_pct*100).toFixed(0)+'% Risiko' : '–'; }
+    // Monatstabelle rendern
+    renderMonthly(d.monthly||[]);
+}
+
+function renderMonthly(monthly) {
+    const el = document.getElementById('monthlyTable');
+    if (!el || !monthly.length) return;
+    el.innerHTML = monthly.map(function(m){
+        const wr_c = m.wr >= 60 ? '#10B981' : m.wr >= 45 ? '#F59E0B' : '#EF4444';
+        const pnl_c = m.pnl >= 0 ? '#10B981' : '#EF4444';
+        return '<tr style="border-bottom:1px solid rgba(255,255,255,.05)">'
+            +'<td style="padding:5px 8px;color:#8B9BB4;font-size:.7rem">'+m.month+'</td>'
+            +'<td style="padding:5px 8px;text-align:right;font-size:.7rem">'+m.trades+'</td>'
+            +'<td style="padding:5px 8px;text-align:right;font-size:.72rem;font-weight:700;color:'+wr_c+'">'+m.wr+'%</td>'
+            +'<td style="padding:5px 8px;text-align:right;font-size:.72rem;font-weight:700;color:'+pnl_c+'">'+(m.pnl>0?'+':'')+m.pnl.toFixed(0)+'$</td>'
+            +'<td style="padding:5px 8px;text-align:right;font-size:.7rem;color:#CBD5E1">$'+m.cap.toLocaleString('de-DE',{maximumFractionDigits:0})+'</td>'
+            +'</tr>';
+    }).join('');
 }
 
 // ── CHART ──────────────────────────────────────────────────────────────────
