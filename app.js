@@ -140,7 +140,7 @@ function drawChart(d) {
         const sc = d.start_cap, ec = d.end_cap, n = Math.min(d.trades, 40);
         const wr = (d.wr||50)/100;
         let eq = sc, rng2 = Math.abs(Math.round(sc+ec));
-        function rand2(){rng2=(rng2*1664525+1013904223)&0xffffffff;return(rng2>>>0)/0xffffffff;}
+        var rand2=function(){rng2=(rng2*1664525+1013904223)&0xffffffff;return(rng2>>>0)/0xffffffff;};
         const step = (ec-sc)/n;
         pts = [sc];
         for(var i=0;i<n-1;i++){const w=rand2()<wr;eq+=w?Math.abs(step)*1.5:-Math.abs(step)*0.5;pts.push(eq);}
@@ -148,7 +148,7 @@ function drawChart(d) {
     } else {
         const wr = d.wr||55, n = Math.max(d.trades||60, 20);
         let eq = 10000, rng2 = 1234;
-        function rand() { rng2 = (rng2*1664525+1013904223)&0xffffffff; return (rng2>>>0)/0xffffffff; }
+        var rand=function(){ rng2 = (rng2*1664525+1013904223)&0xffffffff; return (rng2>>>0)/0xffffffff; };
         pts = Array.from({length:Math.min(n,80)}, function(){ const w=rand()<wr/100; eq+=w?eq*.013:-eq*.008; return eq; });
     }
     if (pts.length < 2) return;
