@@ -33,7 +33,7 @@ function setPers(name) {
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
 // Build-Timestamp wird beim Deploy eingefügt — für Auto-Reload-Mechanismus
-var APP_BUILD = 1780348119;
+var APP_BUILD = 1780348259;
 
 window.addEventListener('resize', () => { if(L) drawChart(L); });
 
@@ -828,26 +828,139 @@ async function sendMsg() {
 
 function onKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
 
+// ── POLY SCOUT — eigenständiger Bot für Polymarket ────────────────────────
+var polyHist = [], polyBusy = false;
+
+function polySystemPrompt() {
+    var d = L;
+    var poly = d.polymarket || {};
+    var opps = poly.opportunities || [];
+    var orders = poly.all_orders || [];
+    var top = poly.top_opportunity;
+    return 'Du bist der A2A Poly Scout — ein spezialisierter KI-Assistent fuer Prediction Markets auf Polymarket.\n\n' +
+        'WICHTIG: Du bist Claude von Anthropic. Spezialisiert auf Marktanalyse, Wahrscheinlichkeiten und Edge-Berechnungen.\n\n' +
+        'Aktuelle Polymarket-Daten:\n' +
+        '- Gescannte Maerkte: ' + (poly.markets_scanned || 0) + '\n' +
+        '- Opportunities mit Edge: ' + opps.length + '\n' +
+        '- Offene Orders: ' + orders.length + '\n' +
+        '- Modus: ' + (poly.dry_run !== false ? 'PAPER TRADING' : 'LIVE') + '\n' +
+        (top ? '- Top Opportunity: ' + (top.edge*100).toFixed(1) + '% Edge | ' + top.question + '\n' : '') +
+        '\nBot-Befehle (JSON in <dispatch>...</dispatch>):\n\n' +
+        'Markt-Scan starten:\n{"type":"run_agent","name":"polymarket_agent"}\n\n' +
+        'Paper-Order platzieren:\n{"type":"run_agent","name":"polymarket_agent","task":{"force_order":true}}\n\n' +
+        'WICHTIG: Wenn der User eine Marktfrage analysieren oder eine Order platzieren will, extrahiere den Befehl und sende ihn.\n' +
+        'Ergebnisse erscheinen in ~2 Min. Antworte kurz auf Deutsch.\n' +
+        'Erklaere Edges, Wahrscheinlichkeiten und Risiken klar und direkt.';
+}
+
+function polyWelcome() {
+    var poly = L.polymarket || {};
+    var opps = poly.opportunities || [];
+    var top = poly.top_opportunity;
+    var txt = '**Poly Scout** bereit ⬡\n\n' +
+        '📊 Polymarket-Status:\n' +
+        '• Gescannte Märkte: **' + (poly.markets_scanned || 0) + '**\n' +
+        '• Opportunities: **' + opps.length + '** mit Edge ≥5%\n' +
+        '• Modus: **' + (poly.dry_run !== false ? 'PAPER' : 'LIVE') + '**\n';
+    if (top) txt += '• Top Edge: **' + (top.edge*100).toFixed(1) + '%** — ' + (top.question||'').slice(0,60) + '\n';
+    txt += '\nIch analysiere Märkte, berechne Edges und platziere Paper-Orders.\nWas soll ich untersuchen?';
+    polyAddMsg('assistant', txt, true);
+}
+
+function polyAddMsg(role, text, auto) {
+    var ts = Date.now(), author = role === 'user' ? ME : 'Poly Scout';
+    var entry = { role: role, content: text, ts: ts, author: author };
+    if (auto) entry.auto = true;
+    polyHist.push(entry);
+    polyRenderMsg(role, text, ts, author);
+    if (!auto) {
+        try {
+            var toSave = polyHist.filter(function(m){ return !m.auto; }).slice(-40);
+            localStorage.setItem('gb_poly_chat', JSON.stringify(toSave));
+        } catch(e) {}
+    }
+}
+
+function polyRenderMsg(role, text, ts, author) {
+    var box = document.getElementById('polyChatBox');
+    if (!box) return;
+    var d = document.createElement('div');
+    d.className = 'msg ' + role;
+    var who = author || (role === 'user' ? ME : 'Poly Scout');
+    var md = text
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+        .replace(/`([^`]+)`/g,'<code style="background:rgba(255,255,255,.08);padding:1px 5px;border-radius:3px;font-size:.78rem">$1</code>')
+        .replace(/\n/g,'<br>');
+    d.innerHTML = '<div class="bubble">' + md + '</div><div class="msg-meta">' + esc(who) + ' · ' + fmt(ts) + '</div>';
+    box.appendChild(d);
+    box.scrollTop = box.scrollHeight;
+}
+
+function polyShowTyping() {
+    var box = document.getElementById('polyChatBox');
+    if (!box) return;
+    var d = document.createElement('div');
+    d.className = 'msg assistant'; d.id = 'polyTyper';
+    d.innerHTML = '<div class="t-bubble"><div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div></div>';
+    box.appendChild(d); box.scrollTop = box.scrollHeight;
+}
+function polyHideTyping() { var e = document.getElementById('polyTyper'); if (e) e.remove(); }
+
 function initPolyChat() {
-    const box=document.getElementById('polyChatBox');
-    if(!box||box._ready) return;
-    // Ensure main chat is initialized
-    const mainBox=document.getElementById('chatBox');
-    if(mainBox&&!mainBox.children.length) initChat();
-    box._ready=true;
-    // Clone existing messages into poly chat
-    if(mainBox) { Array.from(mainBox.children).forEach(function(c){box.appendChild(c.cloneNode(true));}); }
-    box.scrollTop=box.scrollHeight;
+    var box = document.getElementById('polyChatBox');
+    if (!box || box._ready) return;
+    box._ready = true;
+    // Gespeicherten Verlauf laden
+    var saved = (function() {
+        try { return JSON.parse(localStorage.getItem('gb_poly_chat') || '[]').filter(function(m){ return !m.auto; }); }
+        catch(e) { return []; }
+    })();
+    polyHist = saved.slice();
+    if (saved.length) {
+        var sep = document.createElement('div');
+        sep.style.cssText = 'text-align:center;font-size:.6rem;color:var(--text3);padding:6px 0;border-top:1px solid var(--border)';
+        sep.textContent = '— ' + saved.length + ' gespeicherte Nachrichten —';
+        box.appendChild(sep);
+        saved.forEach(function(m) { polyRenderMsg(m.role, m.content, m.ts, m.author); });
+    }
+    polyWelcome();
 }
-function sendPolyMsg() {
-    if(busy) return;
-    const polyInp=document.getElementById('polyChatInput');
-    const txt=polyInp.value.trim(); if(!txt) return;
-    polyInp.value=''; polyInp.style.height='40px';
-    // Inject into main input and delegate
-    const mainInp=document.getElementById('chatInput');
-    if(mainInp) { mainInp.value=txt; sendMsg(); }
+
+async function sendPolyMsg() {
+    if (polyBusy) return;
+    var inp = document.getElementById('polyChatInput');
+    var txt = inp.value.trim(); if (!txt) return;
+    inp.value = ''; inp.style.height = '40px';
+    polyAddMsg('user', txt);
+    if (!apiKey) { polyAddMsg('assistant', '⚠️ Kein API Key konfiguriert.'); return; }
+    polyBusy = true;
+    var sendBtn = document.getElementById('polySendBtn');
+    if (sendBtn) sendBtn.disabled = true;
+    polyShowTyping();
+    try {
+        var msgs = polyHist.slice(0,-1).map(function(m){ return {role: m.role==='user'?'user':'assistant', content: m.content}; });
+        msgs.push({role:'user', content:txt});
+        var res = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+            body: JSON.stringify({model:'claude-sonnet-4-6', max_tokens:1024, system:polySystemPrompt(), messages:msgs})
+        });
+        if (!res.ok) { var er = await res.json(); throw new Error(er.error?.message||'API Fehler'); }
+        var data = await res.json();
+        var raw = data.content[0].text;
+        var dm = raw.match(/<dispatch>([\s\S]*?)<\/dispatch>/);
+        var clean = raw.replace(/<dispatch>[\s\S]*?<\/dispatch>/g,'').trim();
+        polyHideTyping(); polyAddMsg('assistant', clean);
+        if (dm) { try { var cmd=JSON.parse(dm[1]); cmd.id=Date.now().toString(); await dispatch(cmd); } catch(e) { polyAddMsg('assistant','⚠️ Dispatch-Fehler: '+e.message); } }
+    } catch(err) {
+        polyHideTyping(); polyAddMsg('assistant', '❌ **Fehler:** ' + err.message);
+    } finally {
+        polyBusy = false;
+        if (sendBtn) sendBtn.disabled = false;
+    }
 }
+
 function onPolyKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendPolyMsg();}}
 function autoGrow(el){el.style.height='40px';el.style.height=Math.min(el.scrollHeight,110)+'px';}
 
