@@ -542,7 +542,7 @@ async function pushChatMsg(entry) {
             if (rGet.ok) {
                 var mf = await rGet.json();
                 sha = mf.sha; _chatSha = sha;
-                messages = JSON.parse(atob(mf.content.replace(/\n/g,'')));
+                try { messages = JSON.parse(atob(mf.content.replace(/\n/g,''))); } catch(e) { messages = []; }
             }
             messages.push(entry);
             messages = messages.slice(-300);
