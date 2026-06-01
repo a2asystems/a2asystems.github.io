@@ -237,6 +237,20 @@
       "id": "1780317026388",
       "status": "pending",
       "dispatched": 1780317026923
+    },
+    {
+      "type": "run_agent",
+      "name": "backtester_agent",
+      "config": {
+        "account": 10000,
+        "risk_per_trade": 0.1,
+        "period": "2026",
+        "auto_select_charts": true,
+        "output": "original_numbers"
+      },
+      "id": "1780317147712",
+      "status": "pending",
+      "dispatched": 1780317148293
     }
   ]
 }
