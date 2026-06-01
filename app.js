@@ -32,13 +32,23 @@ function setPers(name) {
 }
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
-// Script is at end of <body> — DOM is fully built, call directly (no load event needed).
+// Build-Timestamp wird beim Deploy eingefügt — für Auto-Reload-Mechanismus
+var APP_BUILD = 0; // wird durch /*__APP_BUILD__*/ ersetzt
+
 window.addEventListener('resize', () => { if(L) drawChart(L); });
 
 async function poll() {
     try {
         const r = await fetch('./data.json?_=' + Date.now());
-        if (r.ok) { L = await r.json(); renderAll(L); }
+        if (!r.ok) return;
+        const d = await r.json();
+        // Auto-Reload wenn eine neue Version deployed wurde
+        if (APP_BUILD > 0 && d.build_ts && d.build_ts > APP_BUILD) {
+            console.log('Neue Version erkannt — Seite wird aktualisiert...');
+            window.location.reload(true);
+            return;
+        }
+        L = d; renderAll(L);
     } catch(e) {}
 }
 
