@@ -33,7 +33,7 @@ function setPers(name) {
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
 // Build-Timestamp wird beim Deploy eingefügt — für Auto-Reload-Mechanismus
-var APP_BUILD = 1780347689;
+var APP_BUILD = 1780347803;
 
 window.addEventListener('resize', () => { if(L) drawChart(L); });
 
@@ -888,7 +888,6 @@ async function ghPut(data,sha){
 }
 async function dispatch(cmd){
     if(!ghTok()){
-        // Only show token-missing message if it wasn't shown just recently
         var lastWarn = parseInt(sessionStorage.getItem('_noTokWarn')||'0');
         if (Date.now() - lastWarn > 30000) {
             addMsg('assistant','⚠️ **Kein GitHub Token gesetzt.**\n\nTippe oben auf **🔑 Token setzen** um deinen GitHub Token einzugeben.', true);
@@ -896,13 +895,29 @@ async function dispatch(cmd){
         }
         return;
     }
-    try{
-        const{data,sha}=await ghGet();
-        (data.commands=data.commands||[]).push({...cmd,status:'pending',dispatched:Date.now()});
-        await ghPut(data,sha);
-        addMsg('assistant','⚡ **Befehl gesendet!** "'+esc(cmd.name||cmd.type)+'" wurde übermittelt.\n\nErgebnis erscheint in ~2 Min. im Dashboard.');
-        toast('Befehl gesendet ✓');
-    }catch(e){addMsg('assistant','⚠️ Dispatch fehlgeschlagen: '+e.message);}
+    for(var attempt=0; attempt<5; attempt++){
+        try{
+            // SHA bei jedem Versuch neu holen — verhindert 409-Konflikte bei parallelen Dispatches
+            const{data,sha}=await ghGet();
+            (data.commands=data.commands||[]).push({...cmd,status:'pending',dispatched:Date.now()});
+            const r=await fetch('https://api.github.com/repos/'+GHUSER+'/'+GHREPO+'/contents/state.json',{
+                method:'PUT',
+                headers:{Authorization:'Bearer '+ghTok(),'Content-Type':'application/json','User-Agent':'gold-bot'},
+                body:JSON.stringify({message:'dispatch',content:btoa(unescape(encodeURIComponent(JSON.stringify(data,null,2)))),sha:sha})
+            });
+            if(r.status===409){
+                await new Promise(function(res){setTimeout(res,600+Math.random()*600);});
+                continue;
+            }
+            if(!r.ok) throw new Error('GitHub PUT '+r.status);
+            addMsg('assistant','⚡ **Befehl gesendet!** "'+esc(cmd.name||cmd.type)+'" wurde übermittelt.\n\nErgebnis erscheint in ~2 Min. im Dashboard.');
+            toast('Befehl gesendet ✓');
+            return;
+        }catch(e){
+            if(attempt>=4) addMsg('assistant','⚠️ Dispatch fehlgeschlagen: '+e.message);
+            else await new Promise(function(res){setTimeout(res,400);});
+        }
+    }
 }
 
 // ── NOTES ──────────────────────────────────────────────────────────────────
