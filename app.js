@@ -941,6 +941,35 @@ function toast(msg,err){
     setTimeout(()=>t.classList.remove('on'),2800);
 }
 
+// ── INJECT SYNC BAR (works even when index.html is CDN-cached) ───────────────
+(function injectSyncBar() {
+    var bar = document.getElementById('syncBar');
+    var chatBox = document.getElementById('chatBox');
+    if (!bar && chatBox) {
+        bar = document.createElement('div');
+        bar.id = 'syncBar';
+        bar.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:6px 14px;border-bottom:1px solid rgba(255,255,255,.08);background:#07090E;flex-shrink:0';
+        bar.innerHTML = '<span id="syncStatus" style="font-size:.6rem;color:#8B9BB4">Sync bereit</span>'
+            + '<button type="button" id="syncBtn" style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#10B981;font-size:.6rem;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;touch-action:manipulation">↻ Sync</button>';
+        chatBox.parentNode.insertBefore(bar, chatBox);
+    }
+    var btn = document.getElementById('syncBtn');
+    if (btn) btn.onclick = manualSync;
+    // Also inject into poly chat
+    var polyBox = document.getElementById('polyChatBox');
+    var polyBar = document.getElementById('polySyncBar');
+    if (!polyBar && polyBox) {
+        polyBar = bar ? bar.cloneNode(true) : null;
+        if (polyBar) {
+            polyBar.id = 'polySyncBar';
+            polyBar.querySelector('#syncStatus').id = 'polySyncStatus';
+            polyBar.querySelector('#syncBtn').id = 'polySyncBtn';
+            polyBar.querySelector('#polySyncBtn').onclick = manualSync;
+            polyBox.parentNode.insertBefore(polyBar, polyBox);
+        }
+    }
+})();
+
 // ── BOOT (inline — DOM is ready because script is at end of <body>) ──────────
 (function boot() {
     var notesInp = document.getElementById('t-notes');
