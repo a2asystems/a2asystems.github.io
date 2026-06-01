@@ -577,7 +577,28 @@ function initChat() {
     }
     welcome(); // always show fresh status at bottom
     // Upload local history to GitHub first, then pull everyone else's messages
-    setTimeout(function(){ uploadLocalHistory(saved).then(syncChat); }, 1500);
+    setTimeout(function(){
+        const st = document.getElementById('syncStatus');
+        if (st) st.textContent = '⏳ Syncing…';
+        uploadLocalHistory(saved).then(function(){
+            return syncChat();
+        }).then(function(){
+            if (st) st.textContent = 'Sync ' + new Date().toLocaleTimeString('de',{hour:'2-digit',minute:'2-digit'});
+        });
+    }, 1500);
+}
+
+async function manualSync() {
+    const st = document.getElementById('syncStatus');
+    if (st) st.textContent = '⏳ Lade hoch…';
+    const saved = (function(){ try{return JSON.parse(localStorage.getItem('gb_chat')||'[]').filter(function(m){return !m.auto;});}catch(e){return [];} })();
+    if (st) st.textContent = saved.length + ' lokale Msgs gefunden…';
+    await uploadLocalHistory(saved);
+    if (st) st.textContent = '⏳ Sync läuft…';
+    await syncChat();
+    const box = document.getElementById('chatBox');
+    const n = box ? box.querySelectorAll('.msg').length : 0;
+    if (st) st.textContent = '✓ Sync fertig · ' + n + ' Msgs · ' + new Date().toLocaleTimeString('de',{hour:'2-digit',minute:'2-digit'});
 }
 
 async function uploadLocalHistory(localMsgs) {
