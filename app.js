@@ -576,8 +576,36 @@ function initChat() {
         saved.forEach(function(m) { renderMsg(m.role, m.content, m.ts, m.author); });
     }
     welcome(); // always show fresh status at bottom
-    // Pull shared messages from GitHub (other users' messages)
-    setTimeout(syncChat, 1500);
+    // Upload local history to GitHub first, then pull everyone else's messages
+    setTimeout(function(){ uploadLocalHistory(saved).then(syncChat); }, 1500);
+}
+
+async function uploadLocalHistory(localMsgs) {
+    if (!ghTok() || !GHUSER || !GHREPO || !localMsgs.length) return;
+    try {
+        var rGet = await fetch(
+            'https://api.github.com/repos/'+GHUSER+'/'+GHREPO+'/contents/chat.json',
+            {headers:{Authorization:'Bearer '+ghTok(),'User-Agent':'gold-bot'}}
+        );
+        var remote = [], sha = null;
+        if (rGet.ok) {
+            var mf = await rGet.json(); sha = mf.sha;
+            remote = JSON.parse(atob(mf.content.replace(/\n/g,'')));
+        }
+        // Merge: keep all unique messages by timestamp
+        var byTs = {};
+        remote.forEach(function(m){ byTs[m.ts]=m; });
+        localMsgs.forEach(function(m){ if(!byTs[m.ts]) byTs[m.ts]=m; });
+        var merged = Object.values(byTs).sort(function(a,b){return a.ts-b.ts;}).slice(-300);
+        if (merged.length === remote.length) return; // nothing new
+        var body = {message:'Upload local history ('+ME+')', content:btoa(unescape(encodeURIComponent(JSON.stringify(merged))))};
+        if (sha) body.sha = sha;
+        var rPut = await fetch(
+            'https://api.github.com/repos/'+GHUSER+'/'+GHREPO+'/contents/chat.json',
+            {method:'PUT', headers:{Authorization:'Bearer '+ghTok(),'Content-Type':'application/json','User-Agent':'gold-bot'}, body:JSON.stringify(body)}
+        );
+        if (rPut.ok) console.log('Local history uploaded to GitHub ✓');
+    } catch(e) { console.warn('uploadLocalHistory:', e); }
 }
 
 function welcome() {
