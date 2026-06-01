@@ -42,7 +42,13 @@ async function poll() {
         const r = await fetch('./data.json?_=' + Date.now());
         if (!r.ok) return;
         const d = await r.json();
-        // Auto-Reload wenn eine neue Version deployed wurde
+        // Veraltete Build-Version (APP_BUILD=0 = alte gecachte Version ohne Timestamp)
+        if (d.min_required_build && APP_BUILD < d.min_required_build) {
+            console.log('Veraltete Build-Version (' + APP_BUILD + ' < ' + d.min_required_build + ') — Seite wird aktualisiert...');
+            window.location.reload(true);
+            return;
+        }
+        // Neue Version erkannt — APP_BUILD ist gesetzt aber veraltet
         if (APP_BUILD > 0 && d.build_ts && d.build_ts > APP_BUILD) {
             console.log('Neue Version erkannt — Seite wird aktualisiert...');
             window.location.reload(true);
@@ -1041,4 +1047,9 @@ function toast(msg,err){
     updateTokenBtn();
     setInterval(poll, 30000);
     setInterval(syncChat, 60000); // Sync chat across all users every 60s
+    // Periodisch lokale Chat-History zu GitHub hochladen (Fallback falls einzelner Push fehlschlug)
+    setInterval(function(){
+        var saved=(function(){try{return JSON.parse(localStorage.getItem('gb_chat')||'[]').filter(function(m){return !m.auto;});}catch(e){return [];}})();
+        if(saved.length) uploadLocalHistory(saved);
+    }, 300000); // alle 5 Minuten
 })();
