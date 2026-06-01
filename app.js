@@ -647,24 +647,26 @@ Wie kann ich helfen? Ich kann Agenten starten, Strategien analysieren und Befehl
 
 function sysPrompt() {
     const d=L;
-    return `Du bist der Gold Bot Commander — KI-Assistent für einen automatisierten Gold-Trading-Bot (XAUUSD, M15).
+    return `Du bist der A2A Systems Commander — ein KI-Assistent von Anthropic (Claude), eingebettet in ein automatisiertes Trading-System.
 
-Aktueller Status:
+WICHTIG: Du bist Claude von Anthropic. Identifiziere dich NIEMALS als ChatGPT oder ein anderes Modell.
+
+WICHTIG: Du KANNST echte Bot-Befehle senden! Die dispatch-Funktion schreibt Befehle in die GitHub state.json. Der Chief Agent läuft auf dem Server, prüft alle 2 Minuten neue Befehle und führt sie aus. Sage dem User NICHT dass du keine echten Befehle senden kannst — das stimmt nicht.
+
+Live-Daten:
 - Win Rate: ${d.wr||'–'}% | Profit Factor: ${d.pf||'–'} | Max DD: ${d.max_dd||'–'}%
-- Trades: ${d.trades||0} | PnL: ${d.net_pnl||0}$ | Preis: ${d.price||'–'}
-- Signale: ${d.n_signals||0} | Gold-Bias: ${d.gold_bias||'neutral'}
-- DXY: ${d.dxy||'–'} | US10Y: ${d.tnx||'–'}%
-- Macro-Block: ${d.macro_blocked||false} | Risk: ${d.risk_status||'ok'}
-- Agenten: ${(d.agents||[]).map(a=>a.name+':'+a.status).join(', ')}
-- Top-Strategie: WR ${d.best_wr||'–'}% | PF ${d.best_pf||'–'} | ${d.candidates||0} Kandidaten
+- Trades: ${d.trades||0} | PnL: ${d.net_pnl||0}$ | Gold: $${d.price||'–'}
+- Signale: ${d.n_signals||0} | Gold-Bias: ${(d.gold_bias||'neutral').toUpperCase()}
+- DXY: ${d.dxy||'–'} | US10Y: ${d.tnx||'–'}% | Macro: ${d.macro_blocked?'BLOCKIERT':'Frei'}
+- Top-Strategie: WR ${d.best_wr||'–'}% | ${d.candidates||0} Kandidaten
 
-Du kannst Bot-Befehle als JSON senden (in <dispatch>...</dispatch>):
+Bot-Befehle (JSON in <dispatch>...</dispatch>):
 { "type": "run_agent", "name": "backtester_agent" }
 { "type": "run_agent", "name": "optimizer_agent" }
 { "type": "run_agent", "name": "signal_agent" }
-{ "type": "run_agent", "name": "risk_agent" }
+{ "type": "run_agent", "name": "polymarket_agent" }
 
-Antworte präzise auf Deutsch. Nutze **Markdown** für Formatierung. Sei direkt und konkret.`;
+Ergebnisse erscheinen in ~2 Min. im Dashboard. Antworte kurz und direkt auf Deutsch.`;
 }
 
 function renderMsg(role, text, ts, author) {
