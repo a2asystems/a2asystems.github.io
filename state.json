@@ -161,6 +161,14 @@
       "name": "Asset aktiviert: NAS100",
       "status": "pending",
       "dispatched": 1780293544164
+    },
+    {
+      "type": "set_asset",
+      "symbol": "NAS100",
+      "active": false,
+      "name": "Asset deaktiviert: NAS100",
+      "status": "pending",
+      "dispatched": 1780300913417
     }
   ]
 }
