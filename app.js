@@ -1035,6 +1035,44 @@ function toast(msg,err){
     }
 })();
 
+// ── DOM UPGRADE (altes gecachtes HTML bekommt neue Elemente) ───────────────────
+(function ensureDOM() {
+    // Extra KPI-Zeile (Return / End-Kapital / Long-Short / H4-Filter) injizieren
+    if (!document.getElementById('kReturn')) {
+        var grids = document.querySelectorAll('.kpi-grid');
+        if (grids.length > 0) {
+            var row = document.createElement('div');
+            row.className = 'kpi-grid';
+            row.style.cssText = 'grid-template-columns:repeat(4,1fr);margin-top:0';
+            row.innerHTML =
+                '<div class="kpi" style="--kc:#10B981;--kg:rgba(16,185,129,.15)"><div class="kpi-lbl">Return</div><div class="kpi-val" id="kReturn" style="font-size:1.35rem">–</div><div class="kpi-sub">Gesamt-Rendite</div></div>' +
+                '<div class="kpi" style="--kc:#6366F1;--kg:rgba(99,102,241,.15)"><div class="kpi-lbl">End-Kapital</div><div class="kpi-val" id="kEndCap" style="font-size:1.1rem">–</div><div class="kpi-sub" id="kRisk">–</div></div>' +
+                '<div class="kpi" style="--kc:#F59E0B;--kg:rgba(245,158,11,.15)"><div class="kpi-lbl">Long / Short</div><div class="kpi-val" id="kLongShort" style="font-size:1.25rem">–</div><div class="kpi-sub">Richtungen</div></div>' +
+                '<div class="kpi" style="--kc:#14B8A6;--kg:rgba(20,184,166,.15)"><div class="kpi-lbl">H4-Filter</div><div class="kpi-val" style="font-size:.95rem;color:#10B981">BOS+H4</div><div class="kpi-sub">Strategie</div></div>';
+            grids[grids.length - 1].insertAdjacentElement('afterend', row);
+        }
+    }
+    // Monatliche Auswertung injizieren
+    if (!document.getElementById('monthlyTable')) {
+        var chartEl = document.getElementById('pnlChart');
+        var chartCard = chartEl && chartEl.closest ? chartEl.closest('.card') : null;
+        if (chartCard) {
+            var mDiv = document.createElement('div');
+            mDiv.className = 'card';
+            mDiv.innerHTML =
+                '<div class="ch"><span class="ct">Monatliche Auswertung</span></div>' +
+                '<table style="width:100%;border-collapse:collapse"><thead><tr style="border-bottom:1px solid rgba(255,255,255,.1)">' +
+                '<th style="padding:5px 8px;text-align:left;font-size:.65rem;color:#8B9BB4;font-weight:600">Monat</th>' +
+                '<th style="padding:5px 8px;text-align:right;font-size:.65rem;color:#8B9BB4;font-weight:600">Trades</th>' +
+                '<th style="padding:5px 8px;text-align:right;font-size:.65rem;color:#8B9BB4;font-weight:600">WR</th>' +
+                '<th style="padding:5px 8px;text-align:right;font-size:.65rem;color:#8B9BB4;font-weight:600">PnL</th>' +
+                '<th style="padding:5px 8px;text-align:right;font-size:.65rem;color:#8B9BB4;font-weight:600">Kapital</th>' +
+                '</tr></thead><tbody id="monthlyTable"></tbody></table>';
+            chartCard.insertAdjacentElement('afterend', mDiv);
+        }
+    }
+})();
+
 // ── BOOT (inline — DOM is ready because script is at end of <body>) ──────────
 (function boot() {
     var notesInp = document.getElementById('t-notes');
