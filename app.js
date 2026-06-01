@@ -33,7 +33,7 @@ function setPers(name) {
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
 // Build-Timestamp wird beim Deploy eingefügt — für Auto-Reload-Mechanismus
-var APP_BUILD = 1780348682;
+var APP_BUILD = 1780348824;
 
 window.addEventListener('resize', () => { if(L) drawChart(L); });
 
@@ -1153,15 +1153,46 @@ function toast(msg,err){
     setTimeout(()=>t.classList.remove('on'),2800);
 }
 
+// ── BENACHRICHTIGUNGEN ────────────────────────────────────────────────────────
+function requestNotifPerm() {
+    if (typeof Notification === 'undefined') {
+        toast('Benachrichtigungen werden auf diesem Browser nicht unterstützt.\nAuf iOS: App zum Home-Bildschirm hinzufügen.', true); return;
+    }
+    if (Notification.permission === 'granted') {
+        toast('Benachrichtigungen bereits aktiv ✓'); _updateNotifBtn(); return;
+    }
+    if (Notification.permission === 'denied') {
+        toast('Bitte in den Browser-Einstellungen erlauben: Einstellungen → Safari → Erweitert → Websites → Benachrichtigungen', true); return;
+    }
+    Notification.requestPermission().then(function(p) {
+        if (p === 'granted') toast('Benachrichtigungen aktiviert ✓');
+        else toast('Benachrichtigungen abgelehnt', true);
+        _updateNotifBtn();
+    });
+}
+function _updateNotifBtn() {
+    var perm = typeof Notification !== 'undefined' ? Notification.permission : 'denied';
+    var col = perm === 'granted' ? '#10B981' : perm === 'denied' ? '#EF4444' : '#F59E0B';
+    var icon = perm === 'granted' ? '🔔' : perm === 'denied' ? '🔕' : '🔔?';
+    document.querySelectorAll('.notifBtn').forEach(function(b) {
+        b.textContent = icon;
+        b.style.color = col;
+        b.style.borderColor = col.replace(')', ',.3)').replace('rgb', 'rgba');
+        b.title = perm === 'granted' ? 'Benachrichtigungen aktiv' : perm === 'denied' ? 'Benachrichtigungen blockiert — in Einstellungen ändern' : 'Benachrichtigungen aktivieren';
+    });
+}
+
 // ── INJECT SYNC BAR (works even when index.html is CDN-cached) ───────────────
 (function injectSyncBar() {
+    var NOTIF_BTN = '<button type="button" class="notifBtn" onclick="requestNotifPerm()" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:#F59E0B;font-size:.75rem;font-weight:700;padding:4px 8px;border-radius:6px;cursor:pointer;touch-action:manipulation" title="Benachrichtigungen aktivieren">🔔?</button>';
     var bar = document.getElementById('syncBar');
     var chatBox = document.getElementById('chatBox');
     if (!bar && chatBox) {
         bar = document.createElement('div');
         bar.id = 'syncBar';
-        bar.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:6px 14px;border-bottom:1px solid rgba(255,255,255,.08);background:#07090E;flex-shrink:0';
-        bar.innerHTML = '<span id="syncStatus" style="font-size:.6rem;color:#8B9BB4">Sync bereit</span>'
+        bar.style.cssText = 'display:flex;align-items:center;gap:6px;padding:6px 14px;border-bottom:1px solid rgba(255,255,255,.08);background:#07090E;flex-shrink:0';
+        bar.innerHTML = '<span id="syncStatus" style="font-size:.6rem;color:#8B9BB4;flex:1">Sync bereit</span>'
+            + NOTIF_BTN
             + '<button type="button" id="syncBtn" style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#10B981;font-size:.6rem;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;touch-action:manipulation">↻ Sync</button>';
         chatBox.parentNode.insertBefore(bar, chatBox);
     }
@@ -1180,6 +1211,7 @@ function toast(msg,err){
             polyBox.parentNode.insertBefore(polyBar, polyBox);
         }
     }
+    _updateNotifBtn();
 })();
 
 // ── DOM UPGRADE (altes gecachtes HTML bekommt neue Elemente) ───────────────────
@@ -1241,15 +1273,6 @@ function toast(msg,err){
 function _initSW() {
     if (!('serviceWorker' in navigator)) return;
     navigator.serviceWorker.register('./sw.js').then(function(reg) {
-        // Benachrichtigungs-Permission anfragen (beim ersten Chat-Öffnen)
-        document.addEventListener('click', function askNotif() {
-            if (Notification && Notification.permission === 'default') {
-                Notification.requestPermission().then(function(p) {
-                    if (p === 'granted') toast('Benachrichtigungen aktiviert ✓');
-                });
-            }
-            document.removeEventListener('click', askNotif);
-        }, { once: true });
         // SW mit Credentials versorgen
         function sendInitToSW(sw) {
             var lastTs = hist.length ? Math.max.apply(null, hist.map(function(m){ return m.ts||0; })) : 0;
