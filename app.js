@@ -33,7 +33,7 @@ function setPers(name) {
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
 // Build-Timestamp wird beim Deploy eingefügt — für Auto-Reload-Mechanismus
-var APP_BUILD = 1780331183;
+var APP_BUILD = 0; // wird durch /*__APP_BUILD__*/ ersetzt
 
 window.addEventListener('resize', () => { if(L) drawChart(L); });
 
