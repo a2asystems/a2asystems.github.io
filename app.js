@@ -509,7 +509,7 @@ async function syncChat() {
         if (!r.ok) return;
         const m = await r.json();
         _chatSha = m.sha;
-        const remote = JSON.parse(atob(m.content.replace(/\n/g,'')));
+        let remote; try { remote = JSON.parse(atob(m.content.replace(/\n/g,''))); } catch(e) { return; }
         const knownTs = new Set(hist.map(function(h){return h.ts;}));
         const newMsgs = remote.filter(function(msg){return !msg.auto && !knownTs.has(msg.ts);});
         if (newMsgs.length > 0) {
@@ -611,7 +611,7 @@ async function uploadLocalHistory(localMsgs) {
         var remote = [], sha = null;
         if (rGet.ok) {
             var mf = await rGet.json(); sha = mf.sha;
-            remote = JSON.parse(atob(mf.content.replace(/\n/g,'')));
+            try { remote = JSON.parse(atob(mf.content.replace(/\n/g,''))); } catch(e) { remote = []; }
         }
         // Merge: keep all unique messages by timestamp
         var byTs = {};
