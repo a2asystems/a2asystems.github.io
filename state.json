@@ -169,6 +169,14 @@
       "name": "Asset deaktiviert: NAS100",
       "status": "pending",
       "dispatched": 1780300913417
+    },
+    {
+      "type": "set_asset",
+      "symbol": "XAGUSD",
+      "active": true,
+      "name": "Asset aktiviert: XAGUSD",
+      "status": "pending",
+      "dispatched": 1780312448064
     }
   ]
 }
