@@ -190,7 +190,7 @@
       "type": "run_agent",
       "name": "backtester_agent",
       "id": "1780316222737",
-      "status": "pending",
+      "status": "running",
       "dispatched": 1780316223119
     }
   ]
