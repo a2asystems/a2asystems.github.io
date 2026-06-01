@@ -33,7 +33,7 @@ function setPers(name) {
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
 // Build-Timestamp wird beim Deploy eingefügt — für Auto-Reload-Mechanismus
-var APP_BUILD = 1780347971;
+var APP_BUILD = 1780348095;
 
 window.addEventListener('resize', () => { if(L) drawChart(L); });
 
@@ -566,10 +566,9 @@ async function syncChat() {
         const knownTs = new Set(hist.map(function(h){return h.ts;}));
         const newMsgs = remote.filter(function(msg){return !msg.auto && !knownTs.has(msg.ts);});
         if (newMsgs.length > 0) {
-            // Sort by timestamp before inserting
             newMsgs.sort(function(a,b){return a.ts-b.ts;});
             const box = document.getElementById('chatBox');
-            if (box && newMsgs.length > 0 && hist.length > 0) {
+            if (box && hist.length > 0) {
                 const sep = document.createElement('div');
                 sep.style.cssText = 'text-align:center;font-size:.6rem;color:var(--text3);padding:6px 0;border-top:1px dashed var(--border);margin-top:4px';
                 sep.textContent = '— ' + newMsgs.length + ' neue Nachricht(en) —';
@@ -578,7 +577,24 @@ async function syncChat() {
             newMsgs.forEach(function(msg){
                 hist.push(msg);
                 renderMsg(msg.role, msg.content, msg.ts, msg.author);
+                // Browser-Benachrichtigung wenn Tab im Hintergrund & anderer User
+                if (msg.author !== ME && typeof Notification !== 'undefined' && Notification.permission === 'granted' && document.hidden) {
+                    new Notification('A2A · ' + (msg.author||'Commander'), {
+                        body: (msg.content||'').slice(0, 100),
+                        icon: './icon-192.png', tag: 'a2a-chat', renotify: true
+                    });
+                }
             });
+            // SW über neuen Timestamp informieren
+            if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+                var maxTs = Math.max.apply(null, newMsgs.map(function(m){ return m.ts; }));
+                navigator.serviceWorker.controller.postMessage({ type: 'UPDATE_TS', ts: maxTs });
+            }
+            // Lokal speichern
+            try {
+                var toSave = hist.filter(function(m){ return !m.auto; }).slice(-60);
+                localStorage.setItem('gb_chat', JSON.stringify(toSave));
+            } catch(e) {}
         }
     } catch(e) { console.warn('syncChat:', e); }
 }
@@ -1100,10 +1116,42 @@ function toast(msg,err){
     renderPhotos();
     updateTokenBtn();
     setInterval(poll, 30000);
-    setInterval(syncChat, 60000); // Sync chat across all users every 60s
-    // Periodisch lokale Chat-History zu GitHub hochladen (Fallback falls einzelner Push fehlschlug)
+    setInterval(syncChat, 8000); // Echtzeit-Sync alle 8 Sekunden
     setInterval(function(){
         var saved=(function(){try{return JSON.parse(localStorage.getItem('gb_chat')||'[]').filter(function(m){return !m.auto;});}catch(e){return [];}})();
         if(saved.length) uploadLocalHistory(saved);
-    }, 300000); // alle 5 Minuten
+    }, 300000);
+    // Service Worker + Push-Benachrichtigungen registrieren
+    _initSW();
 })();
+
+function _initSW() {
+    if (!('serviceWorker' in navigator)) return;
+    navigator.serviceWorker.register('./sw.js').then(function(reg) {
+        // Benachrichtigungs-Permission anfragen (beim ersten Chat-Öffnen)
+        document.addEventListener('click', function askNotif() {
+            if (Notification && Notification.permission === 'default') {
+                Notification.requestPermission().then(function(p) {
+                    if (p === 'granted') toast('Benachrichtigungen aktiviert ✓');
+                });
+            }
+            document.removeEventListener('click', askNotif);
+        }, { once: true });
+        // SW mit Credentials versorgen
+        function sendInitToSW(sw) {
+            var lastTs = hist.length ? Math.max.apply(null, hist.map(function(m){ return m.ts||0; })) : 0;
+            sw.postMessage({ type:'INIT', gu:GHUSER, gr:GHREPO, gt:ghTok(), me:ME, lastTs:lastTs });
+        }
+        if (reg.active) sendInitToSW(reg.active);
+        reg.addEventListener('updatefound', function() {
+            var sw = reg.installing;
+            sw.addEventListener('statechange', function() {
+                if (sw.state === 'activated') sendInitToSW(sw);
+            });
+        });
+        // Neue Nachrichten vom SW empfangen → Tab aktualisieren
+        navigator.serviceWorker.addEventListener('message', function(e) {
+            if (e.data && e.data.type === 'NEW_MSGS') { syncChat(); }
+        });
+    }).catch(function(){});
+}
