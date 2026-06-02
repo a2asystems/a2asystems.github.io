@@ -820,7 +820,7 @@ function _hasMojibake(msgs) {
 function initChat() {
     document.querySelectorAll('.pb-btn').forEach(b => b.classList.toggle('active', b.textContent.includes(ME)));
     // Version-based force-clear: increment _CHAT_VER to wipe all browsers' localStorage chat
-    var _CHAT_VER = '3';
+    var _CHAT_VER = '4';
     try {
         if (localStorage.getItem('gb_chat_ver') !== _CHAT_VER) {
             localStorage.removeItem('gb_chat');
@@ -1096,7 +1096,7 @@ function polyRenderMsg(role, text, ts, author) {
         .replace(/\n/g,'<br>');
     d.innerHTML = '<div class="bubble">' + md + '</div><div class="msg-meta">' + esc(who) + ' · ' + fmt(ts) + '</div>';
     box.appendChild(d);
-    box.scrollTop = box.scrollHeight;
+    box.scrollTop = 0;
 }
 
 function polyShowTyping() {
@@ -1105,7 +1105,7 @@ function polyShowTyping() {
     var d = document.createElement('div');
     d.className = 'msg assistant'; d.id = 'polyTyper';
     d.innerHTML = '<div class="t-bubble"><div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div></div>';
-    box.appendChild(d); box.scrollTop = box.scrollHeight;
+    box.appendChild(d); box.scrollTop = 0;
 }
 function polyHideTyping() { var e = document.getElementById('polyTyper'); if (e) e.remove(); }
 
@@ -1113,20 +1113,22 @@ function initPolyChat() {
     var box = document.getElementById('polyChatBox');
     if (!box || box._ready) return;
     box._ready = true;
-    // Gespeicherten Verlauf laden
+    // Version-based force-clear
+    var _POLY_VER = '1';
+    try {
+        if (localStorage.getItem('gb_poly_ver') !== _POLY_VER) {
+            localStorage.removeItem('gb_poly_chat');
+            localStorage.setItem('gb_poly_ver', _POLY_VER);
+        }
+    } catch(e) {}
     var saved = (function() {
         try { return JSON.parse(localStorage.getItem('gb_poly_chat') || '[]').filter(function(m){ return !m.auto; }); }
         catch(e) { return []; }
     })();
     polyHist = saved.slice();
-    if (saved.length) {
-        var sep = document.createElement('div');
-        sep.style.cssText = 'text-align:center;font-size:.6rem;color:var(--text3);padding:6px 0;border-top:1px solid var(--border)';
-        sep.textContent = '— ' + saved.length + ' gespeicherte Nachrichten —';
-        box.appendChild(sep);
-        saved.forEach(function(m) { polyRenderMsg(m.role, m.content, m.ts, m.author); });
-    }
+    // column-reverse: polyWelcome() first → stays at visual bottom; saved messages appear above it
     polyWelcome();
+    saved.forEach(function(m) { polyRenderMsg(m.role, m.content, m.ts, m.author); });
 }
 
 async function sendPolyMsg() {
