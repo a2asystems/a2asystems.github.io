@@ -39,7 +39,7 @@ function setPers(name) {
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
 // Build-Timestamp wird beim Deploy eingefügt — für Auto-Reload-Mechanismus
-var APP_BUILD = 1780430750;
+var APP_BUILD = 0; // wird durch /*__APP_BUILD__*/ ersetzt
 
 window.addEventListener('resize', () => { if(L) drawChart(L); });
 
@@ -819,6 +819,14 @@ function _hasMojibake(msgs) {
 
 function initChat() {
     document.querySelectorAll('.pb-btn').forEach(b => b.classList.toggle('active', b.textContent.includes(ME)));
+    // Version-based force-clear: increment _CHAT_VER to wipe all browsers' localStorage chat
+    var _CHAT_VER = '3';
+    try {
+        if (localStorage.getItem('gb_chat_ver') !== _CHAT_VER) {
+            localStorage.removeItem('gb_chat');
+            localStorage.setItem('gb_chat_ver', _CHAT_VER);
+        }
+    } catch(e) {}
     // Load saved conversation (never includes auto-generated welcome messages)
     var saved = (function() {
         try { return JSON.parse(localStorage.getItem('gb_chat') || '[]').filter(function(m){ return !m.auto; }); }
