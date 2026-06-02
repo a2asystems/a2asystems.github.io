@@ -490,11 +490,11 @@ header{
     <!-- COMMANDER CHAT (embedded in Poly panel) -->
     <div class="card" style="display:flex;flex-direction:column;min-height:320px;overflow:hidden">
       <div class="ch"><span class="ct">💬 Commander</span></div>
-      <div class="chat-msgs" id="polyChatBox" style="flex:1;min-height:200px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px;display:flex;flex-direction:column;gap:8px"></div>
-      <div class="chat-foot" style="background:var(--bg3)">
+      <div class="chat-foot" style="background:var(--bg3);border-bottom:1px solid var(--border)">
         <textarea id="polyChatInput" class="chatInput" placeholder="Frag den Commander…" rows="1" onkeydown="onPolyKey(event)" oninput="autoGrow(this)" style="flex:1;background:rgba(255,255,255,.055);border:1px solid var(--border);border-radius:11px;padding:9px 13px;color:var(--text);font-size:.82rem;font-family:inherit;resize:none;outline:none;min-height:40px;max-height:110px;transition:border-color .2s;-webkit-appearance:none"></textarea>
         <button type="button" id="polySendBtn" onclick="sendPolyMsg()" style="width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,#F59E0B,#B45309);border:none;color:#000;font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;touch-action:manipulation">▶</button>
       </div>
+      <div class="chat-msgs" id="polyChatBox" style="flex:1;min-height:200px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px;display:flex;flex-direction:column-reverse;gap:8px"></div>
     </div>
 
   </section>
