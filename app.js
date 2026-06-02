@@ -39,7 +39,7 @@ function setPers(name) {
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
 // Build-Timestamp wird beim Deploy eingefügt — für Auto-Reload-Mechanismus
-var APP_BUILD = 1780427233;
+var APP_BUILD = 1780427340;
 
 window.addEventListener('resize', () => { if(L) drawChart(L); });
 
@@ -866,6 +866,11 @@ Weitere Agenten:
 {"type":"run_agent","name":"optimizer_agent"}
 {"type":"run_agent","name":"signal_agent"}
 {"type":"run_agent","name":"polymarket_agent"}
+
+Variante aktivieren fuer vollautomatisches Live-Trading:
+{"type":"set_active_variant","variant_id":"<ID>","variant_name":"<Name>","risk_pct":0.10}
+
+Wichtig: variant_id und variant_name aus der Dashboard-Strategienliste verwenden (z.B. id="20260525_122104", name="Variante 2 — 25.05.2026"). risk_pct=0.10 = 10% Risiko/Trade. Wenn User sagt "aktiviere Variante 2" oder "nimm Variante 2" → sofort dispatchen ohne Rueckfrage.
 
 WICHTIG: Wenn der User Backtest-Parameter nennt (Kapital, Risiko, Long/Short, Zeitraum), extrahiere sie sofort und sende den dispatch-Befehl ohne Rueckfrage.
 
