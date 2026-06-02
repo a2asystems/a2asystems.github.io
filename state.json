@@ -2,6 +2,21 @@
   "chat": [],
   "strategies": [
     {
+      "id": "–",
+      "name": "Commander: 02.06. 23:25",
+      "source": "commander",
+      "author": "Commander",
+      "date": "02.06.2026 23:25",
+      "wr": 71.4,
+      "pf": 2.35,
+      "trades": 21,
+      "mdd": -1.5,
+      "pnl": 970,
+      "rr": null,
+      "desc": "Backtest: {\"min_wr\": 0.6, \"min_trades\": 15}",
+      "active": false
+    },
+    {
       "id": "1780425549771",
       "name": "signal_agent",
       "source": "commander",
