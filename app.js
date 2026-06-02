@@ -39,7 +39,7 @@ function setPers(name) {
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
 // Build-Timestamp wird beim Deploy eingefügt — für Auto-Reload-Mechanismus
-var APP_BUILD = 1780438016;
+var APP_BUILD = 0; // wird durch /*__APP_BUILD__*/ ersetzt
 
 window.addEventListener('resize', () => { if(L) drawChart(L); });
 
@@ -48,11 +48,14 @@ async function poll() {
         const r = await fetch('./data.json?_=' + Date.now());
         if (!r.ok) return;
         const d = await r.json();
-        // Veraltete Build-Version (APP_BUILD=0 = alte gecachte Version ohne Timestamp)
+        // Veraltete Build-Version — nur einmal pro MRB-Version neuladen (kein Loop)
         if (d.min_required_build && APP_BUILD < d.min_required_build) {
-            console.log('Veraltete Build-Version (' + APP_BUILD + ' < ' + d.min_required_build + ') — Seite wird aktualisiert...');
-            window.location.reload(true);
-            return;
+            var lrm = parseInt(localStorage.getItem('_last_reload_mrb')||'0', 10);
+            if (d.min_required_build > lrm) {
+                localStorage.setItem('_last_reload_mrb', String(d.min_required_build));
+                window.location.reload(true);
+                return;
+            }
         }
         // Neue Version erkannt — APP_BUILD ist gesetzt aber veraltet
         if (APP_BUILD > 0 && d.build_ts && d.build_ts > APP_BUILD) {
