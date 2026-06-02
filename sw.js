@@ -48,7 +48,8 @@ async function bgCheck() {
         );
         if (!r.ok) return;
         var m = await r.json();
-        var msgs = JSON.parse(atob(m.content.replace(/\n/g, '')));
+        var raw = atob(m.content.replace(/\n/g, ''));
+        var msgs = JSON.parse(decodeURIComponent(escape(raw)));
         var newMsgs = msgs.filter(function(msg) { return !msg.auto && msg.ts > _lastTs && msg.author !== _me; });
         if (newMsgs.length > 0) {
             var latest = newMsgs[newMsgs.length - 1];
