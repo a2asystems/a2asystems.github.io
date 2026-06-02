@@ -331,9 +331,23 @@
         "pf": 1.52,
         "trades": 65,
         "mdd": -5.3,
-        "pnl": 1916.0,
+        "pnl": 1916,
         "rr": null
       }
+    },
+    {
+      "type": "run_agent",
+      "name": "backtester_agent",
+      "task": {
+        "symbol": "XAUUSD",
+        "initial_cap": 10000,
+        "risk_pct": 0.1,
+        "allow_short": true,
+        "from_date": "2026-01-01"
+      },
+      "id": "1780378612226",
+      "status": "pending",
+      "dispatched": 1780378612554
     }
   ]
 }
