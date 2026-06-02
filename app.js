@@ -39,7 +39,7 @@ function setPers(name) {
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
 // Build-Timestamp wird beim Deploy eingefügt — für Auto-Reload-Mechanismus
-var APP_BUILD = 1780426930;
+var APP_BUILD = 1780427016;
 
 window.addEventListener('resize', () => { if(L) drawChart(L); });
 
@@ -335,17 +335,37 @@ function renderStrategies(d) {
     const v = d.variants||[];
     if (!v.length) { el.innerHTML='<div class="empty"><div class="empty-ico">🔄</div>Noch keine Strategien</div>'; return; }
     const top = [...v].sort((a,b)=>(b.wr||0)-(a.wr||0)).slice(0,6);
-    el.innerHTML = top.map((s,i)=>
-        `<div class="str-row">
+    el.innerHTML = top.map((s,i) => {
+        const isActive = s.active || (s.name||'').includes('Aktuell aktiv');
+        const activeBadge = isActive
+            ? '<span style="background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.4);color:#10B981;font-size:.55rem;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap">✓ AKTIV</span>'
+            : `<button onclick="activateVariant('${esc(s.id||s.name||'')}','${esc(s.name||'')}')" style="background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);color:#F59E0B;font-size:.55rem;font-weight:700;padding:3px 9px;border-radius:20px;cursor:pointer;touch-action:manipulation;white-space:nowrap">Aktivieren</button>`;
+        return `<div class="str-row" style="align-items:center;gap:6px">
           <div class="str-rank">${i+1}</div>
-          <div class="str-info">
+          <div class="str-info" style="flex:1;min-width:0">
             <div class="str-name">${esc(s.name||s.strategy||'Strategie '+(i+1))}</div>
-            <div class="str-det">PF: ${s.pf?s.pf.toFixed(2):'–'} · DD: ${s.max_dd?s.max_dd.toFixed(1):'–'}% · ${s.trades||0} Trades</div>
+            <div class="str-det">PF: ${s.pf?s.pf.toFixed(2):'–'} · DD: ${s.mdd?s.mdd.toFixed(1):(s.max_dd?s.max_dd.toFixed(1):'–')}% · ${s.trades||0} Trades</div>
           </div>
-          <div class="str-wr">${s.wr?s.wr.toFixed(1)+'%':'–'}</div>
-        </div>`
-    ).join('');
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+            <div class="str-wr">${s.wr?s.wr.toFixed(1)+'%':'–'}</div>
+            ${activeBadge}
+          </div>
+        </div>`;
+    }).join('');
     drawStratsChart(top);
+}
+
+async function activateVariant(variantId, variantName) {
+    if (!ghTok()) { toast('Kein GitHub-Token — Aktivierung nicht möglich', true); return; }
+    const ok = confirm('Variante aktivieren für Live-Trading?\n\n"' + variantName + '"\n\nDer Bot übernimmt diese Parameter.');
+    if (!ok) return;
+    toast('Aktiviere ' + variantName + '…');
+    await dispatch({
+        type: 'set_active_variant',
+        variant_id: variantId,
+        variant_name: variantName,
+        risk_pct: 0.10,
+    });
 }
 
 function drawStratsChart(top) {
