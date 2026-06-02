@@ -392,7 +392,7 @@
       "type": "run_agent",
       "name": "signal_agent",
       "id": "1780425549771",
-      "status": "pending",
+      "status": "running",
       "dispatched": 1780425550049
     }
   ]
