@@ -387,6 +387,13 @@
       "name": "Asset deaktiviert: BTCUSD",
       "status": "pending",
       "dispatched": 1780398173527
+    },
+    {
+      "type": "run_agent",
+      "name": "signal_agent",
+      "id": "1780425549771",
+      "status": "pending",
+      "dispatched": 1780425550049
     }
   ]
 }
