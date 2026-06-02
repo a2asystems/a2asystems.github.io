@@ -39,7 +39,7 @@ function setPers(name) {
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
 // Build-Timestamp wird beim Deploy eingefügt — für Auto-Reload-Mechanismus
-var APP_BUILD = 1780377725;
+var APP_BUILD = 1780377865;
 
 window.addEventListener('resize', () => { if(L) drawChart(L); });
 
@@ -634,13 +634,24 @@ async function pushChatMsg(entry) {
     }
 }
 
+function _hasMojibake(msgs) {
+    // Mojibake-Erkennung: "Ã" ist das Latin-1-Zeichen für 0xC3 (erstes Byte aller deutschen Umlaute + Emojis in UTF-8)
+    return msgs.some(function(m) { return (m.content||'').indexOf('Ã') !== -1; });
+}
+
 function initChat() {
     document.querySelectorAll('.pb-btn').forEach(b => b.classList.toggle('active', b.textContent.includes(ME)));
     // Load saved conversation (never includes auto-generated welcome messages)
-    const saved = (function() {
+    var saved = (function() {
         try { return JSON.parse(localStorage.getItem('gb_chat') || '[]').filter(function(m){ return !m.auto; }); }
         catch(e) { return []; }
     })();
+    // Mojibake-Check: kaputte Nachrichten → localStorage löschen, frisch von GitHub laden
+    if (_hasMojibake(saved)) {
+        try { localStorage.removeItem('gb_chat'); } catch(e) {}
+        saved = [];
+        toast('Zeichenfehler erkannt — Nachrichten werden neu geladen…');
+    }
     hist = saved.slice(); // seed history with saved
     // Show saved messages first, then fresh welcome below
     if (saved.length) {
