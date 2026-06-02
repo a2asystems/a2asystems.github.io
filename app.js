@@ -39,7 +39,7 @@ function setPers(name) {
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
 // Build-Timestamp wird beim Deploy eingefügt — für Auto-Reload-Mechanismus
-var APP_BUILD = 1780429379;
+var APP_BUILD = 1780429485;
 
 window.addEventListener('resize', () => { if(L) drawChart(L); });
 
@@ -371,12 +371,13 @@ function renderStrategies(d) {
     const v = d.variants||[];
     if (!v.length) { el.innerHTML='<div class="empty"><div class="empty-ico">🔄</div>Noch keine Strategien</div>'; return; }
     const top = [...v].sort((a,b)=>(b.wr||0)-(a.wr||0)).slice(0,6);
+    _variants = top;
     el.innerHTML = top.map((s,i) => {
         const isActive = s.active || (s.name||'').includes('Aktuell aktiv');
         const activeBadge = isActive
             ? '<span style="background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.4);color:#10B981;font-size:.55rem;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap">✓ AKTIV</span>'
-            : `<button onclick="activateVariant('${esc(s.id||s.name||'')}','${esc(s.name||'')}')" style="background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);color:#F59E0B;font-size:.55rem;font-weight:700;padding:3px 9px;border-radius:20px;cursor:pointer;touch-action:manipulation;white-space:nowrap">Aktivieren</button>`;
-        return `<div class="str-row" style="align-items:center;gap:6px">
+            : `<button onclick="event.stopPropagation();activateVariant('${esc(s.id||s.name||'')}','${esc(s.name||'')}')" style="background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);color:#F59E0B;font-size:.55rem;font-weight:700;padding:3px 9px;border-radius:20px;cursor:pointer;touch-action:manipulation;white-space:nowrap">Aktivieren</button>`;
+        return `<div class="str-row" onclick="showVariantDetail(${i})" style="align-items:center;gap:6px;cursor:pointer">
           <div class="str-rank">${i+1}</div>
           <div class="str-info" style="flex:1;min-width:0">
             <div class="str-name">${esc(s.name||s.strategy||'Strategie '+(i+1))}</div>
@@ -829,15 +830,10 @@ function initChat() {
         saved = [];
     }
     hist = saved.slice(); // seed history with saved
-    // Show saved messages first, then fresh welcome below
-    if (saved.length) {
-        const sep = document.createElement('div');
-        sep.style.cssText = 'text-align:center;font-size:.6rem;color:var(--text3);padding:6px 0;border-top:1px solid var(--border);margin-top:4px';
-        sep.textContent = '— ' + saved.length + ' gespeicherte Nachrichten —';
-        document.getElementById('chatBox').appendChild(sep);
-        saved.forEach(function(m) { renderMsg(m.role, m.content, m.ts, m.author); });
-    }
-    welcome(); // always show fresh status at bottom
+    // With column-reverse: first in DOM = visually at bottom.
+    // welcome() first → stays at bottom. Saved messages stack above it. New synced messages appear at top.
+    welcome();
+    saved.forEach(function(m) { renderMsg(m.role, m.content, m.ts, m.author); });
     // Upload local history to GitHub first, then pull everyone else's messages
     setTimeout(function(){
         const st = document.getElementById('syncStatus');
@@ -960,7 +956,7 @@ function renderMsg(role, text, ts, author) {
         .replace(/`([^`]+)`/g,'<code style="background:rgba(255,255,255,.08);padding:1px 5px;border-radius:3px;font-size:.78rem">$1</code>')
         .replace(/\n/g,'<br>');
     d.innerHTML = '<div class="bubble">'+md+'</div><div class="msg-meta">'+esc(who)+' · '+fmt(ts||Date.now())+'</div>';
-    box.appendChild(d); box.scrollTop = box.scrollHeight;
+    box.appendChild(d); box.scrollTop = 0;
     // Mirror to poly chat if initialized
     const polyBox = document.getElementById('polyChatBox');
     if (polyBox && polyBox._ready) { polyBox.appendChild(d.cloneNode(true)); polyBox.scrollTop = polyBox.scrollHeight; }
@@ -989,7 +985,7 @@ function showTyping() {
         if(!box || (boxId==='polyChatBox' && !box._ready)) return;
         const d=document.createElement('div'); d.className='msg assistant'; d.id=boxId==='chatBox'?'typer':'polyTyper';
         d.innerHTML='<div class="t-bubble"><div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div></div>';
-        box.appendChild(d); box.scrollTop=box.scrollHeight;
+        box.appendChild(d); box.scrollTop=0;
     });
 }
 function hideTyping() { ['typer','polyTyper'].forEach(function(id){const e=document.getElementById(id);if(e)e.remove();}); }
