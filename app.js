@@ -39,7 +39,7 @@ function setPers(name) {
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
 // Build-Timestamp wird beim Deploy eingefügt — für Auto-Reload-Mechanismus
-var APP_BUILD = 1780428643;
+var APP_BUILD = 1780428751;
 
 window.addEventListener('resize', () => { if(L) drawChart(L); });
 
@@ -750,11 +750,10 @@ function initChat() {
         try { return JSON.parse(localStorage.getItem('gb_chat') || '[]').filter(function(m){ return !m.auto; }); }
         catch(e) { return []; }
     })();
-    // Mojibake-Check: kaputte Nachrichten → localStorage löschen, frisch von GitHub laden
+    // Mojibake-Check: kaputte Nachrichten → localStorage lautlos löschen
     if (_hasMojibake(saved)) {
         try { localStorage.removeItem('gb_chat'); } catch(e) {}
         saved = [];
-        toast('Zeichenfehler erkannt — Nachrichten werden neu geladen…');
     }
     hist = saved.slice(); // seed history with saved
     // Show saved messages first, then fresh welcome below
