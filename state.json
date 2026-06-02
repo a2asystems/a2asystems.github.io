@@ -249,32 +249,44 @@
       "symbol": "NAS100",
       "active": true,
       "name": "Asset aktiviert: NAS100",
-      "status": "pending",
-      "dispatched": 1780293544164
+      "status": "done",
+      "dispatched": 1780293544164,
+      "result": {
+        "skipped": true
+      }
     },
     {
       "type": "set_asset",
       "symbol": "NAS100",
       "active": false,
       "name": "Asset deaktiviert: NAS100",
-      "status": "pending",
-      "dispatched": 1780300913417
+      "status": "done",
+      "dispatched": 1780300913417,
+      "result": {
+        "skipped": true
+      }
     },
     {
       "type": "set_asset",
       "symbol": "XAGUSD",
       "active": true,
       "name": "Asset aktiviert: XAGUSD",
-      "status": "pending",
-      "dispatched": 1780312448064
+      "status": "done",
+      "dispatched": 1780312448064,
+      "result": {
+        "skipped": true
+      }
     },
     {
       "type": "set_asset",
       "symbol": "XAGUSD",
       "active": false,
       "name": "Asset deaktiviert: XAGUSD",
-      "status": "pending",
-      "dispatched": 1780312967984
+      "status": "done",
+      "dispatched": 1780312967984,
+      "result": {
+        "skipped": true
+      }
     },
     {
       "type": "run_agent",
@@ -392,16 +404,22 @@
       "symbol": "BTCUSD",
       "active": true,
       "name": "Asset aktiviert: BTCUSD",
-      "status": "pending",
-      "dispatched": 1780398169941
+      "status": "done",
+      "dispatched": 1780398169941,
+      "result": {
+        "skipped": true
+      }
     },
     {
       "type": "set_asset",
       "symbol": "BTCUSD",
       "active": false,
       "name": "Asset deaktiviert: BTCUSD",
-      "status": "pending",
-      "dispatched": 1780398173527
+      "status": "done",
+      "dispatched": 1780398173527,
+      "result": {
+        "skipped": true
+      }
     },
     {
       "type": "run_agent",
@@ -424,8 +442,11 @@
         "min_wr": 0.6,
         "min_trades": 15
       },
-      "status": "pending",
-      "dispatched": 1780430786861
+      "status": "done",
+      "dispatched": 1780430786861,
+      "result": {
+        "skipped": true
+      }
     }
   ]
 }
