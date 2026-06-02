@@ -1023,7 +1023,7 @@ function renderMsg(role, text, ts, author) {
     box.appendChild(d); box.scrollTop = 0;
     // Mirror to poly chat if initialized
     const polyBox = document.getElementById('polyChatBox');
-    if (polyBox && polyBox._ready) { polyBox.appendChild(d.cloneNode(true)); polyBox.scrollTop = polyBox.scrollHeight; }
+    if (polyBox && polyBox._ready) { polyBox.appendChild(d.cloneNode(true)); polyBox.scrollTop = 0; }
 }
 
 function addMsg(role, text, auto) {
