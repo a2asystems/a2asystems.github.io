@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="theme-color" content="#F59E0B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="A2A Trading">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>A2A Systems — Trading Intelligence</title>
+<style>
+:root{
+  --gold:#F59E0B;--gold-dim:#D97706;--gold-glow:rgba(245,158,11,.25);
+  --green:#10B981;--red:#EF4444;--blue:#3D8EFF;--purple:#8B5CF6;--orange:#F97316;
+  --bg:#07090E;--bg2:#0D1117;--bg3:#111827;
+  --card:rgba(255,255,255,.04);--card-h:rgba(255,255,255,.07);
+  --border:rgba(255,255,255,.08);--border-g:rgba(245,158,11,.25);
+  --text:#F0F4F8;--text2:#8B9BB4;--text3:#4A5568;
+  --r:14px;--rs:8px;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:15px}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',Helvetica,sans-serif;
+  background:var(--bg);color:var(--text);
+  min-height:100dvh;
+  -webkit-overflow-scrolling:touch;
+  background-image:
+    radial-gradient(ellipse 100% 50% at 50% -10%,rgba(245,158,11,.07) 0%,transparent 60%),
+    linear-gradient(rgba(255,255,255,.012) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.012) 1px,transparent 1px);
+  background-size:100% 100%,44px 44px,44px 44px;
+}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(245,158,11,.25);border-radius:2px}
+
+/* HEADER */
+header{
+  position:sticky;top:0;z-index:100;
+  background:rgba(7,9,14,.88);
+  backdrop-filter:blur(24px) saturate(180%);
+  -webkit-backdrop-filter:blur(24px) saturate(180%);
+  border-bottom:1px solid var(--border);
+  padding:10px 18px;
+  display:flex;align-items:center;gap:14px;
+}
+.logo{display:flex;align-items:center;gap:9px;flex-shrink:0;text-decoration:none}
+.logo-a2a{font-size:1.65rem;font-weight:900;letter-spacing:-.03em;line-height:1;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',Helvetica,sans-serif}
+.logo-a2a .la{color:#F0F4F8}
+.logo-a2a .l2{color:#2563EB}
+.logo-sys{font-size:.62rem;font-weight:700;letter-spacing:.22em;color:#6B7280;text-transform:uppercase;align-self:flex-end;margin-bottom:3px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',Helvetica,sans-serif}
+.hdr-center{flex:1;text-align:center}
+.hdr-price{font-size:1.2rem;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;line-height:1}
+.hdr-lbl{font-size:.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-top:1px}
+.hdr-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}
+.live-badge{display:flex;align-items:center;gap:5px;font-size:.62rem;font-weight:700;color:var(--green);letter-spacing:.06em;text-transform:uppercase}
+.pulse{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(16,185,129,.5)}70%{box-shadow:0 0 0 7px rgba(16,185,129,0)}100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}}
+.hdr-time{font-size:.62rem;color:var(--text3)}
+
+/* TAB RADIO INPUTS — removed, JS handles tabs now */
+
+/* TAB BAR */
+.tabbar{display:none;position:static;background:#07090E;border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom)}
+.tabbar-row{display:flex;height:54px}
+.tbtn{flex:1;background:none;border:none;color:var(--text3);font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 2px;transition:color .2s;touch-action:manipulation;position:relative;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+.tbtn .ti{font-size:1.15rem;transition:transform .2s}
+.tbadge{position:absolute;top:5px;right:calc(50% - 16px);background:var(--red);color:#fff;font-size:.5rem;font-weight:800;min-width:15px;height:15px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px}
+
+/* LAYOUT */
+.main{display:flex;flex-direction:column}
+.panel{padding:16px;display:flex;flex-direction:column;gap:12px}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:border-color .3s,box-shadow .3s}
+.card:hover{border-color:rgba(245,158,11,.18);box-shadow:0 0 32px rgba(245,158,11,.07)}
+.ch{display:flex;align-items:center;justify-content:space-between;padding:11px 15px;border-bottom:1px solid var(--border)}
+.ct{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text2)}
+.cb{padding:14px}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:13px 14px;position:relative;overflow:hidden;transition:transform .15s}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--kc,var(--gold));opacity:.8}
+.kpi:active{transform:scale(.97)}
+.kpi-lbl{font-size:.6rem;color:var(--text2);text-transform:uppercase;letter-spacing:.09em;margin-bottom:5px}
+.kpi-val{font-size:1.55rem;font-weight:900;color:var(--kc,var(--gold));font-variant-numeric:tabular-nums;line-height:1;text-shadow:0 0 18px var(--kg,var(--gold-glow))}
+.kpi-sub{font-size:.6rem;color:var(--text3);margin-top:4px}
+
+/* CHART */
+#pnlChart{width:100%;height:110px;display:block;cursor:crosshair;pointer-events:none}
+#stratsChart{pointer-events:none}
+.chart-meta{display:flex;justify-content:space-between;align-items:center;padding:4px 14px 10px;font-size:.62rem;color:var(--text3)}
+
+/* SIGNALS */
+.sig-row{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--border)}
+.sig-row:last-child{border-bottom:none}
+.sig-dir{width:48px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:800;letter-spacing:.05em;flex-shrink:0}
+.sig-dir.long{background:rgba(16,185,129,.12);color:var(--green);border:1px solid rgba(16,185,129,.28)}
+.sig-dir.short{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.28)}
+.sig-info{flex:1;min-width:0}
+.sig-price{font-size:.82rem;font-weight:700;color:var(--text)}
+.sig-det{font-size:.62rem;color:var(--text2);margin-top:2px}
+.sig-rr{font-size:.72rem;font-weight:700;padding:2px 7px;border-radius:4px;background:rgba(245,158,11,.1);color:var(--gold);border:1px solid rgba(245,158,11,.2);flex-shrink:0}
+.sig-fvg{font-size:.58rem;font-weight:700;padding:2px 5px;border-radius:4px;background:rgba(139,92,246,.12);color:var(--purple);border:1px solid rgba(139,92,246,.28);flex-shrink:0}
+
+/* STATUS PILLS */
+.pills{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pill{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:10px 11px;display:flex;align-items:center;gap:8px;transition:border-color .3s}
+.pill-ico{font-size:.95rem;flex-shrink:0;line-height:1}
+.pill-lbl{font-size:.58rem;color:var(--text3);text-transform:uppercase;letter-spacing:.07em}
+.pill-val{font-size:.76rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* RISK BANNER */
+.risk-banner{display:none;align-items:center;gap:8px;padding:10px 13px;background:rgba(239,68,68,.09);border:1px solid rgba(239,68,68,.28);border-radius:var(--rs);color:var(--red);font-size:.72rem;font-weight:600}
+.risk-banner.on{display:flex}
+
+/* STRATS */
+.str-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.str-row:last-child{border-bottom:none}
+.str-rank{width:22px;height:22px;border-radius:50%;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.28);color:var(--gold);font-size:.6rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.str-info{flex:1;min-width:0}
+.str-name{font-size:.76rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.str-det{font-size:.6rem;color:var(--text2);margin-top:2px}
+.str-wr{font-size:.82rem;font-weight:800;color:var(--green);flex-shrink:0}
+
+/* AGENTS */
+.ag-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:13px 14px;display:flex;flex-direction:column;gap:8px;transition:border-color .3s,transform .15s}
+.ag-card:active{transform:scale(.99)}
+.ag-card.working{border-color:rgba(245,158,11,.35);box-shadow:0 0 20px rgba(245,158,11,.06)}
+.ag-card.active{border-color:rgba(16,185,129,.3)}
+.ag-top{display:flex;align-items:center;gap:10px}
+.ag-ico{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;flex-shrink:0}
+.ag-meta{flex:1;min-width:0}
+.ag-name{font-size:.82rem;font-weight:700;color:var(--text)}
+.ag-role{font-size:.62rem;color:var(--text2);margin-top:1px}
+.ag-badge{font-size:.58rem;font-weight:700;padding:3px 8px;border-radius:5px;text-transform:uppercase;letter-spacing:.05em;flex-shrink:0}
+.ag-badge.working{background:rgba(245,158,11,.12);color:var(--gold);border:1px solid rgba(245,158,11,.28);animation:blink 1.4s ease-in-out infinite}
+.ag-badge.active{background:rgba(16,185,129,.12);color:var(--green);border:1px solid rgba(16,185,129,.28)}
+.ag-badge.idle{background:rgba(75,85,99,.2);color:var(--text3);border:1px solid rgba(75,85,99,.2)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.45}}
+.ag-bar{height:2px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden}
+.ag-bar-fill{height:100%;border-radius:2px;transition:width .6s ease}
+.ag-task{font-size:.68rem;color:var(--text2);line-height:1.45}
+.ag-foot{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
+.ag-tags{display:flex;flex-wrap:wrap;gap:3px}
+.ag-tag{font-size:.55rem;font-weight:600;padding:2px 6px;border-radius:3px;border:1px solid;text-transform:uppercase;letter-spacing:.04em}
+.ag-last{font-size:.58rem;color:var(--text3)}
+
+/* EVENTS */
+.ev-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)}
+.ev-row:last-child{border-bottom:none}
+.ev-imp{width:38px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:800;flex-shrink:0}
+.ev-imp.high{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.28)}
+.ev-imp.med{background:rgba(245,158,11,.1);color:var(--gold);border:1px solid rgba(245,158,11,.22)}
+.ev-imp.low{background:rgba(75,85,99,.2);color:var(--text3);border:1px solid rgba(75,85,99,.2)}
+.ev-info{flex:1;min-width:0}
+.ev-name{font-size:.74rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev-det{font-size:.6rem;color:var(--text2);margin-top:1px}
+
+/* SECTION LABEL */
+.slbl{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--text3);display:flex;align-items:center;gap:7px;margin-bottom:2px}
+.slbl::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* EMPTY */
+.empty{text-align:center;padding:28px 16px;color:var(--text3);font-size:.75rem}
+.empty-ico{font-size:1.8rem;margin-bottom:7px}
+
+/* BTN */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:7px;border:1px solid var(--border-g);background:rgba(245,158,11,.07);color:var(--gold);font-size:.68rem;font-weight:600;cursor:pointer;transition:background .2s;touch-action:manipulation;-webkit-appearance:none}
+.btn:active{background:rgba(245,158,11,.14)}
+
+/* CHAT */
+#panelChat{display:flex;flex-direction:column}
+.chat-msgs{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px;display:flex;flex-direction:column;gap:8px}
+.msg{display:flex;flex-direction:column;gap:2px;max-width:87%}
+.msg.user{align-self:flex-end;align-items:flex-end}
+.msg.assistant{align-self:flex-start;align-items:flex-start}
+.bubble{padding:9px 13px;border-radius:15px;font-size:.8rem;line-height:1.52;word-break:break-word}
+.msg.user .bubble{background:linear-gradient(135deg,#F59E0B,#B45309);color:#000;font-weight:600;border-radius:15px 15px 4px 15px}
+.msg.assistant .bubble{background:rgba(255,255,255,.055);border:1px solid var(--border);color:var(--text);border-radius:15px 15px 15px 4px}
+.msg-meta{font-size:.58rem;color:var(--text3);padding:0 4px}
+.t-bubble{background:rgba(255,255,255,.055);border:1px solid var(--border);border-radius:15px 15px 15px 4px;padding:11px 14px;display:flex;gap:5px;align-items:center}
+.t-dot{width:5px;height:5px;border-radius:50%;background:var(--text2);animation:tdot 1.3s ease-in-out infinite}
+.t-dot:nth-child(2){animation-delay:.2s}
+.t-dot:nth-child(3){animation-delay:.4s}
+@keyframes tdot{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
+.persona-bar{display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0;background:#07090E}
+.pb-btn{flex:1;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:.72rem;font-weight:700;padding:7px 4px;cursor:pointer;transition:all .2s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.pb-btn.active{background:rgba(245,158,11,.18);border-color:var(--gold);color:var(--gold)}
+.chat-foot{flex-shrink:0;padding:10px 14px;padding-bottom:max(10px,env(safe-area-inset-bottom));border-top:1px solid var(--border);background:#07090E;display:flex;gap:8px;align-items:flex-end}
+#chatInput{flex:1;background:rgba(255,255,255,.055);border:1px solid var(--border);border-radius:11px;padding:9px 13px;color:var(--text);font-size:.82rem;font-family:inherit;resize:none;outline:none;min-height:40px;max-height:110px;transition:border-color .2s;-webkit-appearance:none}
+#chatInput:focus{border-color:rgba(245,158,11,.38)}
+#chatInput::placeholder{color:var(--text3)}
+#sendBtn{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,#F59E0B,#B45309);border:none;color:#000;font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .15s,opacity .15s;touch-action:manipulation}
+#sendBtn:disabled{opacity:.35}
+#sendBtn:not(:disabled):active{transform:scale(.9)}
+
+/* NOTES & PHOTOS */
+.note-input{width:100%;min-height:100px;background:rgba(255,255,255,.055);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;color:var(--text);font-size:.82rem;font-family:inherit;resize:vertical;outline:none;-webkit-appearance:none;transition:border-color .2s;line-height:1.55}
+.note-input:focus{border-color:rgba(245,158,11,.38)}
+.note-input::placeholder{color:var(--text3)}
+.note-saved{display:flex;flex-direction:column;gap:8px}
+.note-item{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:11px 13px;position:relative}
+.note-item-text{font-size:.78rem;color:var(--text);line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.note-item-meta{font-size:.58rem;color:var(--text3);margin-top:5px}
+.note-del{position:absolute;top:8px;right:8px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:.9rem;padding:2px 5px;border-radius:4px;touch-action:manipulation}
+.note-del:active{color:var(--red)}
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.photo-thumb{aspect-ratio:1;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.04);border:1px solid var(--border);cursor:pointer;touch-action:manipulation;position:relative}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.photo-thumb .ph-del{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.6);border:none;color:#fff;border-radius:4px;font-size:.6rem;padding:2px 5px;cursor:pointer;touch-action:manipulation;display:none}
+.photo-thumb:hover .ph-del,.photo-thumb:active .ph-del{display:block}
+.upload-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border:2px dashed var(--border);border-radius:var(--r);background:none;color:var(--text2);font-size:.75rem;font-weight:600;cursor:pointer;touch-action:manipulation;width:100%;transition:border-color .2s,color .2s;-webkit-appearance:none}
+.upload-btn:active{border-color:var(--gold);color:var(--gold)}
+#photoFileIn{display:none}
+.lightbox{display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.92);align-items:center;justify-content:center;padding:16px}
+.lightbox.on{display:flex}
+.lightbox img{max-width:100%;max-height:100%;border-radius:8px;object-fit:contain}
+.lb-close{position:absolute;top:max(16px,env(safe-area-inset-top));right:16px;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:1.2rem;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
+
+/* TOAST */
+#toast{position:fixed;bottom:max(76px,calc(env(safe-area-inset-bottom)+70px));left:50%;transform:translateX(-50%) translateY(14px);font-size:.75rem;font-weight:600;padding:9px 18px;border-radius:20px;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;z-index:500;white-space:nowrap}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* DESKTOP */
+@media(min-width:769px){
+  html{height:100%;overflow:hidden}
+  body{height:100%;display:grid;grid-template-rows:auto 1fr;overflow:hidden}
+  .main{display:grid;grid-template-columns:1fr 300px 340px 300px;overflow:hidden;flex-direction:unset}
+  .panel{height:100%;overflow-y:auto;border-right:1px solid var(--border);padding:18px}
+  .panel:last-child{border-right:none}
+  #panelChat{height:100%;overflow:hidden;padding:0;display:flex;flex-direction:column}
+  #panelChat .chat-msgs{padding:18px}
+  #panelNotes{display:flex!important}
+  #panelSignals{display:none!important}
+  .tabbar{display:none!important}
+  .kpi-grid{grid-template-columns:repeat(4,1fr)}
+  .kpi-val{font-size:1.3rem}
+}
+
+/* MOBILE — CSS-only tab switching via :checked (no JavaScript needed for tabs) */
+@media(max-width:768px){
+  html{height:-webkit-fill-available}
+  body{display:flex;flex-direction:column;height:-webkit-fill-available;height:100svh;padding:0}
+  header{flex-shrink:0;position:relative;z-index:10;padding-top:max(10px,env(safe-area-inset-top));backdrop-filter:none;-webkit-backdrop-filter:none;background:#07090E}
+  .main{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:block}
+  .tabbar{display:block;flex-shrink:0;position:relative;z-index:10}
+
+  /* All panels hidden — JS switchTab() shows the active one */
+  /* Use !important to beat ID-selector specificity (e.g. #panelChat{display:flex}) */
+  .panel{display:none!important}
+  .panel.show{display:flex !important;flex-direction:column;gap:12px}
+  #panelChat.show{padding:0;gap:0}
+
+  /* Active tab button */
+  .tbtn.show{color:var(--gold)}
+  .tbtn.show::after{content:'';position:absolute;top:0;left:25%;right:25%;height:2px;background:var(--gold);border-radius:0 0 3px 3px;box-shadow:0 0 10px var(--gold)}
+  .tbtn.show .ti{transform:scale(1.1)}
+
+  #panelChat .chat-msgs{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px}
+  #panelChat .chat-foot{flex-shrink:0}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-a2a"><span class="la">a</span><span class="l2">2</span><span class="la">a</span></div>
+    <div class="logo-sys">Systems</div>
+  </div>
+  <div class="hdr-right" style="margin-left:auto">
+    <div class="live-badge"><div class="pulse"></div>LIVE</div>
+    <div class="hdr-time" id="hTime">02.06.2026 22:02</div>
+  </div>
+</header>
+
+<div id="toast"></div>
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lb-close" onclick="closeLightbox()">✕</button>
+  <img id="lbImg" src="" alt="">
+</div>
+
+<main class="main">
+
+  <!-- ════════════ PANEL 1: DASHBOARD ════════════ -->
+  <section class="panel show" id="panelDashboard">
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi" style="--kc:#F59E0B;--kg:rgba(245,158,11,.28)">
+        <div class="kpi-lbl">Win Rate</div>
+        <div class="kpi-val" id="kWR">83.3%</div>
+        <div class="kpi-sub" id="kTrades">6 Trades</div>
+      </div>
+      <div class="kpi" style="--kc:#10B981;--kg:rgba(16,185,129,.28)">
+        <div class="kpi-lbl">Profit Factor</div>
+        <div class="kpi-val" id="kPF">4.34</div>
+        <div class="kpi-sub" id="kPeriod">–</div>
+      </div>
+      <div class="kpi" style="--kc:#EF4444;--kg:rgba(239,68,68,.28)">
+        <div class="kpi-lbl">Max Drawdown</div>
+        <div class="kpi-val" id="kDD">-10.6%</div>
+        <div class="kpi-sub">Risiko-Limit</div>
+      </div>
+      <div class="kpi" id="kPnLCard" style="--kc:#3D8EFF;--kg:rgba(61,142,255,.28)">
+        <div class="kpi-lbl">Net PnL</div>
+        <div class="kpi-val" id="kPnL">+6560$</div>
+        <div class="kpi-sub">Performance</div>
+      </div>
+    </div>
+
+    <!-- EXTRA KPIs: Return, End-Cap, Long/Short, Risiko -->
+    <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);margin-top:0">
+      <div class="kpi" style="--kc:#10B981;--kg:rgba(16,185,129,.15)">
+        <div class="kpi-lbl">Return</div>
+        <div class="kpi-val" id="kReturn" style="font-size:1.35rem">–</div>
+        <div class="kpi-sub">Gesamt-Rendite</div>
+      </div>
+      <div class="kpi" style="--kc:#6366F1;--kg:rgba(99,102,241,.15)">
+        <div class="kpi-lbl">End-Kapital</div>
+        <div class="kpi-val" id="kEndCap" style="font-size:1.1rem">–</div>
+        <div class="kpi-sub" id="kRisk">–</div>
+      </div>
+      <div class="kpi" style="--kc:#F59E0B;--kg:rgba(245,158,11,.15)">
+        <div class="kpi-lbl">Long / Short</div>
+        <div class="kpi-val" id="kLongShort" style="font-size:1.25rem">–</div>
+        <div class="kpi-sub">Richtungen</div>
+      </div>
+      <div class="kpi" style="--kc:#14B8A6;--kg:rgba(20,184,166,.15)">
+        <div class="kpi-lbl">H4-Filter</div>
+        <div class="kpi-val" style="font-size:.95rem;color:#10B981">BOS+H4</div>
+        <div class="kpi-sub">Strategie</div>
+      </div>
+    </div>
+
+    <!-- CHART -->
+    <div class="card">
+      <div class="ch">
+        <span class="ct">Performance-Kurve</span>
+        <span style="font-size:.62rem;color:var(--text3)" id="chartMeta">–</span>
+      </div>
+      <canvas id="pnlChart"></canvas>
+      <div class="chart-meta">
+        <span id="chartFrom">–</span><span id="chartChange" style="font-weight:700">–</span>
+      </div>
+    </div>
+
+    <!-- MONATLICHE AUSWERTUNG -->
+    <div class="card">
+      <div class="ch"><span class="ct">Monatliche Auswertung</span></div>
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="border-bottom:1px solid rgba(255,255,255,.1)">
+            <th style="padding:5px 8px;text-align:left;font-size:.65rem;color:#8B9BB4;font-weight:600">Monat</th>
+            <th style="padding:5px 8px;text-align:right;font-size:.65rem;color:#8B9BB4;font-weight:600">Trades</th>
+            <th style="padding:5px 8px;text-align:right;font-size:.65rem;color:#8B9BB4;font-weight:600">WR</th>
+            <th style="padding:5px 8px;text-align:right;font-size:.65rem;color:#8B9BB4;font-weight:600">PnL</th>
+            <th style="padding:5px 8px;text-align:right;font-size:.65rem;color:#8B9BB4;font-weight:600">Kapital</th>
+          </tr>
+        </thead>
+        <tbody id="monthlyTable"></tbody>
+      </table>
+    </div>
+
+    <!-- RISK BANNER -->
+    <div class="risk-banner" id="riskBanner"><span>⚠️</span><span id="riskTxt">–</span></div>
+
+    <!-- MARKET STATUS -->
+    <div>
+      <div class="slbl">Markt-Status</div>
+      <div class="pills">
+        <div class="pill" id="macroPill">
+          <span class="pill-ico">📅</span>
+          <div><div class="pill-lbl">Macro</div><div class="pill-val" id="macroVal">✅ Frei · 328min</div></div>
+        </div>
+        <div class="pill">
+          <span class="pill-ico">💵</span>
+          <div><div class="pill-lbl">Gold-Bias</div><div class="pill-val" id="dxyVal">🔴 BEARISH 99.19</div></div>
+        </div>
+        <div class="pill">
+          <span class="pill-ico">⚡</span>
+          <div><div class="pill-lbl">Signale</div><div class="pill-val" id="sigStat">0 Signal(e)</div></div>
+        </div>
+        <div class="pill">
+          <span class="pill-ico">🎯</span>
+          <div><div class="pill-lbl">Optimizer</div><div class="pill-val" id="optStat">WR 71.4% | 2421 Kand.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ASSET PICKER -->
+    <div class="card">
+      <div class="ch">
+        <span class="ct">Assets</span>
+        <span class="ct-sub" id="activeCount" style="font-size:.65rem;color:var(--text2)"></span>
+      </div>
+      <div class="cb" style="padding:10px 14px">
+        <div id="assetGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px"></div>
+        <div id="assetMsg" style="font-size:.7rem;color:var(--text2);margin-top:8px;text-align:center;display:none"></div>
+      </div>
+    </div>
+
+    <!-- TOP STRATEGIES -->
+    <div class="card">
+      <div class="ch">
+        <span class="ct">Top Strategien</span>
+        <button type="button" class="btn" onclick="startOptimizer()">+ Optimieren</button>
+      </div>
+      <canvas id="stratsChart" style="display:none;width:100%"></canvas>
+      <div class="cb" style="padding:0 14px">
+        <div id="stratList"><div class="str-row"><div class="str-rank">1</div><div class="str-info"><div class="str-name">Variante 2 — 25.05.2026</div><div class="str-det">PF: 2.35 · DD: -1.5% · 21 Trades</div></div><div class="str-wr">71.4%</div></div><div class="str-row"><div class="str-rank">2</div><div class="str-info"><div class="str-name">Variante 3 — 01.06.2026</div><div class="str-det">PF: 2.35 · DD: -1.5% · 21 Trades</div></div><div class="str-wr">71.4%</div></div><div class="str-row"><div class="str-rank">3</div><div class="str-info"><div class="str-name">Variante 1 — 21.05.2026 (Aktuell aktiv)</div><div class="str-det">PF: 1.67 · DD: -4.8% · 83 Trades</div></div><div class="str-wr">65.1%</div></div></div>
+      </div>
+    </div>
+
+    <!-- MACRO EVENTS -->
+    <div class="card" id="evCard" style="display:none">
+      <div class="ch"><span class="ct">Events Heute</span></div>
+      <div class="cb" style="padding:0 14px"><div id="evList"></div></div>
+    </div>
+
+  </section>
+
+  <!-- ════════════ PANEL 2: AGENTEN ════════════ -->
+  <section class="panel" id="panelAgents">
+    <div id="agentList"><div class="ag-card active"><div class="ag-top"><div class="ag-ico" style="background:rgba(61,142,255,.12)"><span style="color:#3D8EFF">↻</span></div><div class="ag-meta"><div class="ag-name">Data Fetcher</div><div class="ag-role">Daten-Beschaffung</div></div><div class="ag-badge active">✓ Aktiv</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:100%;background:#10B981"></div></div><div class="ag-task">Status: OK | Daten-Aktualisierung</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#3D8EFF;border-color:#3D8EFF33;background:rgba(61,142,255,.12)">MT5</span><span class="ag-tag" style="color:#3D8EFF;border-color:#3D8EFF33;background:rgba(61,142,255,.12)">Parquet</span><span class="ag-tag" style="color:#3D8EFF;border-color:#3D8EFF33;background:rgba(61,142,255,.12)">Historie</span></div><div class="ag-last">Zuletzt: 2026-06-02T21:27</div></div></div><div class="ag-card idle"><div class="ag-top"><div class="ag-ico" style="background:rgba(245,158,11,.12)"><span style="color:#F59E0B">◈</span></div><div class="ag-meta"><div class="ag-name">Optimizer</div><div class="ag-role">Parameter-Suche</div></div><div class="ag-badge idle">· Idle</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:0%;background:#374151"></div></div><div class="ag-task">Beste WR: 71.4% | PF: 2.35 | 2421 Kandidaten</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#F59E0B;border-color:#F59E0B33;background:rgba(245,158,11,.12)">Grid-Search</span><span class="ag-tag" style="color:#F59E0B;border-color:#F59E0B33;background:rgba(245,158,11,.12)">Optimierung</span></div><div class="ag-last">Zuletzt: 2026-06-01T08:10</div></div></div><div class="ag-card active"><div class="ag-top"><div class="ag-ico" style="background:rgba(16,185,129,.12)"><span style="color:#10B981">▲</span></div><div class="ag-meta"><div class="ag-name">Backtester</div><div class="ag-role">Strategie-Tester</div></div><div class="ag-badge active">✓ Aktiv</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:100%;background:#10B981"></div></div><div class="ag-task">Letzter Backtest: WR=83.3% | PF=4.34 | 6 Trades</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#10B981;border-color:#10B98133;background:rgba(16,185,129,.12)">M15</span><span class="ag-tag" style="color:#10B981;border-color:#10B98133;background:rgba(16,185,129,.12)">XAUUSD</span><span class="ag-tag" style="color:#10B981;border-color:#10B98133;background:rgba(16,185,129,.12)">SMC</span></div><div class="ag-last">Zuletzt: 2026-06-02T21:27</div></div></div><div class="ag-card active"><div class="ag-top"><div class="ag-ico" style="background:rgba(139,92,246,.12)"><span style="color:#8B5CF6">◎</span></div><div class="ag-meta"><div class="ag-name">Signal Scanner</div><div class="ag-role">Echtzeit-Signale</div></div><div class="ag-badge active">✓ Aktiv</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:100%;background:#10B981"></div></div><div class="ag-task">Letzter Scan: 0 Signal(e) | Preis: $4490.35</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#8B5CF6;border-color:#8B5CF633;background:rgba(139,92,246,.12)">OB</span><span class="ag-tag" style="color:#8B5CF6;border-color:#8B5CF633;background:rgba(139,92,246,.12)">FVG</span><span class="ag-tag" style="color:#8B5CF6;border-color:#8B5CF633;background:rgba(139,92,246,.12)">BOS</span></div><div class="ag-last">Zuletzt: 2026-06-02T22:01</div></div></div><div class="ag-card active"><div class="ag-top"><div class="ag-ico" style="background:rgba(239,68,68,.12)"><span style="color:#EF4444">◼</span></div><div class="ag-meta"><div class="ag-name">Risk Manager</div><div class="ag-role">Risiko-Kontrolle</div></div><div class="ag-badge active">✓ Aktiv</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:100%;background:#10B981"></div></div><div class="ag-task">Status: CRITICAL | 2 Alert(s)</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#EF4444;border-color:#EF444433;background:rgba(239,68,68,.12)">Drawdown</span><span class="ag-tag" style="color:#EF4444;border-color:#EF444433;background:rgba(239,68,68,.12)">Sizing</span></div><div class="ag-last">Zuletzt: 2026-06-02T21:27</div></div></div><div class="ag-card active"><div class="ag-top"><div class="ag-ico" style="background:rgba(20,184,166,.12)"><span style="color:#14B8A6">≡</span></div><div class="ag-meta"><div class="ag-name">Reporter</div><div class="ag-role">Dashboard</div></div><div class="ag-badge active">✓ Aktiv</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:100%;background:#10B981"></div></div><div class="ag-task">Status: OK</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#14B8A6;border-color:#14B8A633;background:rgba(20,184,166,.12)">HTML</span><span class="ag-tag" style="color:#14B8A6;border-color:#14B8A633;background:rgba(20,184,166,.12)">Dashboard</span></div><div class="ag-last">Zuletzt: 2026-06-02T22:00</div></div></div><div class="ag-card active"><div class="ag-top"><div class="ag-ico" style="background:rgba(110,231,183,.10)"><span style="color:#6EE7B7">◆</span></div><div class="ag-meta"><div class="ag-name">Notifier</div><div class="ag-role">Alerts</div></div><div class="ag-badge active">✓ Aktiv</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:100%;background:#10B981"></div></div><div class="ag-task">Status: OK | WhatsApp/Telegram bereit</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#6EE7B7;border-color:#6EE7B733;background:rgba(110,231,183,.10)">WhatsApp</span><span class="ag-tag" style="color:#6EE7B7;border-color:#6EE7B733;background:rgba(110,231,183,.10)">Telegram</span></div><div class="ag-last">Zuletzt: 2026-06-02T21:27</div></div></div><div class="ag-card idle"><div class="ag-top"><div class="ag-ico" style="background:rgba(249,115,22,.12)"><span style="color:#F97316">▶</span></div><div class="ag-meta"><div class="ag-name">Executor</div><div class="ag-role">Order-Ausführung</div></div><div class="ag-badge idle">· Idle</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:0%;background:#374151"></div></div><div class="ag-task">Orders platziert: 0 | Modus: DRY RUN</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#F97316;border-color:#F9731633;background:rgba(249,115,22,.12)">MT5</span><span class="ag-tag" style="color:#F97316;border-color:#F9731633;background:rgba(249,115,22,.12)">Orders</span><span class="ag-tag" style="color:#F97316;border-color:#F9731633;background:rgba(249,115,22,.12)">DryRun</span></div><div class="ag-last">Zuletzt: –</div></div></div><div class="ag-card active"><div class="ag-top"><div class="ag-ico" style="background:rgba(239,68,68,.12)"><span style="color:#EF4444">◷</span></div><div class="ag-meta"><div class="ag-name">Macro Filter</div><div class="ag-role">News-Kalender</div></div><div class="ag-badge active">✓ Aktiv</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:100%;background:#10B981"></div></div><div class="ag-task">Kein Block | Nächstes Event: GDP q/q in 328 Min</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#EF4444;border-color:#EF444433;background:rgba(239,68,68,.12)">FOMC</span><span class="ag-tag" style="color:#EF4444;border-color:#EF444433;background:rgba(239,68,68,.12)">NFP</span><span class="ag-tag" style="color:#EF4444;border-color:#EF444433;background:rgba(239,68,68,.12)">CPI</span><span class="ag-tag" style="color:#EF4444;border-color:#EF444433;background:rgba(239,68,68,.12)">News</span></div><div class="ag-last">Zuletzt: 2026-06-02T22:01</div></div></div><div class="ag-card active"><div class="ag-top"><div class="ag-ico" style="background:rgba(61,142,255,.12)"><span style="color:#3D8EFF">↗</span></div><div class="ag-meta"><div class="ag-name">DXY Correlation</div><div class="ag-role">USD &amp; Yield Analyse</div></div><div class="ag-badge active">✓ Aktiv</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:100%;background:#10B981"></div></div><div class="ag-task">Gold-Bias: BEARISH (0/2) | DXY=99.193 | 10Y=4.455%</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#3D8EFF;border-color:#3D8EFF33;background:rgba(61,142,255,.12)">DXY</span><span class="ag-tag" style="color:#3D8EFF;border-color:#3D8EFF33;background:rgba(61,142,255,.12)">US10Y</span><span class="ag-tag" style="color:#3D8EFF;border-color:#3D8EFF33;background:rgba(61,142,255,.12)">Makro</span></div><div class="ag-last">Zuletzt: 2026-06-02T21:27</div></div></div><div class="ag-card active"><div class="ag-top"><div class="ag-ico" style="background:rgba(245,158,11,.12)"><span style="color:#F59E0B">◉</span></div><div class="ag-meta"><div class="ag-name">COT Agent</div><div class="ag-role">CFTC Positionierung</div></div><div class="ag-badge active">✓ Aktiv</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:100%;background:#10B981"></div></div><div class="ag-task">Hedge Funds: +154,260 (43.6%) | BULLISH | cutting_longs</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#F59E0B;border-color:#F59E0B33;background:rgba(245,158,11,.12)">CFTC</span><span class="ag-tag" style="color:#F59E0B;border-color:#F59E0B33;background:rgba(245,158,11,.12)">COT</span><span class="ag-tag" style="color:#F59E0B;border-color:#F59E0B33;background:rgba(245,158,11,.12)">Hedge Funds</span></div><div class="ag-last">Zuletzt: 2026-06-02T21:27</div></div></div><div class="ag-card active"><div class="ag-top"><div class="ag-ico" style="background:rgba(236,72,153,.12)"><span style="color:#EC4899">♡</span></div><div class="ag-meta"><div class="ag-name">Sentiment</div><div class="ag-role">Fear &amp; Greed Index</div></div><div class="ag-badge active">✓ Aktiv</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:100%;background:#10B981"></div></div><div class="ag-task">Fear &amp; Greed: 23 (Extreme Fear) | Gold-Bias: BULLISH</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#EC4899;border-color:#EC489933;background:rgba(236,72,153,.12)">Fear&amp;Greed</span><span class="ag-tag" style="color:#EC4899;border-color:#EC489933;background:rgba(236,72,153,.12)">GLD</span><span class="ag-tag" style="color:#EC4899;border-color:#EC489933;background:rgba(236,72,153,.12)">ETF</span></div><div class="ag-last">Zuletzt: 2026-06-02T21:27</div></div></div><div class="ag-card active"><div class="ag-top"><div class="ag-ico" style="background:rgba(239,68,68,.12)"><span style="color:#EF4444">⊕</span></div><div class="ag-meta"><div class="ag-name">Geopolitik</div><div class="ag-role">Krisen &amp; Safe-Haven</div></div><div class="ag-badge active">✓ Aktiv</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:100%;background:#10B981"></div></div><div class="ag-task">Risiko-Score: 100/100 | Bias: BULLISH | 30 Artikel</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#EF4444;border-color:#EF444433;background:rgba(239,68,68,.12)">GDELT</span><span class="ag-tag" style="color:#EF4444;border-color:#EF444433;background:rgba(239,68,68,.12)">Krisen</span><span class="ag-tag" style="color:#EF4444;border-color:#EF444433;background:rgba(239,68,68,.12)">News</span></div><div class="ag-last">Zuletzt: 2026-06-02T21:27</div></div></div><div class="ag-card active"><div class="ag-top"><div class="ag-ico" style="background:rgba(16,185,129,.12)"><span style="color:#10B981">⊞</span></div><div class="ag-meta"><div class="ag-name">Fed Agent</div><div class="ag-role">Zinspolitik &amp; Yields</div></div><div class="ag-badge active">✓ Aktiv</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:100%;background:#10B981"></div></div><div class="ag-task">Fed Rate: 3.63% (hold) | Yield Curve: +0.48% | NEUTRAL</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#10B981;border-color:#10B98133;background:rgba(16,185,129,.12)">Fed</span><span class="ag-tag" style="color:#10B981;border-color:#10B98133;background:rgba(16,185,129,.12)">Zinsen</span><span class="ag-tag" style="color:#10B981;border-color:#10B98133;background:rgba(16,185,129,.12)">FRED</span></div><div class="ag-last">Zuletzt: 2026-06-02T21:27</div></div></div><div class="ag-card active"><div class="ag-top"><div class="ag-ico" style="background:rgba(139,92,246,.12)"><span style="color:#8B5CF6">⬡</span></div><div class="ag-meta"><div class="ag-name">Polymarket</div><div class="ag-role">Prediction Markets</div></div><div class="ag-badge active">✓ Aktiv</div></div><div class="ag-bar"><div class="ag-bar-fill" style="width:100%;background:#10B981"></div></div><div class="ag-task">PAPER | 25 Märkte · 10 Opps · 16 Orders | Top: 54% Edge</div><div class="ag-foot"><div class="ag-tags"><span class="ag-tag" style="color:#8B5CF6;border-color:#8B5CF633;background:rgba(139,92,246,.12)">CLOB</span><span class="ag-tag" style="color:#8B5CF6;border-color:#8B5CF633;background:rgba(139,92,246,.12)">Edge</span><span class="ag-tag" style="color:#8B5CF6;border-color:#8B5CF633;background:rgba(139,92,246,.12)">Paper</span></div><div class="ag-last">Zuletzt: 2026-06-02T21:59</div></div></div></div>
+  </section>
+
+  <!-- ════════════ PANEL: POLYMARKET ════════════ -->
+  <section class="panel" id="panelPoly">
+
+    <!-- KPIs -->
+    <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="kpi" style="--kc:#8B5CF6;--kg:rgba(139,92,246,.28)">
+        <div class="kpi-lbl">Märkte</div>
+        <div class="kpi-val" id="polyMarkets">–</div>
+        <div class="kpi-sub">gescannt</div>
+      </div>
+      <div class="kpi" style="--kc:#F59E0B;--kg:rgba(245,158,11,.28)">
+        <div class="kpi-lbl">Opportunities</div>
+        <div class="kpi-val" id="polyOpps">–</div>
+        <div class="kpi-sub">mit Edge</div>
+      </div>
+      <div class="kpi" style="--kc:#10B981;--kg:rgba(16,185,129,.28)">
+        <div class="kpi-lbl">Orders</div>
+        <div class="kpi-val" id="polyOrders">–</div>
+        <div class="kpi-sub" id="polyMode">PAPER</div>
+      </div>
+    </div>
+
+    <!-- TOP OPPORTUNITY -->
+    <div class="card" id="polyTopCard" style="display:none">
+      <div class="ch">
+        <span class="ct">Top Opportunity</span>
+        <span id="polyTopEdge" style="font-size:.72rem;font-weight:800;color:var(--purple)"></span>
+      </div>
+      <div class="cb" id="polyTopContent"></div>
+    </div>
+
+    <!-- OPPORTUNITIES LIST -->
+    <div class="card">
+      <div class="ch">
+        <span class="ct">Opportunities</span>
+        <span style="font-size:.62rem;color:var(--text3)">Claude-Analyse · Edge ≥ 5%</span>
+      </div>
+      <div class="cb" style="padding:0 14px">
+        <div id="polyOppList"><div class="empty"><div class="empty-ico">⬡</div>Noch kein Scan</div></div>
+      </div>
+    </div>
+
+    <!-- PAPER ORDERS -->
+    <div class="card">
+      <div class="ch">
+        <span class="ct">Paper Trades</span>
+        <span style="font-size:.62rem;color:var(--text3)">Simulierte Orders</span>
+      </div>
+      <div class="cb" style="padding:0 14px">
+        <div id="polyOrderList"><div class="empty"><div class="empty-ico">📋</div>Keine Orders</div></div>
+      </div>
+    </div>
+
+    <!-- COMMANDER CHAT (embedded in Poly panel) -->
+    <div class="card" style="display:flex;flex-direction:column;min-height:320px;overflow:hidden">
+      <div class="ch"><span class="ct">💬 Commander</span></div>
+      <div class="chat-msgs" id="polyChatBox" style="flex:1;min-height:200px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px;display:flex;flex-direction:column;gap:8px"></div>
+      <div class="chat-foot" style="background:var(--bg3)">
+        <textarea id="polyChatInput" class="chatInput" placeholder="Frag den Commander…" rows="1" onkeydown="onPolyKey(event)" oninput="autoGrow(this)" style="flex:1;background:rgba(255,255,255,.055);border:1px solid var(--border);border-radius:11px;padding:9px 13px;color:var(--text);font-size:.82rem;font-family:inherit;resize:none;outline:none;min-height:40px;max-height:110px;transition:border-color .2s;-webkit-appearance:none"></textarea>
+        <button type="button" id="polySendBtn" onclick="sendPolyMsg()" style="width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,#F59E0B,#B45309);border:none;color:#000;font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;touch-action:manipulation">▶</button>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ════════════ PANEL 3: SIGNALE (mobile) ════════════ -->
+  <section class="panel" id="panelSignals" style="display:none">
+    <div class="card">
+      <div class="ch">
+        <span class="ct">Aktuelle Signale</span>
+        <span id="sigCount2" style="font-size:.68rem;color:var(--gold)">0</span>
+      </div>
+      <div class="cb" style="padding:0 14px">
+        <div id="sigList"><div class="empty"><div class="empty-ico">⚡</div>Keine Signale</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════ PANEL 4: NOTIZEN & FOTOS ════════════ -->
+  <section class="panel" id="panelNotes">
+
+    <!-- NOTE INPUT -->
+    <div class="card">
+      <div class="ch">
+        <span class="ct">Neue Notiz</span>
+        <button class="btn" onclick="saveNote()">💾 Speichern</button>
+      </div>
+      <div class="cb">
+        <textarea class="note-input" id="noteInput" placeholder="Notiz eingeben… (z.B. Trade-Ideen, Beobachtungen, Strategie-Anpassungen)"></textarea>
+      </div>
+    </div>
+
+    <!-- SAVED NOTES -->
+    <div class="card">
+      <div class="ch">
+        <span class="ct">Gespeicherte Notizen</span>
+        <button class="btn" onclick="clearNotes()" style="color:var(--red);border-color:rgba(239,68,68,.3)">Alle löschen</button>
+      </div>
+      <div class="cb">
+        <div id="notesList"><div class="empty"><div class="empty-ico">📝</div>Noch keine Notizen</div></div>
+      </div>
+    </div>
+
+    <!-- PHOTOS -->
+    <div class="card">
+      <div class="ch">
+        <span class="ct">Fotos & Charts</span>
+        <span style="font-size:.62rem;color:var(--text3)" id="photoCount">0 Fotos</span>
+      </div>
+      <div class="cb" style="display:flex;flex-direction:column;gap:10px">
+        <button class="upload-btn" onclick="document.getElementById('photoFileIn').click()">
+          📷 Foto hinzufügen
+        </button>
+        <input type="file" id="photoFileIn" accept="image/*" multiple onchange="uploadPhotos(this)">
+        <div class="photo-grid" id="photoGrid"></div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ════════════ PANEL 5: CHAT ════════════ -->
+  <section class="panel" id="panelChat">
+    <div class="persona-bar" id="personaBar">
+      <button type="button" class="pb-btn" onclick="setPers('Andreas')">👨 Andreas</button>
+      <button type="button" class="pb-btn" onclick="setPers('Dominik')">👨 Dominik</button>
+      <button type="button" class="pb-btn" onclick="setPers('Johannes')">🧑 Johannes</button>
+      <button type="button" class="pb-btn" id="tokenBtn" onclick="setGhToken()" style="border-color:rgba(239,68,68,.4);color:var(--red)">🔑 Token setzen</button>
+    </div>
+    <div id="syncBar" style="display:flex;align-items:center;justify-content:space-between;padding:6px 14px;border-bottom:1px solid rgba(255,255,255,.08);background:#07090E;flex-shrink:0">
+      <span id="syncStatus" style="font-size:.6rem;color:#8B9BB4">Sync bereit</span>
+      <button type="button" id="syncBtn" style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#10B981;font-size:.6rem;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;touch-action:manipulation">↻ Sync</button>
+    </div>
+    <div class="chat-msgs" id="chatBox"></div>
+    <div class="chat-foot">
+      <textarea id="chatInput" placeholder="Frag den Commander…" rows="1" onkeydown="onKey(event)" oninput="autoGrow(this)"></textarea>
+      <button type="button" id="sendBtn" onclick="sendMsg()">▶</button>
+    </div>
+  </section>
+
+</main>
+
+<!-- MOBILE TAB BAR -->
+<nav class="tabbar">
+  <div class="tabbar-row">
+    <button type="button" class="tbtn show" data-tab="stats" onclick="switchTab('stats')">
+      <span class="ti">📊</span>Stats
+    </button>
+    <button type="button" class="tbtn" data-tab="agents" onclick="switchTab('agents')">
+      <span class="ti">🤖</span>Agenten
+    </button>
+    <button type="button" class="tbtn" data-tab="poly" onclick="switchTab('poly')">
+      <span class="ti">⬡</span>Poly
+    </button>
+    <button type="button" class="tbtn" data-tab="chat" onclick="switchTab('chat')">
+      <span class="ti">💬</span>Commander
+    </button>
+    <button type="button" class="tbtn" data-tab="notes" onclick="switchTab('notes')">
+      <span class="ti">📝</span>Notizen
+    </button>
+  </div>
+</nav>
+
+<script type="application/json" id="_ld">{"updated": "02.06.2026 22:02", "build_ts": 1780430533, "min_required_build": 1780430533, "wr": 83.3, "pf": 4.34, "trades": 6, "wins": 5, "losses": 1, "longs": 6, "shorts": 0, "net_pnl": 6559.71, "max_dd": -10.6, "start_cap": 10000.0, "end_cap": 16559.7, "return_pct": 65.6, "risk_pct": 0.1, "allow_short": false, "monthly": [{"month": "2026-01", "trades": 4, "wins": 4, "wr": 100.0, "pnl": 6288.87, "cap": 16288.87}, {"month": "2026-02", "trades": 2, "wins": 1, "wr": 50.0, "pnl": 270.84, "cap": 16559.71}], "price": 4490.35, "n_signals": 0, "best_wr": 71.4, "best_pf": 2.35, "candidates": 2421, "from_date": "2026-01-09", "to_date": "2026-02-16", "variants": [{"id": "20260521_000000", "name": "Variante 1 — 21.05.2026 (Aktuell aktiv)", "date": "21.05.2026 00:00", "wr": 65.1, "pf": 1.67, "trades": 83, "mdd": -4.8, "pnl": 2580.11, "active": false, "top3": [], "config": {"ob_impulse_pips": 80, "ob_max_age": 30, "ob_min_body": 0.5, "bos_required": true, "swing_len": 12, "fvg_min_pips": 15, "fvg_max_age": 20, "min_brk_pip": 6, "pip_size": 0.1, "rr": 1.5, "rsi_limit": 65, "cooldown": 5, "ema_len": 50, "atr_len": 14, "rsi_len": 14, "initial_cap": 10000, "risk_pct": 0.009, "max_drawdown_pct": 0.05, "commission": 0.0007, "slippage_pip": 2, "ob_vol_multiplier": 1.3, "h4_stage_filter": true, "h4_ema_fast": 50, "h4_ema_slow": 200}}, {"id": "20260525_122104", "name": "Variante 2 — 25.05.2026", "date": "25.05.2026 12:21", "wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970, "active": false, "top3": [{"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}, {"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}, {"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}], "config": {"ob_impulse_pips": 120.0, "ob_max_age": 30, "ob_min_body": 0.75, "bos_required": true, "swing_len": 8.0, "fvg_min_pips": 12.0, "fvg_max_age": 20, "min_brk_pip": 8.0, "pip_size": 0.1, "rr": 1.5, "rsi_limit": 70.0, "cooldown": 10.0, "ema_len": 50, "atr_len": 14, "rsi_len": 14, "initial_cap": 10000, "risk_pct": 0.009, "max_drawdown_pct": 0.1, "commission": 0.0007, "slippage_pip": 2, "ob_vol_multiplier": 1.3, "h4_stage_filter": true, "h4_ema_fast": 50, "h4_ema_slow": 200}}, {"id": "20260601_081007", "name": "Variante 3 — 01.06.2026", "date": "01.06.2026 08:10", "wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970, "active": true, "top3": [{"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}, {"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}, {"wr": 71.4, "pf": 2.35, "trades": 21, "mdd": -1.5, "pnl": 970.0}], "config": {"ob_impulse_pips": 120.0, "ob_max_age": 30, "ob_min_body": 0.75, "bos_required": true, "swing_len": 8.0, "fvg_min_pips": 12.0, "fvg_max_age": 20, "min_brk_pip": 8.0, "pip_size": 0.1, "rr": 1.5, "rsi_limit": 70.0, "cooldown": 10.0, "ema_len": 50, "atr_len": 14, "rsi_len": 14, "initial_cap": 10000, "risk_pct": 0.009, "max_drawdown_pct": 0.1, "commission": 0.0007, "slippage_pip": 2, "ob_vol_multiplier": 1.3, "h4_stage_filter": true, "h4_ema_fast": 50, "h4_ema_slow": 200}}], "risk_status": "critical", "alerts": ["WARNUNG: Max Drawdown -10.6% überschreitet -5%!", "KRITISCH: Max Drawdown -10.6% — Trading pausieren!"], "signals": [], "assets_status": [{"symbol": "XAUUSD", "price": 4490.35, "rsi": 28.9, "n_signals": 0, "h4_bull": "False"}], "agents": [{"name": "Data Fetcher", "role": "Daten-Beschaffung", "icon": "↻", "color": "#3D8EFF", "bg": "rgba(61,142,255,.12)", "status": "active", "prog": 100, "task": "Status: OK | Daten-Aktualisierung", "tags": ["MT5", "Parquet", "Historie"], "last": "2026-06-02T21:27"}, {"name": "Optimizer", "role": "Parameter-Suche", "icon": "◈", "color": "#F59E0B", "bg": "rgba(245,158,11,.12)", "status": "idle", "prog": 0, "task": "Beste WR: 71.4% | PF: 2.35 | 2421 Kandidaten", "tags": ["Grid-Search", "Optimierung"], "last": "2026-06-01T08:10"}, {"name": "Backtester", "role": "Strategie-Tester", "icon": "▲", "color": "#10B981", "bg": "rgba(16,185,129,.12)", "status": "active", "prog": 100, "task": "Letzter Backtest: WR=83.3% | PF=4.34 | 6 Trades", "tags": ["M15", "XAUUSD", "SMC"], "last": "2026-06-02T21:27"}, {"name": "Signal Scanner", "role": "Echtzeit-Signale", "icon": "◎", "color": "#8B5CF6", "bg": "rgba(139,92,246,.12)", "status": "active", "prog": 100, "task": "Letzter Scan: 0 Signal(e) | Preis: $4490.35", "tags": ["OB", "FVG", "BOS"], "last": "2026-06-02T22:01"}, {"name": "Risk Manager", "role": "Risiko-Kontrolle", "icon": "◼", "color": "#EF4444", "bg": "rgba(239,68,68,.12)", "status": "active", "prog": 100, "task": "Status: CRITICAL | 2 Alert(s)", "tags": ["Drawdown", "Sizing"], "last": "2026-06-02T21:27"}, {"name": "Reporter", "role": "Dashboard", "icon": "≡", "color": "#14B8A6", "bg": "rgba(20,184,166,.12)", "status": "active", "prog": 100, "task": "Status: OK", "tags": ["HTML", "Dashboard"], "last": "2026-06-02T22:00"}, {"name": "Notifier", "role": "Alerts", "icon": "◆", "color": "#6EE7B7", "bg": "rgba(110,231,183,.10)", "status": "active", "prog": 100, "task": "Status: OK | WhatsApp/Telegram bereit", "tags": ["WhatsApp", "Telegram"], "last": "2026-06-02T21:27"}, {"name": "Executor", "role": "Order-Ausführung", "icon": "▶", "color": "#F97316", "bg": "rgba(249,115,22,.12)", "status": "idle", "prog": 0, "task": "Orders platziert: 0 | Modus: DRY RUN", "tags": ["MT5", "Orders", "DryRun"], "last": "–"}, {"name": "Macro Filter", "role": "News-Kalender", "icon": "◷", "color": "#EF4444", "bg": "rgba(239,68,68,.12)", "status": "active", "prog": 100, "task": "Kein Block | Nächstes Event: GDP q/q in 328 Min", "tags": ["FOMC", "NFP", "CPI", "News"], "last": "2026-06-02T22:01"}, {"name": "DXY Correlation", "role": "USD & Yield Analyse", "icon": "↗", "color": "#3D8EFF", "bg": "rgba(61,142,255,.12)", "status": "active", "prog": 100, "task": "Gold-Bias: BEARISH (0/2) | DXY=99.193 | 10Y=4.455%", "tags": ["DXY", "US10Y", "Makro"], "last": "2026-06-02T21:27"}, {"name": "COT Agent", "role": "CFTC Positionierung", "icon": "◉", "color": "#F59E0B", "bg": "rgba(245,158,11,.12)", "status": "active", "prog": 100, "task": "Hedge Funds: +154,260 (43.6%) | BULLISH | cutting_longs", "tags": ["CFTC", "COT", "Hedge Funds"], "last": "2026-06-02T21:27"}, {"name": "Sentiment", "role": "Fear & Greed Index", "icon": "♡", "color": "#EC4899", "bg": "rgba(236,72,153,.12)", "status": "active", "prog": 100, "task": "Fear & Greed: 23 (Extreme Fear) | Gold-Bias: BULLISH", "tags": ["Fear&Greed", "GLD", "ETF"], "last": "2026-06-02T21:27"}, {"name": "Geopolitik", "role": "Krisen & Safe-Haven", "icon": "⊕", "color": "#EF4444", "bg": "rgba(239,68,68,.12)", "status": "active", "prog": 100, "task": "Risiko-Score: 100/100 | Bias: BULLISH | 30 Artikel", "tags": ["GDELT", "Krisen", "News"], "last": "2026-06-02T21:27"}, {"name": "Fed Agent", "role": "Zinspolitik & Yields", "icon": "⊞", "color": "#10B981", "bg": "rgba(16,185,129,.12)", "status": "active", "prog": 100, "task": "Fed Rate: 3.63% (hold) | Yield Curve: +0.48% | NEUTRAL", "tags": ["Fed", "Zinsen", "FRED"], "last": "2026-06-02T21:27"}, {"name": "Polymarket", "role": "Prediction Markets", "icon": "⬡", "color": "#8B5CF6", "bg": "rgba(139,92,246,.12)", "status": "active", "prog": 100, "task": "PAPER | 25 Märkte · 10 Opps · 16 Orders | Top: 54% Edge", "tags": ["CLOB", "Edge", "Paper"], "last": "2026-06-02T21:59"}], "macro_blocked": false, "macro_reason": null, "macro_next": "GDP q/q", "macro_mins": 328, "macro_today": [{"title": "GDP q/q", "time": "21:30 UTC", "country": "AUD"}], "dxy": 99.193, "dxy_trend": "rising", "tnx": 4.455, "tnx_trend": "rising", "gold_bias": "bearish", "bias_label": "Bearisch — DXY steigt + Yields steigen", "all_assets_cfg": [{"symbol": "XAUUSD", "name": "Gold", "emoji": "🥇", "timeframe": "M15", "pip_size": 0.1, "strategy": "smc", "active": true, "note": "Primär-Asset — SMC OB+FVG Strategie"}, {"symbol": "XAGUSD", "name": "Silber", "emoji": "🥈", "timeframe": "M15", "pip_size": 0.001, "strategy": "smc", "active": false, "note": "Korreliert stark mit Gold — gleiche Strategie"}, {"symbol": "EURUSD", "name": "Euro/Dollar", "emoji": "💶", "timeframe": "M15", "pip_size": 0.0001, "strategy": "smc", "active": false, "note": "Meistgehandeltes Forex-Paar"}, {"symbol": "GBPUSD", "name": "Pfund/Dollar", "emoji": "🇬🇧", "timeframe": "M15", "pip_size": 0.0001, "strategy": "smc", "active": false, "note": "Volatile Währung — gute OB-Setups"}, {"symbol": "USDJPY", "name": "Dollar/Yen", "emoji": "🇯🇵", "timeframe": "M15", "pip_size": 0.01, "strategy": "smc", "active": false, "note": "Safe-Haven Währung — DXY-korreliert"}, {"symbol": "BTCUSD", "name": "Bitcoin", "emoji": "₿", "timeframe": "M15", "pip_size": 1.0, "strategy": "smc", "active": false, "note": "24/7 Markt — hohe Volatilität"}, {"symbol": "ETHUSD", "name": "Ethereum", "emoji": "⬡", "timeframe": "M15", "pip_size": 0.1, "strategy": "smc", "active": false, "note": "Zweitgrößte Krypto"}, {"symbol": "NAS100", "name": "Nasdaq 100", "emoji": "📈", "timeframe": "M15", "pip_size": 0.1, "strategy": "smc", "active": false, "note": "US Tech-Index — hohe Liquidität"}, {"symbol": "US30", "name": "Dow Jones", "emoji": "🏛", "timeframe": "M15", "pip_size": 1.0, "strategy": "smc", "active": false, "note": "US Blue-Chip Index"}, {"symbol": "USOIL", "name": "WTI Öl", "emoji": "🛢", "timeframe": "M15", "pip_size": 0.01, "strategy": "smc", "active": false, "note": "Rohöl — geopolitisch sensibel"}], "polymarket": {"markets_scanned": 25, "opportunities": [{"question": "Iran closes its airspace by June 30?", "market_id": "0x51a7c8afb7a0e09b8b47643171d90f400de23a176c4ea06f6552d6e53213839c", "yes_price": 0.178, "no_price": 0.822, "claude_prob": 0.72, "direction": "YES", "edge": 0.541, "reasoning": "Iran has already closed its airspace in response to the escalating conflict, with reports confirming closure through at least June 27. Given that the resolution date is June 30 (only 3 days after the reported closure end date) and the underlying geopolitical tensions remain unresolved, it is highly likely the closure will either persist through June 30 or be reimposed. The market price of 17.8% severely underweights the concrete evidence of existing closures and the short timeframe remaining.", "confidence": "high", "category": "general", "volume_24h": 252949.0, "news": ["IRGC shoots down US drone, escalating tensions in Persian Gulf - Crypto Briefing", "Iran closes Strait of Hormuz amid US-Israel conflict escalation - Crypto Briefing", "Tehran healthcare collapse amid US-Israel strikes sparks airspace closure fears - Crypto Briefing"]}, {"question": "US x Iran permanent peace deal by July 31, 2026?", "market_id": "0x20af55ab35186377b81219db6cb8615240cba42cea41731091be9484a5f5b122", "yes_price": 0.395, "no_price": 0.605, "claude_prob": 0.12, "direction": "NO", "edge": 0.275, "reasoning": "US-Iran relations remain fundamentally adversarial with no credible diplomatic track record. While Trump's return may introduce unpredictability and there's recent chatter about potential moves, historical base rates show permanent peace deals between major powers take decades of sustained negotiation. The 18-month timeframe is extremely compressed for resolving nuclear, regional proxy, and sanctions issues. Market price of 39.5% appears significantly inflated by recent rhetoric and crypto speculation rather than grounded in diplomatic feasibility.", "confidence": "medium", "category": "general", "volume_24h": 199160.0, "news": ["Trump claims Hezbollah ceasefire after call with Netanyahu - Crypto Briefing", "MicroStrategy Bitcoin Sale Bets - StartupHub.ai", "Bitcoin Tops $77K as Trump Weighs Iran Move, Polymarket Peace Bet Hits $154M - Cryptonews.net"]}, {"question": "US announces new Iran agreement/ceasefire extension by June 7?", "market_id": "0x27182c8b13f2a6284754660cbb3c6350a04f7aa4afe04d24dad481947014d90d", "yes_price": 0.12, "no_price": 0.88, "claude_prob": 0.28, "direction": "YES", "edge": 0.16, "reasoning": "Recent statements from Trump and Macron indicate active negotiation momentum on a US-Iran agreement, with Trump claiming the deal is 'largely negotiated' and to be announced 'soon.' However, Rubio's stance against lifting sanctions creates a significant internal policy friction, and historical base rates show US-Iran negotiations frequently stall or fail to materialize within compressed timeframes. The 12-day window to June 7 is tight for formal announcement despite ongoing talks.", "confidence": "medium", "category": "general", "volume_24h": 296589.0, "news": ["Trump recently edited possible U.S.-Iran agreement, including on enriched uranium and Strait of Hormuz, source says - CBS News", "Rubio Says Sanctions On Iran Won't Be Lifted To Open Hormuz - Radio Free Europe/Radio Liberty", "HPE CEO Neri: AI Fuels \"Blowout\" Revenue, Triple-Digit Server Demand - StartupHub.ai"]}, {"question": "Will Bitcoin dip to $65,000 in June?", "market_id": "0x1d5b3e1146f2f976b44314f7c8c52684f6f221420e4a6f5d6808340f4c995f7b", "yes_price": 0.775, "no_price": 0.225, "claude_prob": 0.62, "direction": "NO", "edge": 0.155, "reasoning": "News indicates Bitcoin has already dipped to $65,000 (Yahoo Finance headline) and recently rebounded 11% above that level, suggesting the question may already be partially satisfied or imminent. However, conflicting timestamps (articles dated 2026) create ambiguity about the prediction window. The 77.5% market price reflects high conviction that a $65K dip occurs in June, but given Bitcoin's recent bounce and mixed regulatory sentiment (CFTC approval is bullish), mean reversion upward is plausible. Conservative estimate accounts for volatility and temporal uncertainty.", "confidence": "low", "category": "crypto", "volume_24h": 191554.0, "news": ["Crypto Market Update: CFTC Clears Coinbase to Offer Global Crypto Perpetual Futures - Investing News Network", "Trading Moments: June sees a concentrated window of risks; three structural factors amplify Bitcoin's weakness; the CME weekend gap becomes history. - PANews", "Bitcoin falls to $65,000, putting token on pace for fifth month of losses - Yahoo Finance"]}, {"question": "Knicks vs. Spurs", "market_id": "0x9bb9f7c70674e2043580bf634753858eded9b360252c06f891688b95a542ac46", "yes_price": 0.365, "no_price": 0.635, "claude_prob": 0.5, "direction": "YES", "edge": 0.135, "reasoning": "The news articles indicate this is a 2026 NBA Finals matchup currently in progress, making this a binary outcome with ~50% true probability absent team-specific performance data. The market price of 36.5% for the Knicks suggests bettors favor the Spurs, but the NYT article hedges 'barely,' indicating genuine uncertainty. Without access to real-time game scores, injury reports, or betting line consensus, the market appears moderately undervaluing the Knicks at 36.5% given the competitive framing in media coverage.", "confidence": "medium", "category": "general", "volume_24h": 503646.0, "news": ["2026 NBA Finals: Storylines, matchups that will define Knicks-Spurs - ESPN", "Latest NBA Finals Ticket Prices for Spurs vs. Knicks Reveal Divide Between Cities - Bleacher Report", "New York Knicks @ San Antonio Spurs: Live game updates, stats, play-by-play - Yahoo Sports"]}, {"question": "Will the San Antonio Spurs win the 2026 NBA Finals?", "market_id": "0xb6b3d7a2037b3faa7e1306d741840d453432902d73cc9a146a035e40271eae73", "yes_price": 0.642, "no_price": 0.357, "claude_prob": 0.52, "direction": "NO", "edge": 0.122, "reasoning": "The Spurs have already won the Western Conference and reached the Finals, which is a concrete accomplishment reflected in the market price of 64.2%. However, they now face the Knicks in a Finals series where both teams have proven capable. The 64.2% price appears to overweight the Spurs' recent success and potentially undervalue the Knicks' Finals appearance and Eastern Conference dominance. In Finals matchups between evenly-matched teams, historical data suggests closer to 50-55% win probability for either side absent clear injury/form advantages.", "confidence": "medium", "category": "sports", "volume_24h": 311565.0, "news": ["NBA Finals preview: Everything that will decide Knicks-Spurs - ESPN", "San Antonio Spurs win the West, beating Oklahoma City Thunder to head to NBA Finals - NPR", "Spurs-Knicks: 25 numbers to know ahead of 2026 NBA Finals - NBA.com"]}, {"question": "Will Wales win on 2026-06-02?", "market_id": "0xe7865defe26ceb4668b20ce549e46ab37665972093fd187c56500fd7def8da72", "yes_price": 0.415, "no_price": 0.585, "claude_prob": 0.52, "direction": "YES", "edge": 0.105, "reasoning": "Wales vs Ghana on 2026-06-02 is a friendly match. Wales historically has a moderate international record but typically performs better at home. Ghana is a stronger African nation but friendlies are inherently unpredictable. The market price of 41.5% appears slightly pessimistic for Wales given home advantage (if applicable) and relative competitive strength, suggesting modest undervaluation of YES.", "confidence": "medium", "category": "general", "volume_24h": 234716.0, "news": ["Wales vs Ghana: How to Watch, Prediction, Odds, Friendly Preview - FOX Sports", "=++[WATCHLIVE]TV!] Wales vs Ghana 𝐋𝐈𝐕𝐄 HD Ｃｈａｎｎｅｌ TV Coverage 2 June 2026 - La Grande Chancellerie de la Légion d´Honneur", "Rainfall aids Australia’s wheat crop, but dry forecasts loom - WNWN-FM"]}, {"question": "Will Bitcoin dip to $60,000 in June?", "market_id": "0x946bb3ec7e7d9bf146b4487be87e71ace99f1e0e9978cf36fbb5063c23900afb", "yes_price": 0.315, "no_price": 0.685, "claude_prob": 0.42, "direction": "YES", "edge": 0.105, "reasoning": "Bitcoin is currently trading below $70k per recent news, placing a $60k dip within ~14% downside—plausible but not inevitable. Multiple analyst voices support $60k as a potential support level, though sentiment is mixed (Hayes warns of crash vs. Bernstein expects recovery post-bottom). Geopolitical risks (Iran conflict) and macro headwinds add downside pressure, but the market's 31.5% YES price appears somewhat undervalued given current weakness and analyst consensus on $60k as a meaningful floor.", "confidence": "medium", "category": "crypto", "volume_24h": 210576.0, "news": ["\"Expert Analysis on How Bitcoin Price Will Behave This Week and In June\" - Binance", "Bitcoin $60K dip in April sees odds decline as traders price out drop - Crypto Briefing", "'I Wouldn't Invest $1'—Hayes Warns $60K Bitcoin Crash Before $250K - Forbes"]}, {"question": "Detroit Tigers vs. Tampa Bay Rays", "market_id": "0xee5416e379078b7995a947423a6d6f494826f5769a24efd8cc83096fd0d6f46f", "yes_price": 0.435, "no_price": 0.565, "claude_prob": 0.52, "direction": "YES", "edge": 0.085, "reasoning": "The market price of 43.5% for Detroit appears undervalued given recent Tigers acquisitions (Gleyber Torres), while Tampa Bay is dealing with multiple injuries (Simpson, Walls). However, without specific pitching matchup details, recent team performance records, or current standings context, confidence is moderate. The Tigers' recent roster moves suggest competitive positioning.", "confidence": "medium", "category": "general", "volume_24h": 358365.0, "news": ["Detroit Tigers vs Tampa Bay Rays Prediction, Odds and Picks for Tomorrow, 06/02/26 - Pickswise", "Detroit Tigers Make Decision on Gleyber Torres - Yahoo Sports", "Detroit Tigers vs. Tampa Bay Rays Odds, Betting Lines, Expert picks, Game Projections, DFS Projections and Player Prop Projections - Tuesday 06/02 15:40 PM - SportsLine"]}, {"question": "Will Chong Won-oh win the 2026 Seoul Mayoral Election", "market_id": "0x1b1a75d6305f5edee255b3f368cca945bde401fea4b2a7e34f2fcca3b3e56cf0", "yes_price": 0.795, "no_price": 0.205, "claude_prob": 0.72, "direction": "NO", "edge": 0.075, "reasoning": "The 79.5% market price appears moderately overconfident given Seoul's competitive electoral history and the Democratic Party's demonstrated strength in the capital. While Chong benefits from ruling party incumbency advantages and apparent late momentum, Seoul has consistently favored opposition candidates, and recent polling shows the lead narrowing—a pattern that typically continues through election day. The market may be overweighting current positioning relative to Seoul's structural opposition lean.", "confidence": "medium", "category": "elections", "volume_24h": 154343.0, "news": ["Korea's local elections to be President Lee's first litmus test, even if direct impact on governance unlikely - Korea JoongAng Daily", "Local election result to decide fates of major party leaders - The Korea Times", "Ruling party’s local election lead narrows in Seoul race - The Korea Herald"]}], "top_opportunity": {"question": "Iran closes its airspace by June 30?", "market_id": "0x51a7c8afb7a0e09b8b47643171d90f400de23a176c4ea06f6552d6e53213839c", "yes_price": 0.178, "no_price": 0.822, "claude_prob": 0.72, "direction": "YES", "edge": 0.541, "reasoning": "Iran has already closed its airspace in response to the escalating conflict, with reports confirming closure through at least June 27. Given that the resolution date is June 30 (only 3 days after the reported closure end date) and the underlying geopolitical tensions remain unresolved, it is highly likely the closure will either persist through June 30 or be reimposed. The market price of 17.8% severely underweights the concrete evidence of existing closures and the short timeframe remaining.", "confidence": "high", "category": "general", "volume_24h": 252949.0, "news": ["IRGC shoots down US drone, escalating tensions in Persian Gulf - Crypto Briefing", "Iran closes Strait of Hormuz amid US-Israel conflict escalation - Crypto Briefing", "Tehran healthcare collapse amid US-Israel strikes sparks airspace closure fears - Crypto Briefing"]}, "orders_placed": [{"id": "paper_1780165796", "question": "Roland Garros ATP: Juan Manuel Cerundolo vs Martin Landaluce", "direction": "YES", "price": 0.175, "stake": 10.0, "edge": 0.245, "confidence": "medium", "reasoning": "Cerundolo has demonstrated strong form by stunning World No. 1 Sinner in R3, indicating peak performance at Roland Garro", "mode": "PAPER", "ts": "2026-05-30T20:29"}, {"id": "paper_1780165796", "question": "MicroStrategy sells any Bitcoin by May 31, 2026?", "direction": "YES", "price": 0.12, "stake": 10.0, "edge": 0.16, "confidence": "medium", "reasoning": "The $30M BTC transfer to Coinbase Prime suggests operational preparation that could precede a sale, contradicting the bu", "mode": "PAPER", "ts": "2026-05-30T20:29"}, {"id": "paper_1780165796", "question": "Will Donald Trump announce that the United States blockade of the Strait of Horm", "direction": "YES", "price": 0.105, "stake": 10.0, "edge": 0.145, "confidence": "medium", "reasoning": "The blockade has recently been implemented as of the news reports, and Trump has already characterized the Iran situatio", "mode": "PAPER", "ts": "2026-05-30T20:29"}], "all_orders": [{"id": "paper_1780430390", "question": "Iran closes its airspace by June 30?", "direction": "YES", "price": 0.178, "stake": 15.0, "potential_win": 69.27, "edge": 0.541, "confidence": "high", "key_factor": "", "reasoning": "Iran has already closed its airspace in response to the escalating conflict, with reports confirming closure through at least June 27. Given that the ", "category": "general", "mode": "PAPER", "ts": "2026-06-02T21:59", "status": "open"}, {"id": "paper_1780430390", "question": "US x Iran permanent peace deal by July 31, 2026?", "direction": "NO", "price": 0.605, "stake": 14.25, "potential_win": 9.3, "edge": 0.275, "confidence": "medium", "key_factor": "", "reasoning": "US-Iran relations remain fundamentally adversarial with no credible diplomatic track record. While Trump's return may introduce unpredictability and t", "category": "general", "mode": "PAPER", "ts": "2026-06-02T21:59", "status": "open"}, {"id": "paper_1780430390", "question": "US announces new Iran agreement/ceasefire extension by June 7?", "direction": "YES", "price": 0.12, "stake": 13.54, "potential_win": 99.29, "edge": 0.16, "confidence": "medium", "key_factor": "", "reasoning": "Recent statements from Trump and Macron indicate active negotiation momentum on a US-Iran agreement, with Trump claiming the deal is 'largely negotiat", "category": "general", "mode": "PAPER", "ts": "2026-06-02T21:59", "status": "open"}, {"id": "paper_1780430390", "question": "Knicks vs. Spurs", "direction": "YES", "price": 0.365, "stake": 12.86, "potential_win": 22.37, "edge": 0.135, "confidence": "medium", "key_factor": "", "reasoning": "The news articles indicate this is a 2026 NBA Finals matchup currently in progress, making this a binary outcome with ~50% true probability absent tea", "category": "general", "mode": "PAPER", "ts": "2026-06-02T21:59", "status": "open"}, {"id": "paper_1780430390", "question": "Will the San Antonio Spurs win the 2026 NBA Finals?", "direction": "NO", "price": 0.357, "stake": 12.22, "potential_win": 22.01, "edge": 0.122, "confidence": "medium", "key_factor": "", "reasoning": "The Spurs have already won the Western Conference and reached the Finals, which is a concrete accomplishment reflected in the market price of 64.2%. H", "category": "sports", "mode": "PAPER", "ts": "2026-06-02T21:59", "status": "open"}, {"id": "paper_1780430390", "question": "Will Wales win on 2026-06-02?", "direction": "YES", "price": 0.415, "stake": 11.61, "potential_win": 16.37, "edge": 0.105, "confidence": "medium", "key_factor": "", "reasoning": "Wales vs Ghana on 2026-06-02 is a friendly match. Wales historically has a moderate international record but typically performs better at home. Ghana ", "category": "general", "mode": "PAPER", "ts": "2026-06-02T21:59", "status": "open"}, {"id": "paper_1780430390", "question": "Will Bitcoin dip to $60,000 in June?", "direction": "YES", "price": 0.315, "stake": 11.03, "potential_win": 23.99, "edge": 0.105, "confidence": "medium", "key_factor": "", "reasoning": "Bitcoin is currently trading below $70k per recent news, placing a $60k dip within ~14% downside—plausible but not inevitable. Multiple analyst voices", "category": "crypto", "mode": "PAPER", "ts": "2026-06-02T21:59", "status": "open"}, {"id": "paper_1780430390", "question": "Detroit Tigers vs. Tampa Bay Rays", "direction": "YES", "price": 0.435, "stake": 10.47, "potential_win": 13.6, "edge": 0.085, "confidence": "medium", "key_factor": "", "reasoning": "The market price of 43.5% for Detroit appears undervalued given recent Tigers acquisitions (Gleyber Torres), while Tampa Bay is dealing with multiple ", "category": "general", "mode": "PAPER", "ts": "2026-06-02T21:59", "status": "open"}, {"id": "paper_1780430390", "question": "Will Chong Won-oh win the 2026 Seoul Mayoral Election", "direction": "NO", "price": 0.205, "stake": 9.39, "potential_win": 36.41, "edge": 0.075, "confidence": "medium", "key_factor": "", "reasoning": "The 79.5% market price appears moderately overconfident given Seoul's competitive electoral history and the Democratic Party's demonstrated strength i", "category": "elections", "mode": "PAPER", "ts": "2026-06-02T21:59", "status": "open"}, {"id": "paper_1780430390", "question": "US x Iran permanent peace deal by June 30, 2026?", "direction": "NO", "price": 0.755, "stake": 9.48, "potential_win": 3.08, "edge": 0.065, "confidence": "medium", "key_factor": "", "reasoning": "Historical base rate for major US-Iran peace deals is extremely low (~2-5% annually), and current conditions show deterioration: regional escalation (", "category": "general", "mode": "PAPER", "ts": "2026-06-02T21:59", "status": "open"}, {"id": "paper_1780430390", "question": "Will Oh Se-hoon win the 2026 Seoul Mayoral Election", "direction": "YES", "price": 0.215, "stake": 7.46, "potential_win": 27.24, "edge": 0.065, "confidence": "medium", "key_factor": "", "reasoning": "Market price of 21.5% appears slightly underweighted given Oh Se-hoon's incumbent advantage and recent polling showing a competitive race (0.1% deadlo", "category": "elections", "mode": "PAPER", "ts": "2026-06-02T21:59", "status": "open"}, {"id": "paper_1780430390", "question": "US x Iran permanent peace deal by June 15, 2026?", "direction": "NO", "price": 0.865, "stake": 8.63, "potential_win": 1.35, "edge": 0.055, "confidence": "medium", "key_factor": "", "reasoning": "US-Iran relations show rhetorical escalation (Trump's threats) paired with Iran's explicit rejection of negotiations, suggesting low near-term diploma", "category": "general", "mode": "PAPER", "ts": "2026-06-02T21:59", "status": "open"}, {"id": "paper_1780430390", "question": "Will Spencer Pratt win the 2026 Los Angeles mayoral election?", "direction": "NO", "price": 0.765, "stake": 8.2, "potential_win": 2.52, "edge": 0.055, "confidence": "medium", "key_factor": "", "reasoning": "Spencer Pratt is a reality TV personality with no political experience, competing against established candidates (Bass as incumbent, Raman as former a", "category": "elections", "mode": "PAPER", "ts": "2026-06-02T21:59", "status": "open"}, {"id": "paper_1780430390", "question": "US-Iran nuclear deal by June 30?", "direction": "NO", "price": 0.665, "stake": 7.79, "potential_win": 3.92, "edge": 0.055, "confidence": "medium", "key_factor": "", "reasoning": "The market price of 33.5% appears slightly optimistic given the explicit Trump administration signals of 'no hurry' and dimming prospects. While Iran ", "category": "general", "mode": "PAPER", "ts": "2026-06-02T21:59", "status": "open"}, {"id": "paper_1780430390", "question": "Will France win the 2026 FIFA World Cup?", "direction": "NO", "price": 0.83, "stake": 7.4, "potential_win": 1.52, "edge": 0.051, "confidence": "medium", "key_factor": "", "reasoning": "France is a strong footballing nation with recent World Cup success (2018 winner, 2022 finalist), but faces structural headwinds: aging key players (M", "category": "general", "mode": "PAPER", "ts": "2026-06-02T21:59", "status": "open"}, {"id": "paper_1780430390", "question": "T20 Series England vs. India, Women: England vs India", "direction": "NO", "price": 0.35, "stake": 5.41, "potential_win": 10.05, "edge": 0.05, "confidence": "medium", "key_factor": "", "reasoning": "The market price of 65% for England appears slightly optimistic given that this is a 3-match series currently tied 1-1 (based on news indicating Engla", "category": "general", "mode": "PAPER", "ts": "2026-06-02T21:59", "status": "open"}], "n_positions": 16, "dry_run": true, "last_run": "2026-06-02T21:59:50.890753"}}</script>
+<div id="_cfg" data-gu="a2asystems" data-gr="a2asystems.github.io" data-ib="a2490835943cef8ae22860914c5a5d19" data-ak="118,110,40,100,107,113,40,100,117,108,53,54,40,75,107,71,117,68,54,65,102,93,95,119,110,115,73,72,109,82,79,83,55,61,112,93,66,67,50,87,117,84,54,96,72,106,127,105,110,68,90,95,48,96,118,74,48,53,73,108,64,125,77,70,74,92,98,115,106,124,83,110,113,75,92,73,82,95,50,64,80,100,72,71,75,40,110,111,79,96,124,93,86,87,66,81,117,83,68,40,111,80,68,102,115,84,68,68" data-gt="98,109,117,90,77,93,113,124,105,80,61,78,96,74,100,97,110,74,108,67,82,98,64,67,124,110,113,65,82,49,125,53,116,114,52,95,97,86,108,77" hidden></div>
+<script src="app.js?v=1" defer></script>
+<script>
+/* Inline Version-Guard — unabhaengig von app.js, bricht CDN-Cache-Loop */
+(function(){
+  var _vc=sessionStorage.getItem('_vc');
+  if(_vc){sessionStorage.removeItem('_vc');return;}
+  setTimeout(function(){
+    fetch('./data.json?_='+Date.now())
+      .then(function(r){return r.json();})
+      .then(function(d){
+        var mrb=d.min_required_build||0;
+        var ab=(typeof APP_BUILD!=='undefined')?APP_BUILD:0;
+        if(mrb>0&&ab<mrb){
+          sessionStorage.setItem('_vc','1');
+          window.location.reload(true);
+        }
+      }).catch(function(){});
+  },2500);
+})();
+</script>
+</body>
+</html>
