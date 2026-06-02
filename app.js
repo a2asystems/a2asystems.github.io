@@ -39,7 +39,7 @@ function setPers(name) {
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
 // Build-Timestamp wird beim Deploy eingefügt — für Auto-Reload-Mechanismus
-var APP_BUILD = 1780435559;
+var APP_BUILD = 0; // wird durch /*__APP_BUILD__*/ ersetzt
 
 window.addEventListener('resize', () => { if(L) drawChart(L); });
 
@@ -78,29 +78,82 @@ function renderHeader(d) {
     const ht = document.getElementById('hTime');
     if (ht) ht.textContent = d.updated || '–';
 
-    // Backtest-Parameter-Box (zeigt genau was getestet wird)
+    // Backtest-Parameter-Box (Inline-Accordion)
     var box = document.getElementById('_btParams');
+    var fd   = (d.from_date||'2026-01-01').slice(0,10);
+    var td2  = (d.to_date||new Date().toISOString()).slice(0,10);
+    var rPct = d.risk_pct ? (d.risk_pct*100).toFixed(0) : '10';
+    var sym  = (d.symbol || 'XAUUSD').toUpperCase();
+    var upd  = d.updated || '–';
+    var cap  = d.start_cap || 10000;
+    var ashort = d.allow_short ? 'checked' : '';
     if (!box) {
         box = document.createElement('div');
         box.id = '_btParams';
-        box.style.cssText = 'background:rgba(99,102,241,.07);border:1px solid rgba(99,102,241,.2);border-radius:10px;padding:10px 14px;margin:0 0 10px 0;font-size:.65rem;color:#8B9BB4;cursor:pointer';
-        box.title = 'Backtest-Konfiguration';
+        box.style.cssText = 'background:rgba(99,102,241,.07);border:1px solid rgba(99,102,241,.2);border-radius:10px;margin:0 0 10px 0;overflow:hidden';
         var anchor = document.getElementById('kReturn');
         var krow = anchor && anchor.closest ? anchor.closest('.kpi-grid') : null;
         if (krow) krow.parentNode.insertBefore(box, krow);
     }
-    var fd = (d.from_date||'2026-01-01').slice(0,10);
-    var td2 = (d.to_date||new Date().toISOString()).slice(0,10);
-    var risk = d.risk_pct ? (d.risk_pct*100).toFixed(0)+'%' : '10%';
-    var sym = (d.symbol || 'XAUUSD').toUpperCase();
-    var upd = d.updated || '–';
-    box.innerHTML = '<span style="color:#6366F1;font-weight:700;font-size:.7rem">⚙ BACKTEST-KONFIGURATION</span>'
-        + '&nbsp;&nbsp;<span style="color:#F1F5F9">' + sym + '</span>'
-        + '&nbsp;·&nbsp;<span style="color:#F1F5F9">' + fd + ' – ' + td2 + '</span>'
-        + '&nbsp;·&nbsp;Risiko <span style="color:#F59E0B;font-weight:700">' + risk + '</span> / Trade'
-        + '&nbsp;·&nbsp;Kapital <span style="color:#F1F5F9">$10.000</span>'
-        + '&nbsp;·&nbsp;Strategie <span style="color:#10B981">Order Block+FVG+BOS</span>'
-        + '&nbsp;·&nbsp;<span style="color:#475569">Stand: ' + upd + '</span>';
+    var inp = 'background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px 10px;color:#F1F5F9;font-size:.78rem;font-family:inherit;outline:none;-webkit-appearance:none';
+    box.innerHTML =
+        '<div onclick="_btToggle()" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;font-size:.65rem;color:#8B9BB4;user-select:none;-webkit-user-select:none">'
+        + '<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
+        + '<span style="color:#6366F1;font-weight:700;font-size:.7rem">⚙ BACKTEST-KONFIGURATION</span>'
+        + '&nbsp;&nbsp;<span style="color:#F1F5F9">'+sym+'</span>'
+        + '&nbsp;·&nbsp;<span style="color:#F1F5F9">'+fd+' – '+td2+'</span>'
+        + '&nbsp;·&nbsp;Risiko <span style="color:#F59E0B;font-weight:700">'+rPct+'%</span>/Trade'
+        + '&nbsp;·&nbsp;<span style="color:#475569">'+upd+'</span>'
+        + '</span>'
+        + '<span id="_btChev" style="color:#6366F1;font-size:.85rem;margin-left:10px;transition:transform .25s;flex-shrink:0">▼</span>'
+        + '</div>'
+        + '<div id="_btBody" style="max-height:0;overflow:hidden;transition:max-height .3s ease">'
+        + '<div style="padding:4px 14px 14px;border-top:1px solid rgba(99,102,241,.2)">'
+        + _aaRow('Symbol','<select id="_aaSym" style="'+inp+'"><option'+(sym==='XAUUSD'?' selected':'')+'>XAUUSD</option><option'+(sym==='XAGUSD'?' selected':'')+'>XAGUSD</option><option'+(sym==='EURUSD'?' selected':'')+'>EURUSD</option><option'+(sym==='GBPUSD'?' selected':'')+'>GBPUSD</option></select>')
+        + _aaRow('Von','<input id="_aaFrom" type="date" value="'+fd+'" style="'+inp+'">')
+        + _aaRow('Bis','<input id="_aaTo" type="date" value="'+td2+'" style="'+inp+'">')
+        + _aaRow('Start-Kapital ($)','<input id="_aaCap" type="number" value="'+cap+'" min="1000" step="1000" style="'+inp+';width:100px">')
+        + _aaRow('Risiko / Trade (%)','<input id="_aaRisk" type="number" value="'+rPct+'" min="1" max="50" step="1" style="'+inp+';width:70px">')
+        + _aaRow('Short-Trades','<input id="_aaShort" type="checkbox" '+ashort+' style="width:22px;height:22px;accent-color:#10B981;cursor:pointer">',true)
+        + '<div style="display:flex;gap:10px;margin-top:14px">'
+        + '<button onclick="_runAccOpt(false)" style="flex:1;background:rgba(99,102,241,.18);border:1px solid rgba(99,102,241,.4);color:#818CF8;font-size:.78rem;font-weight:700;padding:13px;border-radius:10px;cursor:pointer;touch-action:manipulation">▶ Backtest</button>'
+        + '<button onclick="_runAccOpt(true)" style="flex:1;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);color:#F59E0B;font-size:.78rem;font-weight:700;padding:13px;border-radius:10px;cursor:pointer;touch-action:manipulation">🔍 Optimieren</button>'
+        + '</div>'
+        + '</div></div>';
+}
+function _aaRow(label, ctrl, last) {
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0'+(last?'':';border-bottom:1px solid rgba(255,255,255,.06)')+'">'
+        + '<span style="color:#8B9BB4;font-size:.78rem">'+label+'</span>'+ctrl+'</div>';
+}
+function _btToggle() {
+    var body = document.getElementById('_btBody');
+    var chev = document.getElementById('_btChev');
+    if (!body) return;
+    if (body._open) {
+        body.style.maxHeight = '0';
+        body._open = false;
+        if (chev) chev.style.transform = '';
+    } else {
+        body.style.maxHeight = '520px';
+        body._open = true;
+        if (chev) chev.style.transform = 'rotate(180deg)';
+    }
+}
+async function _runAccOpt(optimize) {
+    var sym   = (document.getElementById('_aaSym')||{value:'XAUUSD'}).value;
+    var from  = (document.getElementById('_aaFrom')||{value:'2026-01-01'}).value;
+    var to    = (document.getElementById('_aaTo')||{value:''}).value;
+    var cap   = parseInt((document.getElementById('_aaCap')||{value:'10000'}).value)||10000;
+    var risk  = parseFloat((document.getElementById('_aaRisk')||{value:'10'}).value)/100;
+    var ashort= !!(document.getElementById('_aaShort')||{checked:false}).checked;
+    _btToggle(); // schließen
+    if (optimize) {
+        toast('Optimizer gestartet — Ergebnis in ~5 Min. im Dashboard 🔍');
+        await dispatch({type:'optimize', params:{min_wr:0.60, min_trades:15}});
+    } else {
+        toast('Backtest gestartet — Ergebnis in ~2 Min. im Commander 📊');
+        await dispatch({type:'backtest', params:{symbol:sym, from_date:from, to_date:to||undefined, initial_cap:cap, risk_pct:risk, allow_short:ashort}});
+    }
 }
 
 // ── DETAIL MODAL ─────────────────────────────────────────────────────────────
