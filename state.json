@@ -462,6 +462,14 @@
       "result": {
         "skipped": true
       }
+    },
+    {
+      "type": "set_asset",
+      "symbol": "BTCUSD",
+      "active": true,
+      "name": "Asset aktiviert: BTCUSD",
+      "status": "pending",
+      "dispatched": 1780435803688
     }
   ]
 }
