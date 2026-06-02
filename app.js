@@ -1,3 +1,9 @@
+// UTF-8-sicheres Base64 decode (atob() allein zerstört Umlaute)
+function _b64dec(s) {
+    try { return decodeURIComponent(escape(atob(s.replace(/\n/g,'')))); }
+    catch(e) { return atob(s.replace(/\n/g,'')); } // Fallback für reines ASCII
+}
+
 // roundRect polyfill for iOS < 15.4
 if (!CanvasRenderingContext2D.prototype.roundRect) {
     CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r){
@@ -33,7 +39,7 @@ function setPers(name) {
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
 // Build-Timestamp wird beim Deploy eingefügt — für Auto-Reload-Mechanismus
-var APP_BUILD = 1780377304;
+var APP_BUILD = 1780377400;
 
 window.addEventListener('resize', () => { if(L) drawChart(L); });
 
@@ -562,7 +568,7 @@ async function syncChat() {
         if (!r.ok) return;
         const m = await r.json();
         _chatSha = m.sha;
-        let remote; try { remote = JSON.parse(atob(m.content.replace(/\n/g,''))); } catch(e) { return; }
+        let remote; try { remote = JSON.parse(_b64dec(m.content)); } catch(e) { return; }
         const knownTs = new Set(hist.map(function(h){return h.ts;}));
         const newMsgs = remote.filter(function(msg){return !msg.auto && !knownTs.has(msg.ts);});
         if (newMsgs.length > 0) {
@@ -611,7 +617,7 @@ async function pushChatMsg(entry) {
             if (rGet.ok) {
                 var mf = await rGet.json();
                 sha = mf.sha; _chatSha = sha;
-                try { messages = JSON.parse(atob(mf.content.replace(/\n/g,''))); } catch(e) { messages = []; }
+                try { messages = JSON.parse(_b64dec(mf.content)); } catch(e) { messages = []; }
             }
             messages.push(entry);
             messages = messages.slice(-300);
@@ -680,7 +686,7 @@ async function uploadLocalHistory(localMsgs) {
         var remote = [], sha = null;
         if (rGet.ok) {
             var mf = await rGet.json(); sha = mf.sha;
-            try { remote = JSON.parse(atob(mf.content.replace(/\n/g,''))); } catch(e) { remote = []; }
+            try { remote = JSON.parse(_b64dec(mf.content)); } catch(e) { remote = []; }
         }
         // Merge: keep all unique messages by timestamp
         var byTs = {};
@@ -1005,7 +1011,7 @@ async function ghGet(){
         {headers:{Authorization:'Bearer '+ghTok(),'User-Agent':'gold-bot'}});
     if(!r.ok) throw new Error('GitHub GET '+r.status);
     const m=await r.json();
-    return {data:JSON.parse(atob(m.content.replace(/\n/g,''))),sha:m.sha};
+    return {data:JSON.parse(_b64dec(m.content)),sha:m.sha};
 }
 async function ghPut(data,sha){
     const r=await fetch(`https://api.github.com/repos/${GHUSER}/${GHREPO}/contents/state.json`,{
