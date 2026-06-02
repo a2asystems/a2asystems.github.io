@@ -39,7 +39,7 @@ function setPers(name) {
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
 // Build-Timestamp wird beim Deploy eingefügt — für Auto-Reload-Mechanismus
-var APP_BUILD = 1780400256;
+var APP_BUILD = 1780400403;
 
 window.addEventListener('resize', () => { if(L) drawChart(L); });
 
@@ -79,6 +79,29 @@ function renderHeader(d) {
     if (ht) ht.textContent = d.updated || '–';
 }
 
+// ── DETAIL MODAL ─────────────────────────────────────────────────────────────
+function showDetail(title, rows) {
+    var m = document.getElementById('_detailModal');
+    if (!m) {
+        m = document.createElement('div');
+        m.id = '_detailModal';
+        m.style.cssText = 'position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px';
+        m.onclick = function(e){ if(e.target===m) m.style.display='none'; };
+        document.body.appendChild(m);
+    }
+    m.innerHTML = '<div style="background:#0E1117;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:20px;width:100%;max-width:360px;max-height:80vh;overflow-y:auto">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'
+        + '<span style="font-weight:700;font-size:.95rem;color:#F1F5F9">'+title+'</span>'
+        + '<button onclick="document.getElementById(\'_detailModal\').style.display=\'none\'" style="background:none;border:none;color:#8B9BB4;font-size:1.2rem;cursor:pointer;padding:0 4px">✕</button>'
+        + '</div>'
+        + rows.map(function(r){ return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)">'
+            + '<span style="color:#8B9BB4;font-size:.78rem">'+r[0]+'</span>'
+            + '<span style="color:'+( r[2]||'#F1F5F9' )+';font-size:.78rem;font-weight:600">'+r[1]+'</span>'
+            + '</div>'; }).join('')
+        + '</div>';
+    m.style.display = 'flex';
+}
+
 function renderKPIs(d) {
     const wr=d.wr||0, pf=d.pf||0, dd=d.max_dd||0, pnl=d.net_pnl||0, tr=d.trades||0;
     document.getElementById('kWR').textContent    = wr  ? wr.toFixed(1)+'%'                 : '–';
@@ -105,6 +128,41 @@ function renderKPIs(d) {
     if (elRisk) { elRisk.textContent = d.risk_pct ? (d.risk_pct*100).toFixed(0)+'% Risiko' : '–'; }
     // Monatstabelle rendern
     renderMonthly(d.monthly||[]);
+
+    // Karten anklickbar machen (Detail-Popup)
+    var _addTap = function(elId, title, rows) {
+        var el = document.getElementById(elId);
+        var kpiEl = el && (el.closest ? el.closest('.kpi') : null);
+        if (kpiEl && !kpiEl._tapDone) {
+            kpiEl._tapDone = true;
+            kpiEl.style.cursor = 'pointer';
+            kpiEl.addEventListener('click', function(){ showDetail(title, rows); });
+        }
+    };
+    _addTap('kWR',  'Win Rate Details', [
+        ['Win Rate', wr.toFixed(1)+'%', wr>=60?'#10B981':wr>=45?'#F59E0B':'#EF4444'],
+        ['Trades gesamt', tr],
+        ['Zeitraum', fd.slice(0,10)+' – '+td.slice(0,10)],
+        ['Ziel', '≥ 60%', '#10B981']
+    ]);
+    _addTap('kPF',  'Profit Factor Details', [
+        ['Profit Factor', pf.toFixed(2), pf>=2?'#10B981':pf>=1.5?'#F59E0B':'#EF4444'],
+        ['Bedeutung', pf>=2 ? 'Exzellent' : pf>=1.5 ? 'Gut' : pf>=1 ? 'Akzeptabel' : 'Verlustzone'],
+        ['Net PnL', (pnl>0?'+':'')+pnl.toFixed(0)+'$', pnl>=0?'#10B981':'#EF4444'],
+        ['Ziel', '≥ 2.0', '#10B981']
+    ]);
+    _addTap('kDD',  'Max Drawdown Details', [
+        ['Max Drawdown', dd.toFixed(1)+'%', dd>-5?'#10B981':dd>-8?'#F59E0B':'#EF4444'],
+        ['Risiko je Trade', d.risk_pct ? (d.risk_pct*100).toFixed(0)+'%' : '–'],
+        ['Start-Kapital', '$'+sc.toLocaleString('de-DE',{maximumFractionDigits:0})],
+        ['Status', dd>-5?'✅ Sicher':dd>-8?'⚠️ Warnung':'🔴 Kritisch']
+    ]);
+    _addTap('kPnL', 'Net PnL Details', [
+        ['Net PnL', (pnl>0?'+':'')+pnl.toFixed(0)+'$', pnl>=0?'#10B981':'#EF4444'],
+        ['Return', (ret>0?'+':'')+ret.toFixed(1)+'%', ret>=0?'#10B981':'#EF4444'],
+        ['Start-Kapital', '$'+sc.toLocaleString('de-DE',{maximumFractionDigits:0})],
+        ['End-Kapital', '$'+ec.toLocaleString('de-DE',{maximumFractionDigits:0}), ec>=sc?'#10B981':'#EF4444']
+    ]);
 }
 
 function renderMonthly(monthly) {
