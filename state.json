@@ -470,6 +470,14 @@
       "name": "Asset aktiviert: BTCUSD",
       "status": "pending",
       "dispatched": 1780435803688
+    },
+    {
+      "type": "set_asset",
+      "symbol": "BTCUSD",
+      "active": false,
+      "name": "Asset deaktiviert: BTCUSD",
+      "status": "pending",
+      "dispatched": 1780435806143
     }
   ]
 }
