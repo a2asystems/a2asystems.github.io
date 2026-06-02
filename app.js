@@ -39,7 +39,7 @@ function setPers(name) {
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
 // Build-Timestamp wird beim Deploy eingefügt — für Auto-Reload-Mechanismus
-var APP_BUILD = 1780436211;
+var APP_BUILD = 1780436296;
 
 window.addEventListener('resize', () => { if(L) drawChart(L); });
 
@@ -873,7 +873,7 @@ function _hasMojibake(msgs) {
 function initChat() {
     document.querySelectorAll('.pb-btn').forEach(b => b.classList.toggle('active', b.textContent.includes(ME)));
     // Version-based force-clear: increment _CHAT_VER to wipe all browsers' localStorage chat
-    var _CHAT_VER = '4';
+    var _CHAT_VER = '5';
     try {
         if (localStorage.getItem('gb_chat_ver') !== _CHAT_VER) {
             localStorage.removeItem('gb_chat');
@@ -1296,7 +1296,9 @@ async function dispatch(cmd){
                 continue;
             }
             if(!r.ok) throw new Error('GitHub PUT '+r.status);
-            addMsg('assistant','⚡ **Befehl gesendet!** "'+esc(cmd.name||cmd.type)+'" wurde übermittelt.\n\nErgebnis erscheint in ~2 Min. im Dashboard.');
+            if (cmd.type !== 'set_asset') {
+                addMsg('assistant','⚡ **Befehl gesendet!** "'+esc(cmd.name||cmd.type)+'" wurde übermittelt.\n\nErgebnis erscheint in ~2 Min. im Dashboard.');
+            }
             toast('Befehl gesendet ✓');
             return;
         }catch(e){
