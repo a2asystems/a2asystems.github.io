@@ -2,6 +2,21 @@
   "chat": [],
   "strategies": [
     {
+      "id": "1780378612226",
+      "name": "backtester_agent",
+      "source": "commander",
+      "author": "Commander",
+      "date": "02.06.2026 07:38",
+      "wr": 55.4,
+      "pf": 1.52,
+      "trades": 65,
+      "mdd": -5.3,
+      "pnl": 1916,
+      "rr": null,
+      "desc": "Backtest: {}",
+      "active": false
+    },
+    {
       "id": "1780343218885",
       "name": "backtester_agent",
       "source": "commander",
@@ -346,8 +361,16 @@
         "from_date": "2026-01-01"
       },
       "id": "1780378612226",
-      "status": "running",
-      "dispatched": 1780378612554
+      "status": "done",
+      "dispatched": 1780378612554,
+      "result": {
+        "wr": 55.4,
+        "pf": 1.52,
+        "trades": 65,
+        "mdd": -5.3,
+        "pnl": 1916.0,
+        "rr": null
+      }
     }
   ]
 }
