@@ -39,7 +39,7 @@ function setPers(name) {
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
 // Build-Timestamp wird beim Deploy eingefügt — für Auto-Reload-Mechanismus
-var APP_BUILD = 1780400109;
+var APP_BUILD = 1780400256;
 
 window.addEventListener('resize', () => { if(L) drawChart(L); });
 
@@ -128,7 +128,9 @@ function drawChart(d) {
     const canvas = document.getElementById('pnlChart');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    const W = canvas.parentElement.clientWidth;
+    // clientWidth ist 0 wenn Tab noch nicht sichtbar → mit setTimeout nochmal versuchen
+    let W = canvas.parentElement.clientWidth || canvas.closest('.card') && canvas.closest('.card').clientWidth || 0;
+    if (W < 10) { setTimeout(function(){ drawChart(d); }, 150); return; }
     const H = 110;
     const dpr = window.devicePixelRatio || 1;
     canvas.width = W * dpr; canvas.height = H * dpr;
@@ -1199,9 +1201,34 @@ function _updateNotifBtn() {
     });
 }
 
-// ── INJECT SYNC BAR (works even when index.html is CDN-cached) ───────────────
+// ── INJECT SYNC BAR + GLOBAL NOTIF BUTTON ────────────────────────────────────
 (function injectSyncBar() {
     var NOTIF_BTN = '<button type="button" class="notifBtn" onclick="requestNotifPerm()" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:#F59E0B;font-size:.75rem;font-weight:700;padding:4px 8px;border-radius:6px;cursor:pointer;touch-action:manipulation" title="Benachrichtigungen aktivieren">🔔?</button>';
+
+    // 🔔 Button in den globalen Header einfügen (sichtbar auf allen Tabs)
+    var hdr = document.querySelector('header') || document.querySelector('.header') || document.querySelector('[class*="header"]');
+    if (!hdr) {
+        // Fallback: direkt in den Body ganz oben, als fixed Badge
+        var badge = document.getElementById('_notifBadge');
+        if (!badge) {
+            badge = document.createElement('button');
+            badge.id = '_notifBadge';
+            badge.className = 'notifBtn';
+            badge.onclick = requestNotifPerm;
+            badge.style.cssText = 'position:fixed;top:10px;right:10px;z-index:9999;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);color:#F59E0B;font-size:1rem;font-weight:700;padding:6px 10px;border-radius:50px;cursor:pointer;touch-action:manipulation;backdrop-filter:blur(8px)';
+            badge.title = 'Benachrichtigungen aktivieren';
+            badge.textContent = '🔔?';
+            document.body.appendChild(badge);
+        }
+    } else if (!hdr.querySelector('.notifBtn')) {
+        var nb = document.createElement('button');
+        nb.className = 'notifBtn';
+        nb.onclick = requestNotifPerm;
+        nb.style.cssText = 'background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:#F59E0B;font-size:.8rem;padding:4px 8px;border-radius:6px;cursor:pointer;margin-left:auto';
+        nb.textContent = '🔔?';
+        hdr.appendChild(nb);
+    }
+
     var bar = document.getElementById('syncBar');
     var chatBox = document.getElementById('chatBox');
     if (!bar && chatBox) {
