@@ -39,7 +39,7 @@ function setPers(name) {
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
 // Build-Timestamp wird beim Deploy eingefügt — für Auto-Reload-Mechanismus
-var APP_BUILD = 1780429276;
+var APP_BUILD = 1780429379;
 
 window.addEventListener('resize', () => { if(L) drawChart(L); });
 
@@ -104,7 +104,39 @@ function renderHeader(d) {
 }
 
 // ── DETAIL MODAL ─────────────────────────────────────────────────────────────
-function showDetail(title, rows) {
+var _variants = [];
+
+function showVariantDetail(idx) {
+    var s = _variants[idx]; if (!s) return;
+    var cfg = s.config || {};
+    var isActive = s.active || (s.name||'').includes('Aktuell aktiv');
+    var rows = [
+        ['Win Rate',      (s.wr||0).toFixed(1)+'%',  s.wr>=70?'#10B981':s.wr>=60?'#F59E0B':'#EF4444'],
+        ['Profit Factor', (s.pf||0).toFixed(2)],
+        ['Trades',        s.trades||0],
+        ['Max Drawdown',  (s.mdd||0).toFixed(1)+'%', (s.mdd||0)>-5?'#10B981':(s.mdd||0)>-10?'#F59E0B':'#EF4444'],
+        ['Net PnL',       ((s.pnl||0)>=0?'+':'')+(s.pnl||0).toFixed(0)+'$', (s.pnl||0)>=0?'#10B981':'#EF4444'],
+        ['Datum',         s.date||'–'],
+        ['─── Parameter ───', ''],
+        ['OB Impuls (pips)',  cfg.ob_impulse_pips||'–'],
+        ['OB Max-Alter',      cfg.ob_max_age||'–'],
+        ['BOS erforderlich',  cfg.bos_required?'Ja':'Nein'],
+        ['FVG Min (pips)',    cfg.fvg_min_pips||'–'],
+        ['FVG Max-Alter',     cfg.fvg_max_age||'–'],
+        ['RR-Verhältnis',     cfg.rr||'–'],
+        ['RSI Limit',         cfg.rsi_limit||'–'],
+        ['Cooldown (Bars)',   cfg.cooldown||'–'],
+        ['EMA Periode',       cfg.ema_len||'–'],
+        ['H4-Filter',         cfg.h4_stage_filter?'Aktiv':'Aus'],
+        ['Risiko (optimiert)',cfg.risk_pct?(cfg.risk_pct*100).toFixed(1)+'%':'–'],
+    ];
+    var footer = isActive
+        ? '<div style="margin-top:14px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);color:#10B981;font-size:.8rem;font-weight:700;padding:11px;border-radius:10px;text-align:center">✓ Bereits aktiv</div>'
+        : '<button onclick="activateVariant(\''+esc(s.id||s.name||'')+'\',\''+esc(s.name||'')+'\');document.getElementById(\'_detailModal\').style.display=\'none\'" style="width:100%;margin-top:14px;background:rgba(16,185,129,.18);border:1px solid rgba(16,185,129,.4);color:#10B981;font-size:.82rem;font-weight:700;padding:12px;border-radius:10px;cursor:pointer;touch-action:manipulation">✓ Diese Variante für Live-Trading aktivieren</button>';
+    showDetail(s.name||'Variante', rows, footer);
+}
+
+function showDetail(title, rows, footer) {
     var m = document.getElementById('_detailModal');
     if (!m) {
         m = document.createElement('div');
@@ -122,6 +154,7 @@ function showDetail(title, rows) {
             + '<span style="color:#8B9BB4;font-size:.78rem">'+r[0]+'</span>'
             + '<span style="color:'+( r[2]||'#F1F5F9' )+';font-size:.78rem;font-weight:600">'+r[1]+'</span>'
             + '</div>'; }).join('')
+        + (footer||'')
         + '</div>';
     m.style.display = 'flex';
 }
@@ -323,11 +356,14 @@ function renderStatus(d) {
 
 function renderRisk(d) {
     const b = document.getElementById('riskBanner');
-    const alerts = d.alerts||[];
-    if (d.risk_status==='blocked'||alerts.length) {
+    // Only show banner when bot is actually blocked — not for backtest-derived alerts
+    if (d.risk_status === 'blocked') {
+        const alerts = d.alerts || [];
         b.classList.add('on');
-        document.getElementById('riskTxt').textContent = alerts.length ? alerts.join(' | ') : 'Risk-Limit erreicht';
-    } else { b.classList.remove('on'); }
+        document.getElementById('riskTxt').textContent = alerts.length ? alerts.join(' | ') : 'Risk-Limit erreicht — Trading pausiert';
+    } else {
+        b.classList.remove('on');
+    }
 }
 
 function renderStrategies(d) {
@@ -583,15 +619,52 @@ function switchTab(tab) {
 }
 
 function startOptimizer() {
-    switchTab('chat');
-    setTimeout(function() {
-        var inp = document.getElementById('chatInput');
-        if (inp) {
-            inp.value = 'Starte den Optimizer und zeige mir die besten Parameter';
-            inp.dispatchEvent(new Event('input'));
-            inp.focus();
-        }
-    }, 300);
+    var m = document.getElementById('_optModal');
+    if (!m) {
+        m = document.createElement('div');
+        m.id = '_optModal';
+        m.style.cssText = 'position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box';
+        m.onclick = function(e){ if(e.target===m) m.style.display='none'; };
+        document.body.appendChild(m);
+    }
+    var inp = 'background:#131920;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:8px 10px;color:#F1F5F9;font-size:.82rem;width:130px;text-align:right;-webkit-appearance:none';
+    var today = new Date().toISOString().slice(0,10);
+    m.innerHTML = '<div style="background:#0E1117;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:22px;width:100%;max-width:390px;max-height:88vh;overflow-y:auto">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">'
+        + '<span style="font-weight:700;font-size:.92rem;color:#F1F5F9">⚙ Backtest / Optimizer</span>'
+        + '<button onclick="document.getElementById(\'_optModal\').style.display=\'none\'" style="background:none;border:none;color:#8B9BB4;font-size:1.2rem;cursor:pointer;padding:2px 6px">✕</button>'
+        + '</div>'
+        + _optField('Symbol','<select id="_oSym" style="'+inp+'"><option>XAUUSD</option><option>XAGUSD</option><option>EURUSD</option><option>GBPUSD</option></select>')
+        + _optField('Von (Datum)','<input id="_oFrom" type="date" value="2026-01-01" style="'+inp+'">')
+        + _optField('Bis (Datum)','<input id="_oTo" type="date" value="'+today+'" style="'+inp+'">')
+        + _optField('Start-Kapital ($)','<input id="_oCap" type="number" value="10000" min="1000" step="1000" style="'+inp+'">')
+        + _optField('Risiko / Trade (%)','<input id="_oRisk" type="number" value="10" min="1" max="50" step="1" style="'+inp+'">')
+        + _optField('Short-Trades erlaubt','<input id="_oShort" type="checkbox" checked style="width:22px;height:22px;accent-color:#10B981;cursor:pointer;margin-right:4px">')
+        + '<div style="display:flex;gap:10px;margin-top:20px">'
+        + '<button onclick="_runOpt(false)" style="flex:1;background:rgba(99,102,241,.18);border:1px solid rgba(99,102,241,.4);color:#818CF8;font-size:.78rem;font-weight:700;padding:13px;border-radius:10px;cursor:pointer;touch-action:manipulation">▶ Backtest</button>'
+        + '<button onclick="_runOpt(true)" style="flex:1;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);color:#F59E0B;font-size:.78rem;font-weight:700;padding:13px;border-radius:10px;cursor:pointer;touch-action:manipulation">🔍 Optimieren</button>'
+        + '</div></div>';
+    m.style.display = 'flex';
+}
+function _optField(label, html) {
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)">'
+        + '<span style="color:#8B9BB4;font-size:.8rem">'+label+'</span>'+html+'</div>';
+}
+async function _runOpt(optimize) {
+    var sym   = (document.getElementById('_oSym')||{value:'XAUUSD'}).value;
+    var from  = (document.getElementById('_oFrom')||{value:'2026-01-01'}).value;
+    var to    = (document.getElementById('_oTo')||{value:''}).value;
+    var cap   = parseInt((document.getElementById('_oCap')||{value:'10000'}).value)||10000;
+    var risk  = parseFloat((document.getElementById('_oRisk')||{value:'10'}).value)/100;
+    var ashort= !!(document.getElementById('_oShort')||{checked:true}).checked;
+    document.getElementById('_optModal').style.display = 'none';
+    if (optimize) {
+        toast('Optimizer gestartet — Ergebnis in ~5 Min. im Dashboard 🔍');
+        await dispatch({type:'optimize', params:{min_wr:0.60, min_trades:15}});
+    } else {
+        toast('Backtest gestartet — Ergebnis in ~2 Min. im Commander 📊');
+        await dispatch({type:'backtest', params:{symbol:sym, from_date:from, to_date:to||undefined, initial_cap:cap, risk_pct:risk, allow_short:ashort}});
+    }
 }
 
 // ── ASSET PICKER ───────────────────────────────────────────────────────────
