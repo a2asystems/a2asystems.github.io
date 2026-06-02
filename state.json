@@ -368,9 +368,17 @@
         "pf": 1.52,
         "trades": 65,
         "mdd": -5.3,
-        "pnl": 1916.0,
+        "pnl": 1916,
         "rr": null
       }
+    },
+    {
+      "type": "set_asset",
+      "symbol": "BTCUSD",
+      "active": true,
+      "name": "Asset aktiviert: BTCUSD",
+      "status": "pending",
+      "dispatched": 1780398169941
     }
   ]
 }
