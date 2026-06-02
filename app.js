@@ -39,7 +39,7 @@ function setPers(name) {
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
 // Build-Timestamp wird beim Deploy eingefügt — für Auto-Reload-Mechanismus
-var APP_BUILD = 1780426607;
+var APP_BUILD = 1780426678;
 
 window.addEventListener('resize', () => { if(L) drawChart(L); });
 
@@ -77,6 +77,30 @@ function renderHeader(d) {
     if (hp) hp.textContent = (p && p !== '–') ? '$' + Number(p).toLocaleString('de-AT',{minimumFractionDigits:2,maximumFractionDigits:2}) : '–';
     const ht = document.getElementById('hTime');
     if (ht) ht.textContent = d.updated || '–';
+
+    // Backtest-Parameter-Box (zeigt genau was getestet wird)
+    var box = document.getElementById('_btParams');
+    if (!box) {
+        box = document.createElement('div');
+        box.id = '_btParams';
+        box.style.cssText = 'background:rgba(99,102,241,.07);border:1px solid rgba(99,102,241,.2);border-radius:10px;padding:10px 14px;margin:0 0 10px 0;font-size:.65rem;color:#8B9BB4;cursor:pointer';
+        box.title = 'Backtest-Konfiguration';
+        var anchor = document.getElementById('kReturn');
+        var krow = anchor && anchor.closest ? anchor.closest('.kpi-grid') : null;
+        if (krow) krow.parentNode.insertBefore(box, krow);
+    }
+    var fd = (d.from_date||'2026-01-01').slice(0,10);
+    var td2 = (d.to_date||new Date().toISOString()).slice(0,10);
+    var risk = d.risk_pct ? (d.risk_pct*100).toFixed(0)+'%' : '10%';
+    var sym = (d.symbol || 'XAUUSD').toUpperCase();
+    var upd = d.updated || '–';
+    box.innerHTML = '<span style="color:#6366F1;font-weight:700;font-size:.7rem">⚙ BACKTEST-KONFIGURATION</span>'
+        + '&nbsp;&nbsp;<span style="color:#F1F5F9">' + sym + '</span>'
+        + '&nbsp;·&nbsp;<span style="color:#F1F5F9">' + fd + ' – ' + td2 + '</span>'
+        + '&nbsp;·&nbsp;Risiko <span style="color:#F59E0B;font-weight:700">' + risk + '</span> / Trade'
+        + '&nbsp;·&nbsp;Kapital <span style="color:#F1F5F9">$10.000</span>'
+        + '&nbsp;·&nbsp;Strategie <span style="color:#10B981">Order Block+FVG+BOS</span>'
+        + '&nbsp;·&nbsp;<span style="color:#475569">Stand: ' + upd + '</span>';
 }
 
 // ── DETAIL MODAL ─────────────────────────────────────────────────────────────
