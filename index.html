@@ -428,10 +428,10 @@ header{
       <div class="cb" style="padding:10px 14px;display:flex;flex-direction:column;gap:12px">
 
         <!-- Backtest A -->
-        <div style="background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.2);border-radius:10px;padding:10px 12px">
+        <div style="background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.2);border-radius:10px;padding:10px 12px;cursor:pointer" onclick="var d=this.querySelector('.bt-detail');d.style.display=d.style.display==='none'?'block':'none';this.querySelector('.bt-arr').textContent=d.style.display==='none'?'▼':'▲'">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
             <span style="font-size:.72rem;font-weight:800;color:#10B981">A — Long-only · M15+H1+H4</span>
-            <span style="font-size:.65rem;color:var(--text3)">Jan–Mär 2026</span>
+            <span style="display:flex;gap:8px;align-items:center"><span style="font-size:.65rem;color:var(--text3)">Jan–Mär 2026</span><span class="bt-arr" style="font-size:.65rem;color:#10B981">▼</span></span>
           </div>
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px">
             <div style="text-align:center"><div style="font-size:.6rem;color:var(--text3)">Win Rate</div><div style="font-size:.95rem;font-weight:900;color:#10B981">80%</div></div>
@@ -440,17 +440,39 @@ header{
             <div style="text-align:center"><div style="font-size:.6rem;color:var(--text3)">Trades</div><div style="font-size:.95rem;font-weight:900;color:var(--text)">10</div></div>
           </div>
           <div style="display:flex;justify-content:space-between;font-size:.65rem;color:var(--text2)">
-            <span>0.000 → <strong style="color:#10B981">0.392</strong></span>
+            <span>$10.000 → <strong style="color:#10B981">$20.392</strong></span>
             <span>Max DD: <strong style="color:#EF4444">-10.6%</strong></span>
-            <span>8W / 2L</span>
+            <span>8W / 2L · Avg Win +$1.847</span>
+          </div>
+          <div class="bt-detail" style="display:none;margin-top:10px;border-top:1px solid rgba(16,185,129,.2);padding-top:8px" onclick="event.stopPropagation()">
+            <table style="width:100%;border-collapse:collapse;font-size:.65rem">
+              <thead><tr style="color:var(--text3)">
+                <th style="text-align:left;padding:3px 4px">Datum</th>
+                <th style="text-align:center;padding:3px 4px">Ergebnis</th>
+                <th style="text-align:right;padding:3px 4px">Entry</th>
+                <th style="text-align:right;padding:3px 4px">PnL</th>
+              </tr></thead>
+              <tbody>
+                <tr><td style="padding:3px 4px">09.01</td><td style="text-align:center;color:#10B981">✓ TP</td><td style="text-align:right">4448</td><td style="text-align:right;color:#10B981">+$1.391</td></tr>
+                <tr><td style="padding:3px 4px">13.01</td><td style="text-align:center;color:#10B981">✓ TP</td><td style="text-align:right">4593</td><td style="text-align:right;color:#10B981">+$1.389</td></tr>
+                <tr><td style="padding:3px 4px">22.01</td><td style="text-align:center;color:#10B981">✓ TP</td><td style="text-align:right">4822</td><td style="text-align:right;color:#10B981">+$1.591</td></tr>
+                <tr><td style="padding:3px 4px">27.01</td><td style="text-align:center;color:#10B981">✓ TP</td><td style="text-align:right">5069</td><td style="text-align:right;color:#10B981">+$1.918</td></tr>
+                <tr><td style="padding:3px 4px">06.02</td><td style="text-align:center;color:#10B981">✓ TP</td><td style="text-align:right">4894</td><td style="text-align:right;color:#10B981">+$2.236</td></tr>
+                <tr><td style="padding:3px 4px">16.02</td><td style="text-align:center;color:#EF4444">✗ SL</td><td style="text-align:right">5028</td><td style="text-align:right;color:#EF4444">-$1.965</td></tr>
+                <tr><td style="padding:3px 4px">20.02</td><td style="text-align:center;color:#10B981">✓ TP</td><td style="text-align:right">5012</td><td style="text-align:right;color:#10B981">+$1.802</td></tr>
+                <tr><td style="padding:3px 4px">23.02</td><td style="text-align:center;color:#10B981">✓ TP</td><td style="text-align:right">5157</td><td style="text-align:right;color:#10B981">+$2.267</td></tr>
+                <tr><td style="padding:3px 4px">27.02</td><td style="text-align:center;color:#10B981">✓ TP</td><td style="text-align:right">5187</td><td style="text-align:right;color:#10B981">+$2.179</td></tr>
+                <tr><td style="padding:3px 4px">09.03</td><td style="text-align:center;color:#EF4444">✗ SL</td><td style="text-align:right">5130</td><td style="text-align:right;color:#EF4444">-$2.415</td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
         <!-- Backtest B -->
-        <div style="background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:10px 12px">
+        <div style="background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:10px 12px;cursor:pointer" onclick="var d=this.querySelector('.bt-detail');d.style.display=d.style.display==='none'?'block':'none';this.querySelector('.bt-arr').textContent=d.style.display==='none'?'▼':'▲'">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
             <span style="font-size:.72rem;font-weight:800;color:var(--gold)">B — Long+Short · Strikte Config ★</span>
-            <span style="font-size:.65rem;color:var(--text3)">Jan–Mai 2026</span>
+            <span style="display:flex;gap:8px;align-items:center"><span style="font-size:.65rem;color:var(--text3)">Jan–Mai 2026</span><span class="bt-arr" style="font-size:.65rem;color:var(--gold)">▼</span></span>
           </div>
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px">
             <div style="text-align:center"><div style="font-size:.6rem;color:var(--text3)">Win Rate</div><div style="font-size:.95rem;font-weight:900;color:#10B981">75%</div></div>
@@ -459,12 +481,27 @@ header{
             <div style="text-align:center"><div style="font-size:.6rem;color:var(--text3)">Trades</div><div style="font-size:.95rem;font-weight:900;color:var(--text)">20</div></div>
           </div>
           <div style="display:flex;justify-content:space-between;font-size:.65rem;color:var(--text2)">
-            <span>0.000 → <strong style="color:#10B981">0.747</strong></span>
+            <span>$10.000 → <strong style="color:#10B981">$30.747</strong></span>
             <span>Max DD: <strong style="color:#EF4444">-21.4%</strong></span>
             <span>15W / 5L</span>
           </div>
-          <div style="margin-top:6px;font-size:.6rem;color:var(--text3);border-top:1px solid rgba(255,255,255,.06);padding-top:6px">
-            Jan 100% · Feb 80% · Mär 0% · Apr 60% · Mai 80% &nbsp;|&nbsp; BOS+H4-Filter
+          <div class="bt-detail" style="display:none;margin-top:10px;border-top:1px solid rgba(245,158,11,.2);padding-top:8px" onclick="event.stopPropagation()">
+            <table style="width:100%;border-collapse:collapse;font-size:.65rem">
+              <thead><tr style="color:var(--text3)">
+                <th style="text-align:left;padding:3px 4px">Monat</th>
+                <th style="text-align:center;padding:3px 4px">Trades</th>
+                <th style="text-align:center;padding:3px 4px">Long/Short</th>
+                <th style="text-align:right;padding:3px 4px">WR</th>
+              </tr></thead>
+              <tbody>
+                <tr><td style="padding:3px 4px">Januar</td><td style="text-align:center">4</td><td style="text-align:center">4L / 0S</td><td style="text-align:right;color:#10B981;font-weight:700">100%</td></tr>
+                <tr><td style="padding:3px 4px">Februar</td><td style="text-align:center">5</td><td style="text-align:center">5L / 0S</td><td style="text-align:right;color:#10B981;font-weight:700">80%</td></tr>
+                <tr><td style="padding:3px 4px">März</td><td style="text-align:center">1</td><td style="text-align:center">1L / 0S</td><td style="text-align:right;color:#EF4444;font-weight:700">0%</td></tr>
+                <tr><td style="padding:3px 4px">April</td><td style="text-align:center">5</td><td style="text-align:center">0L / 5S</td><td style="text-align:right;color:#F59E0B;font-weight:700">60%</td></tr>
+                <tr><td style="padding:3px 4px">Mai</td><td style="text-align:center">5</td><td style="text-align:center">0L / 5S</td><td style="text-align:right;color:#10B981;font-weight:700">80%</td></tr>
+              </tbody>
+            </table>
+            <div style="margin-top:6px;font-size:.6rem;color:var(--text3)">BOS+H4-Filter · Long wenn H4 bullish · Short wenn H4 bearish</div>
           </div>
         </div>
 
