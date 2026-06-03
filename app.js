@@ -39,7 +39,7 @@ function setPers(name) {
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
 // Build-Timestamp wird beim Deploy eingefügt — für Auto-Reload-Mechanismus
-var APP_BUILD = 1780461078;
+var APP_BUILD = 0; // wird durch /*__APP_BUILD__*/ ersetzt
 
 window.addEventListener('resize', () => { if(L) drawChart(L); });
 
@@ -876,7 +876,7 @@ function _hasMojibake(msgs) {
 function initChat() {
     document.querySelectorAll('.pb-btn').forEach(b => b.classList.toggle('active', b.textContent.includes(ME)));
     // Version-based force-clear: increment _CHAT_VER to wipe all browsers' localStorage chat
-    var _CHAT_VER = '5';
+    var _CHAT_VER = '6';
     try {
         if (localStorage.getItem('gb_chat_ver') !== _CHAT_VER) {
             localStorage.removeItem('gb_chat');
@@ -894,10 +894,11 @@ function initChat() {
         saved = [];
     }
     hist = saved.slice(); // seed history with saved
-    // With column-reverse: first in DOM = visually at bottom.
-    // welcome() first → stays at bottom. Saved messages stack above it. New synced messages appear at top.
-    welcome();
+    // With column-reverse: last in DOM = visually at top.
+    // Render saved messages first (oldest → bottom), then welcome last (→ top).
+    // Skip welcome when there are saved messages so it doesn't confuse the timeline.
     saved.forEach(function(m) { renderMsg(m.role, m.content, m.ts, m.author); });
+    if (saved.length === 0) { welcome(); }
     // Upload local history to GitHub first, then pull everyone else's messages
     setTimeout(function(){
         const st = document.getElementById('syncStatus');
@@ -1170,7 +1171,7 @@ function initPolyChat() {
     if (!box || box._ready) return;
     box._ready = true;
     // Version-based force-clear
-    var _POLY_VER = '1';
+    var _POLY_VER = '2';
     try {
         if (localStorage.getItem('gb_poly_ver') !== _POLY_VER) {
             localStorage.removeItem('gb_poly_chat');
@@ -1182,9 +1183,9 @@ function initPolyChat() {
         catch(e) { return []; }
     })();
     polyHist = saved.slice();
-    // column-reverse: polyWelcome() first → stays at visual bottom; saved messages appear above it
-    polyWelcome();
+    // column-reverse: render saved first (→ bottom), welcome last (→ top). Skip welcome if history exists.
     saved.forEach(function(m) { polyRenderMsg(m.role, m.content, m.ts, m.author); });
+    if (saved.length === 0) { polyWelcome(); }
 }
 
 async function sendPolyMsg() {
