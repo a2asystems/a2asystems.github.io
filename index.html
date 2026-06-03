@@ -178,7 +178,7 @@ header{
 
 /* CHAT */
 #panelChat{display:flex;flex-direction:column}
-.chat-msgs{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px;display:flex;flex-direction:column;gap:8px}
+.chat-msgs{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px;display:flex;flex-direction:column-reverse;gap:8px}
 .msg{display:flex;flex-direction:column;gap:2px;max-width:87%}
 .msg.user{align-self:flex-end;align-items:flex-end}
 .msg.assistant{align-self:flex-start;align-items:flex-start}
@@ -194,7 +194,7 @@ header{
 .persona-bar{display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0;background:#07090E}
 .pb-btn{flex:1;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:.72rem;font-weight:700;padding:7px 4px;cursor:pointer;transition:all .2s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .pb-btn.active{background:rgba(245,158,11,.18);border-color:var(--gold);color:var(--gold)}
-.chat-foot{flex-shrink:0;padding:10px 14px;padding-bottom:max(10px,env(safe-area-inset-bottom));border-top:1px solid var(--border);background:#07090E;display:flex;gap:8px;align-items:flex-end}
+.chat-foot{flex-shrink:0;padding:10px 14px;border-bottom:1px solid var(--border);background:#07090E;display:flex;gap:8px;align-items:flex-end}
 #chatInput{flex:1;background:rgba(255,255,255,.055);border:1px solid var(--border);border-radius:11px;padding:9px 13px;color:var(--text);font-size:.82rem;font-family:inherit;resize:none;outline:none;min-height:40px;max-height:110px;transition:border-color .2s;-webkit-appearance:none}
 #chatInput:focus{border-color:rgba(245,158,11,.38)}
 #chatInput::placeholder{color:var(--text3)}
@@ -490,11 +490,11 @@ header{
     <!-- COMMANDER CHAT (embedded in Poly panel) -->
     <div class="card" style="display:flex;flex-direction:column;min-height:320px;overflow:hidden">
       <div class="ch"><span class="ct">💬 Commander</span></div>
-      <div class="chat-msgs" id="polyChatBox" style="flex:1;min-height:200px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px;display:flex;flex-direction:column;gap:8px"></div>
-      <div class="chat-foot" style="background:var(--bg3)">
+      <div class="chat-foot" style="background:var(--bg3);border-bottom:1px solid var(--border)">
         <textarea id="polyChatInput" class="chatInput" placeholder="Frag den Commander…" rows="1" onkeydown="onPolyKey(event)" oninput="autoGrow(this)" style="flex:1;background:rgba(255,255,255,.055);border:1px solid var(--border);border-radius:11px;padding:9px 13px;color:var(--text);font-size:.82rem;font-family:inherit;resize:none;outline:none;min-height:40px;max-height:110px;transition:border-color .2s;-webkit-appearance:none"></textarea>
         <button type="button" id="polySendBtn" onclick="sendPolyMsg()" style="width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,#F59E0B,#B45309);border:none;color:#000;font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;touch-action:manipulation">▶</button>
       </div>
+      <div class="chat-msgs" id="polyChatBox" style="flex:1;min-height:200px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px;display:flex;flex-direction:column-reverse;gap:8px"></div>
     </div>
 
   </section>
@@ -566,11 +566,11 @@ header{
       <span id="syncStatus" style="font-size:.6rem;color:#8B9BB4">Sync bereit</span>
       <button type="button" id="syncBtn" style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#10B981;font-size:.6rem;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;touch-action:manipulation">↻ Sync</button>
     </div>
-    <div class="chat-msgs" id="chatBox"></div>
     <div class="chat-foot">
       <textarea id="chatInput" placeholder="Frag den Commander…" rows="1" onkeydown="onKey(event)" oninput="autoGrow(this)"></textarea>
       <button type="button" id="sendBtn" onclick="sendMsg()">▶</button>
     </div>
+    <div class="chat-msgs" id="chatBox"></div>
   </section>
 
 </main>
