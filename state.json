@@ -538,6 +538,14 @@
         "pnl": 6559.71,
         "rr": null
       }
+    },
+    {
+      "type": "set_asset",
+      "symbol": "USOIL",
+      "active": false,
+      "name": "Asset deaktiviert: USOIL",
+      "status": "pending",
+      "dispatched": 1780686053486
     }
   ]
 }
