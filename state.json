@@ -623,6 +623,15 @@
       },
       "status": "pending",
       "dispatched": 1780686482482
+    },
+    {
+      "type": "optimize",
+      "params": {
+        "min_wr": 0.6,
+        "min_trades": 15
+      },
+      "status": "pending",
+      "dispatched": 1780689436624
     }
   ]
 }
