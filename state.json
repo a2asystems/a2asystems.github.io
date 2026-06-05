@@ -570,6 +570,14 @@
       "name": "Asset deaktiviert: BTCUSD",
       "status": "pending",
       "dispatched": 1780686058423
+    },
+    {
+      "type": "set_asset",
+      "symbol": "XAGUSD",
+      "active": false,
+      "name": "Asset deaktiviert: XAGUSD",
+      "status": "pending",
+      "dispatched": 1780686059655
     }
   ]
 }
