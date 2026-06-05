@@ -569,14 +569,30 @@ function renderPoly(d) {
     var mode = poly.dry_run !== false ? 'PAPER' : 'LIVE';
 
     // KPIs
-    var mEl = document.getElementById('polyMarkets');
-    var oEl = document.getElementById('polyOpps');
-    var ordEl = document.getElementById('polyOrders');
-    var modeEl = document.getElementById('polyMode');
+    var mEl      = document.getElementById('polyMarkets');
+    var wrEl     = document.getElementById('polyWR');
+    var wrSubEl  = document.getElementById('polyWRSub');
+    var portEl   = document.getElementById('polyPortfolio');
+    var modeEl   = document.getElementById('polyMode');
+    var pnlEl    = document.getElementById('polyPnL');
+    var winsEl   = document.getElementById('polyWins');
+    var lossesEl = document.getElementById('polyLosses');
+
     if (mEl) mEl.textContent = poly.markets_scanned || '–';
-    if (oEl) oEl.textContent = opps.length || '0';
-    if (ordEl) ordEl.textContent = orders.length || '0';
-    if (modeEl) { modeEl.textContent = mode; modeEl.style.color = mode === 'LIVE' ? 'var(--red)' : 'var(--green)'; }
+    if (modeEl) { modeEl.textContent = mode; modeEl.style.color = mode === 'LIVE' ? '#EF4444' : '#10B981'; }
+
+    // Portfolio + echte Win Rate
+    var port = poly.portfolio_usd;
+    var pnl  = poly.total_pnl || 0;
+    var wr   = poly.real_win_rate || 0;
+    var wins = poly.resolved_wins || 0;
+    var loss = poly.resolved_losses || 0;
+    if (portEl && port !== undefined) portEl.textContent = '$' + parseFloat(port).toFixed(0);
+    if (wrEl) wrEl.textContent = wr > 0 ? (wr * 100).toFixed(1) + '%' : '–';
+    if (wrSubEl) wrSubEl.textContent = (wins + loss) > 0 ? (wins + loss) + ' aufgelöst' : 'noch keine Daten';
+    if (pnlEl) { pnlEl.textContent = (pnl >= 0 ? '+' : '') + '$' + parseFloat(pnl).toFixed(2); pnlEl.style.color = pnl >= 0 ? '#10B981' : '#EF4444'; }
+    if (winsEl) winsEl.textContent = wins;
+    if (lossesEl) lossesEl.textContent = loss;
 
     // Top opportunity
     var top = poly.top_opportunity;
@@ -588,9 +604,18 @@ function renderPoly(d) {
         if (edgeEl) edgeEl.textContent = (top.edge * 100).toFixed(1) + '% Edge';
         if (contentEl) {
             var dirColor = top.direction === 'YES' ? 'var(--green)' : 'var(--red)';
+            var verdictIcon = top.debate_verdict === 'bull' ? '🐂' : top.debate_verdict === 'bear' ? '🐻' : '⚖️';
+            var bullHtml = top.bull_argument
+                ? '<div style="background:rgba(16,185,129,.07);border-left:2px solid var(--green);padding:6px 8px;border-radius:0 5px 5px 0;font-size:.67rem;color:var(--text2);line-height:1.45;margin-bottom:5px">' +
+                  '<span style="color:var(--green);font-weight:700;font-size:.6rem">🐂 BULL &nbsp;</span>' + esc(top.bull_argument) + '</div>'
+                : '';
+            var bearHtml = top.bear_argument
+                ? '<div style="background:rgba(239,68,68,.07);border-left:2px solid var(--red);padding:6px 8px;border-radius:0 5px 5px 0;font-size:.67rem;color:var(--text2);line-height:1.45;margin-bottom:5px">' +
+                  '<span style="color:var(--red);font-weight:700;font-size:.6rem">🐻 BEAR &nbsp;</span>' + esc(top.bear_argument) + '</div>'
+                : '';
             contentEl.innerHTML =
                 '<div style="font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:8px">' + esc(top.question) + '</div>' +
-                '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">' +
+                '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">' +
                   '<span style="background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.3);color:var(--purple);padding:3px 8px;border-radius:5px;font-size:.65rem;font-weight:700">' +
                     top.direction + ' @ ' + (top.direction === 'YES' ? top.yes_price : top.no_price).toFixed(2) +
                   '</span>' +
@@ -601,7 +626,12 @@ function renderPoly(d) {
                     'Vol: $' + (top.volume_24h || 0).toLocaleString() +
                   '</span>' +
                 '</div>' +
-                '<div style="font-size:.7rem;color:var(--text2);line-height:1.5">' + esc(top.reasoning || '') + '</div>';
+                (bullHtml || bearHtml
+                  ? '<div style="margin-bottom:8px">' + bullHtml + bearHtml + '</div>'
+                  : '') +
+                '<div style="font-size:.67rem;color:var(--text3);line-height:1.5;border-top:1px solid var(--border);padding-top:7px">' +
+                  verdictIcon + ' <b>Judge:</b> ' + esc(top.reasoning || top.key_factor || '') +
+                '</div>';
         }
     } else if (topCard) {
         topCard.style.display = 'none';
