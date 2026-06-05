@@ -586,6 +586,14 @@
       "name": "Asset deaktiviert: USDJPY",
       "status": "pending",
       "dispatched": 1780686060932
+    },
+    {
+      "type": "set_asset",
+      "symbol": "ETHUSD",
+      "active": false,
+      "name": "Asset deaktiviert: ETHUSD",
+      "status": "pending",
+      "dispatched": 1780686061962
     }
   ]
 }
