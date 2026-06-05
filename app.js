@@ -648,7 +648,7 @@ function renderPoly(d) {
                 var hasEdge = o.edge >= 0.05;
                 var edgeColor = hasEdge ? 'var(--green)' : 'var(--text3)';
                 var confColor = o.confidence === 'high' ? 'var(--green)' : o.confidence === 'medium' ? 'var(--gold)' : 'var(--text3)';
-                var confDE = o.confidence === 'high' ? 'hoch' : o.confidence === 'medium' ? 'mittel' : 'niedrig';
+                var confDE = o.confidence === 'high' ? 'high' : o.confidence === 'medium' ? 'medium' : 'low';
                 return '<div class="sig-row">' +
                     '<div class="sig-dir ' + (o.direction === 'YES' ? 'long' : 'short') + '" style="width:38px;font-size:.58rem">' + esc(o.direction) + '</div>' +
                     '<div class="sig-info">' +
