@@ -607,11 +607,11 @@ function renderPoly(d) {
             var verdictIcon = top.debate_verdict === 'bull' ? '🐂' : top.debate_verdict === 'bear' ? '🐻' : '⚖️';
             var bullHtml = top.bull_argument
                 ? '<div style="background:rgba(16,185,129,.07);border-left:2px solid var(--green);padding:6px 8px;border-radius:0 5px 5px 0;font-size:.67rem;color:var(--text2);line-height:1.45;margin-bottom:5px">' +
-                  '<span style="color:var(--green);font-weight:700;font-size:.6rem">🐂 BULL &nbsp;</span>' + esc(top.bull_argument) + '</div>'
+                  '<span style="color:var(--green);font-weight:700;font-size:.6rem">🐂 BULLE &nbsp;</span>' + esc(top.bull_argument) + '</div>'
                 : '';
             var bearHtml = top.bear_argument
                 ? '<div style="background:rgba(239,68,68,.07);border-left:2px solid var(--red);padding:6px 8px;border-radius:0 5px 5px 0;font-size:.67rem;color:var(--text2);line-height:1.45;margin-bottom:5px">' +
-                  '<span style="color:var(--red);font-weight:700;font-size:.6rem">🐻 BEAR &nbsp;</span>' + esc(top.bear_argument) + '</div>'
+                  '<span style="color:var(--red);font-weight:700;font-size:.6rem">🐻 BÄR &nbsp;</span>' + esc(top.bear_argument) + '</div>'
                 : '';
             contentEl.innerHTML =
                 '<div style="font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:8px">' + esc(top.question) + '</div>' +
@@ -630,7 +630,7 @@ function renderPoly(d) {
                   ? '<div style="margin-bottom:8px">' + bullHtml + bearHtml + '</div>'
                   : '') +
                 '<div style="font-size:.67rem;color:var(--text3);line-height:1.5;border-top:1px solid var(--border);padding-top:7px">' +
-                  verdictIcon + ' <b>Judge:</b> ' + esc(top.reasoning || top.key_factor || '') +
+                  verdictIcon + ' <b>Richter:</b> ' + esc(top.reasoning || top.key_factor || '') +
                 '</div>';
         }
     } else if (topCard) {
@@ -648,6 +648,7 @@ function renderPoly(d) {
                 var hasEdge = o.edge >= 0.05;
                 var edgeColor = hasEdge ? 'var(--green)' : 'var(--text3)';
                 var confColor = o.confidence === 'high' ? 'var(--green)' : o.confidence === 'medium' ? 'var(--gold)' : 'var(--text3)';
+                var confDE = o.confidence === 'high' ? 'hoch' : o.confidence === 'medium' ? 'mittel' : 'niedrig';
                 return '<div class="sig-row">' +
                     '<div class="sig-dir ' + (o.direction === 'YES' ? 'long' : 'short') + '" style="width:38px;font-size:.58rem">' + esc(o.direction) + '</div>' +
                     '<div class="sig-info">' +
@@ -656,7 +657,7 @@ function renderPoly(d) {
                     '</div>' +
                     '<div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end;flex-shrink:0">' +
                       '<span style="font-size:.7rem;font-weight:800;color:' + edgeColor + '">' + edgePct + '%</span>' +
-                      '<span style="font-size:.58rem;color:' + confColor + '">' + esc(o.confidence || '') + '</span>' +
+                      '<span style="font-size:.58rem;color:' + confColor + '">' + confDE + '</span>' +
                     '</div>' +
                   '</div>';
             }).join('');
