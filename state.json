@@ -578,6 +578,14 @@
       "name": "Asset deaktiviert: XAGUSD",
       "status": "pending",
       "dispatched": 1780686059655
+    },
+    {
+      "type": "set_asset",
+      "symbol": "USDJPY",
+      "active": false,
+      "name": "Asset deaktiviert: USDJPY",
+      "status": "pending",
+      "dispatched": 1780686060932
     }
   ]
 }
