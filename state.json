@@ -610,6 +610,19 @@
       "name": "Asset deaktiviert: EURUSD",
       "status": "pending",
       "dispatched": 1780686065833
+    },
+    {
+      "type": "backtest",
+      "params": {
+        "symbol": "XAUUSD",
+        "from_date": "2026-01-09",
+        "to_date": "2026-02-16",
+        "initial_cap": 10000,
+        "risk_pct": 0.1,
+        "allow_short": false
+      },
+      "status": "pending",
+      "dispatched": 1780686482482
     }
   ]
 }
