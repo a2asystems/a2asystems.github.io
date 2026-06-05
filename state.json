@@ -546,6 +546,14 @@
       "name": "Asset deaktiviert: USOIL",
       "status": "pending",
       "dispatched": 1780686053486
+    },
+    {
+      "type": "set_asset",
+      "symbol": "US30",
+      "active": false,
+      "name": "Asset deaktiviert: US30",
+      "status": "pending",
+      "dispatched": 1780686056343
     }
   ]
 }
