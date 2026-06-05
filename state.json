@@ -2,6 +2,21 @@
   "chat": [],
   "strategies": [
     {
+      "id": "1780661582786",
+      "name": "polymarket_agent",
+      "source": "commander",
+      "author": "Commander",
+      "date": "05.06.2026 14:13",
+      "wr": 83.3,
+      "pf": 4.34,
+      "trades": 6,
+      "mdd": -10.6,
+      "pnl": 6559,
+      "rr": null,
+      "desc": "Backtest: {}",
+      "active": false
+    },
+    {
       "id": "–",
       "name": "Commander: 02.06. 23:25",
       "source": "commander",
@@ -483,8 +498,16 @@
       "type": "run_agent",
       "name": "polymarket_agent",
       "id": "1780661582786",
-      "status": "running",
-      "dispatched": 1780661583018
+      "status": "done",
+      "dispatched": 1780661583018,
+      "result": {
+        "wr": 83.3,
+        "pf": 4.34,
+        "trades": 6,
+        "mdd": -10.6,
+        "pnl": 6559.71,
+        "rr": null
+      }
     }
   ]
 }
