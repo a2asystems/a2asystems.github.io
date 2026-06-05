@@ -641,7 +641,11 @@ function renderPoly(d) {
     var oppEl = document.getElementById('polyOppList');
     if (oppEl) {
         if (!opps.length) {
-            oppEl.innerHTML = '<div class="empty"><div class="empty-ico">⬡</div>Kein Scan gelaufen — startet alle 5 Min</div>';
+            var scanned = poly.markets_scanned || 0;
+            var emptyMsg = scanned > 0
+                ? 'Letzter Scan: ' + scanned + ' Märkte — keine Opportunitäten (Edge≥8%, high confidence)'
+                : 'Kein Scan gelaufen — startet alle 5 Min';
+            oppEl.innerHTML = '<div class="empty"><div class="empty-ico">⬡</div>' + emptyMsg + '</div>';
         } else {
             oppEl.innerHTML = opps.map(function(o) {
                 var edgePct = (o.edge * 100).toFixed(1);
@@ -1053,9 +1057,6 @@ function renderMsg(role, text, ts, author) {
         .replace(/\n/g,'<br>');
     d.innerHTML = '<div class="bubble">'+md+'</div><div class="msg-meta">'+esc(who)+' · '+fmt(ts||Date.now())+'</div>';
     box.appendChild(d); box.scrollTop = 0;
-    // Mirror to poly chat if initialized
-    const polyBox = document.getElementById('polyChatBox');
-    if (polyBox && polyBox._ready) { polyBox.appendChild(d.cloneNode(true)); polyBox.scrollTop = 0; }
 }
 
 function addMsg(role, text, auto) {
@@ -1076,13 +1077,11 @@ function addMsg(role, text, auto) {
 }
 
 function showTyping() {
-    ['chatBox','polyChatBox'].forEach(function(boxId) {
-        const box=document.getElementById(boxId);
-        if(!box || (boxId==='polyChatBox' && !box._ready)) return;
-        const d=document.createElement('div'); d.className='msg assistant'; d.id=boxId==='chatBox'?'typer':'polyTyper';
-        d.innerHTML='<div class="t-bubble"><div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div></div>';
-        box.appendChild(d); box.scrollTop=0;
-    });
+    const box=document.getElementById('chatBox');
+    if(!box) return;
+    const d=document.createElement('div'); d.className='msg assistant'; d.id='typer';
+    d.innerHTML='<div class="t-bubble"><div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div></div>';
+    box.appendChild(d); box.scrollTop=0;
 }
 function hideTyping() { ['typer','polyTyper'].forEach(function(id){const e=document.getElementById(id);if(e)e.remove();}); }
 
