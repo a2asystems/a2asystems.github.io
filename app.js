@@ -641,7 +641,7 @@ function renderPoly(d) {
     var oppEl = document.getElementById('polyOppList');
     if (oppEl) {
         if (!opps.length) {
-            oppEl.innerHTML = '<div class="empty"><div class="empty-ico">⬡</div>Kein Scan gelaufen — startet alle 2h</div>';
+            oppEl.innerHTML = '<div class="empty"><div class="empty-ico">⬡</div>Kein Scan gelaufen — startet alle 5 Min</div>';
         } else {
             oppEl.innerHTML = opps.map(function(o) {
                 var edgePct = (o.edge * 100).toFixed(1);
