@@ -562,6 +562,14 @@
       "name": "Asset deaktiviert: NAS100",
       "status": "pending",
       "dispatched": 1780686057380
+    },
+    {
+      "type": "set_asset",
+      "symbol": "BTCUSD",
+      "active": false,
+      "name": "Asset deaktiviert: BTCUSD",
+      "status": "pending",
+      "dispatched": 1780686058423
     }
   ]
 }
