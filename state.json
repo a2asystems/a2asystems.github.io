@@ -513,7 +513,7 @@
       "type": "run_agent",
       "name": "polymarket_agent",
       "id": "1780675389907",
-      "status": "pending",
+      "status": "running",
       "dispatched": 1780675390331
     }
   ]
