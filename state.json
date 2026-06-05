@@ -594,6 +594,14 @@
       "name": "Asset deaktiviert: ETHUSD",
       "status": "pending",
       "dispatched": 1780686061962
+    },
+    {
+      "type": "set_asset",
+      "symbol": "GBPUSD",
+      "active": false,
+      "name": "Asset deaktiviert: GBPUSD",
+      "status": "pending",
+      "dispatched": 1780686063622
     }
   ]
 }
