@@ -670,19 +670,34 @@ function renderPoly(d) {
 
     // Orders list
     var ordListEl = document.getElementById('polyOrderList');
+    var ordHeaderEl = document.getElementById('polyOrderHeader');
     if (ordListEl) {
         if (!orders.length) {
             ordListEl.innerHTML = '<div class="empty"><div class="empty-ico">📋</div>Noch keine Orders</div>';
+            if (ordHeaderEl) ordHeaderEl.textContent = 'Simulierte Orders';
         } else {
+            var openOrders  = orders.filter(function(o){ return o.status === 'open'; });
+            var totalStaked = openOrders.reduce(function(s,o){ return s + (o.stake||0); }, 0);
+            var totalPotWin = openOrders.reduce(function(s,o){ return s + (o.potential_win||0); }, 0);
+            if (ordHeaderEl) ordHeaderEl.innerHTML =
+                '<span style="color:var(--text2)">' + openOrders.length + ' offen</span>' +
+                '&nbsp;·&nbsp;<span style="color:var(--text3);font-size:.6rem">$' + totalStaked.toFixed(0) + ' gesetzt · pot. +$' + totalPotWin.toFixed(0) + '</span>';
+
             ordListEl.innerHTML = orders.slice(0, 10).map(function(o) {
                 var dirClass = o.direction === 'YES' ? 'long' : 'short';
-                return '<div class="sig-row">' +
-                    '<div class="sig-dir ' + dirClass + '" style="width:38px;font-size:.58rem">' + esc(o.direction) + '</div>' +
-                    '<div class="sig-info">' +
-                      '<div class="sig-price" style="font-size:.72rem">' + esc((o.question || '').slice(0, 65)) + '</div>' +
-                      '<div class="sig-det">@ ' + ((o.price || 0) * 100).toFixed(0) + '¢ · Stake $' + (o.stake || 0).toFixed(2) + ' · ' + esc(o.ts || '') + '</div>' +
+                var statusColor = o.status === 'won' ? 'var(--green)' : o.status === 'lost' ? 'var(--red)' : 'var(--text3)';
+                var statusIcon  = o.status === 'won' ? '✓ +$'+(o.pnl||0).toFixed(2) : o.status === 'lost' ? '✗ -$'+(Math.abs(o.stake||0)).toFixed(2) : '+$'+(o.potential_win||0).toFixed(2)+'?';
+                var winColor    = o.status === 'won' ? 'var(--green)' : o.status === 'lost' ? 'var(--red)' : 'var(--gold)';
+                return '<div class="sig-row" style="padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05)">' +
+                    '<div class="sig-dir ' + dirClass + '" style="width:38px;font-size:.58rem;flex-shrink:0">' + esc(o.direction) + '</div>' +
+                    '<div class="sig-info" style="flex:1;min-width:0">' +
+                      '<div class="sig-price" style="font-size:.72rem;white-space:normal;line-height:1.3">' + esc((o.question || '').slice(0, 70)) + (o.question && o.question.length > 70 ? '…' : '') + '</div>' +
+                      '<div class="sig-det" style="margin-top:3px">@ ' + ((o.price||0)*100).toFixed(0) + '¢ · $' + (o.stake||0).toFixed(0) + ' · ' + esc((o.ts||'').slice(11,16)) + '</div>' +
                     '</div>' +
-                    '<span style="font-size:.65rem;font-weight:700;color:var(--purple);flex-shrink:0">' + esc(o.mode || 'PAPER') + '</span>' +
+                    '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0;padding-left:8px">' +
+                      '<span style="font-size:.72rem;font-weight:800;color:' + winColor + '">' + statusIcon + '</span>' +
+                      '<span style="font-size:.55rem;color:' + statusColor + '">' + esc(o.status||'open') + '</span>' +
+                    '</div>' +
                   '</div>';
             }).join('');
         }
