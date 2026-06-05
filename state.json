@@ -602,6 +602,14 @@
       "name": "Asset deaktiviert: GBPUSD",
       "status": "pending",
       "dispatched": 1780686063622
+    },
+    {
+      "type": "set_asset",
+      "symbol": "EURUSD",
+      "active": false,
+      "name": "Asset deaktiviert: EURUSD",
+      "status": "pending",
+      "dispatched": 1780686065833
     }
   ]
 }
