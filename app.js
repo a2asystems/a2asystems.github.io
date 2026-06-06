@@ -1624,3 +1624,59 @@ function _initSW() {
         });
     }).catch(function(){});
 }
+
+// ── BB Squeeze Config (Backtest C) ───────────────────────────────────────────
+function saveBBConfig() {
+    var cfg = {
+        capital: parseFloat(document.getElementById('cfgCapital').value) || 10000,
+        risk:    parseFloat(document.getElementById('cfgRisk').value)    || 5,
+        rr:      parseFloat(document.getElementById('cfgRR').value)      || 3,
+        dir:     document.getElementById('cfgDir').value || 'both',
+    };
+    localStorage.setItem('bb_config', JSON.stringify(cfg));
+    showToast('Einstellungen gespeichert', 'green');
+    calcBBProjection();
+}
+
+function calcBBProjection() {
+    var capital = parseFloat(document.getElementById('cfgCapital').value) || 10000;
+    var risk    = parseFloat(document.getElementById('cfgRisk').value)    || 5;
+    var rr      = parseFloat(document.getElementById('cfgRR').value)      || 3;
+    var dir     = document.getElementById('cfgDir').value || 'both';
+    var wr = 0.322; // historische WR BB Squeeze + EMA
+    var trades_per_month = dir === 'both' ? 18 : 9;
+    var cap = capital;
+    var months = 0;
+    var target = 1000000;
+    while (cap < target && months < 60) {
+        for (var t = 0; t < trades_per_month; t++) {
+            var bet = cap * (risk / 100);
+            if (Math.random() < wr) { cap += bet * rr; } else { cap -= bet; }
+        }
+        months++;
+    }
+    var proj = document.getElementById('bbProjection');
+    if (!proj) return;
+    var fmt = function(n) { return n >= 1e6 ? '$' + (n/1e6).toFixed(2) + 'M' : '$' + Math.round(n).toLocaleString('de-DE'); };
+    var ev = (wr * rr - (1 - wr)).toFixed(3);
+    proj.innerHTML =
+        '<strong style="color:#8B5CF6">Simulation</strong> (' + trades_per_month + ' Trades/Monat · RR ' + rr + ':1 · ' + risk + '% Risiko)<br>' +
+        'Start: ' + fmt(capital) + ' → ' +
+        (months < 60
+            ? '<strong style="color:#10B981">$1M in ca. ' + months + ' Monaten</strong>'
+            : '<span style="color:#EF4444">$1M nicht erreicht in 60 Monaten</span>') +
+        ' · EV/Trade: <strong>' + (parseFloat(ev) > 0 ? '+' : '') + ev + '</strong>';
+}
+
+// Beim Laden gespeicherte Werte wiederherstellen
+(function() {
+    try {
+        var saved = JSON.parse(localStorage.getItem('bb_config') || '{}');
+        if (saved.capital && document.getElementById('cfgCapital')) {
+            document.getElementById('cfgCapital').value = saved.capital;
+            document.getElementById('cfgRisk').value    = saved.risk || 5;
+            document.getElementById('cfgRR').value      = saved.rr   || 3;
+            document.getElementById('cfgDir').value     = saved.dir  || 'both';
+        }
+    } catch(e) {}
+})();
