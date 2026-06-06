@@ -383,12 +383,22 @@ function showDetail(title, rows, footer) {
 }
 
 function renderKPIs(d) {
+    // Wenn BB-Modus aktiv ist renderAll nicht überschreiben lassen
+    if (_stratMode === 'bb') return;
     const wr=d.wr||0, pf=d.pf||0, dd=d.max_dd||0, pnl=d.net_pnl||0, tr=d.trades||0;
     document.getElementById('kWR').textContent    = wr  ? wr.toFixed(1)+'%'                 : '–';
     document.getElementById('kPF').textContent    = pf  ? pf.toFixed(2)                      : '–';
     document.getElementById('kDD').textContent    = dd  ? dd.toFixed(1)+'%'                  : '–';
     document.getElementById('kPnL').textContent   = pnl ? (pnl>0?'+':'')+pnl.toFixed(0)+'$' : '–';
     document.getElementById('kTrades').textContent = tr + ' Trades';
+    // SMC-Strategie-Card zurücksetzen (falls vorher BB aktiv war)
+    var sv = document.getElementById('kStratVal');
+    if (sv) { sv.textContent='BOS+H4'; sv.style.color='#10B981'; sv.style.fontSize='.95rem'; }
+    _setEl('kStratLbl', 'H4-Filter');
+    _setEl('kStratSub', 'Strategie');
+    _setEl('chartTitle', 'Performance-Kurve');
+    var elChange = document.getElementById('chartChange');
+    if (elChange) elChange.style.color = '';
     const fd=d.from_date||'', td=d.to_date||'';
     document.getElementById('kPeriod').textContent = (fd!=='–'&&td!=='–'&&fd&&td) ? fd.slice(0,10)+' – '+td.slice(0,10) : '–';
     const card = document.getElementById('kPnLCard');
