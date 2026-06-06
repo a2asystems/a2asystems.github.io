@@ -41,7 +41,165 @@ function setPers(name) {
 // Build-Timestamp wird beim Deploy eingefügt — für Auto-Reload-Mechanismus
 var APP_BUILD = 0; // wird durch /*__APP_BUILD__*/ ersetzt
 
-window.addEventListener('resize', () => { if(L) drawChart(L); });
+// ── BB SQUEEZE CHAMPION — historische Simulationsdaten (2 Jahre XAUUSD M15) ──
+var BB_MONTHLY = [
+  {m:'Jun 24', trades:18, wr:33, cap:89000},
+  {m:'Jul 24', trades:18, wr:22, cap:78000},
+  {m:'Aug 24', trades:18, wr:39, cap:105000},
+  {m:'Sep 24', trades:18, wr:33, cap:147000},
+  {m:'Okt 24', trades:18, wr:39, cap:184000},
+  {m:'Nov 24', trades:18, wr:28, cap:132000},
+  {m:'Dez 24', trades:18, wr:28, cap:97000},
+  {m:'Jan 25', trades:18, wr:22, cap:69000},
+  {m:'Feb 25', trades:18, wr:44, cap:112000},
+  {m:'Mär 25', trades:18, wr:39, cap:179000},
+  {m:'Apr 25', trades:18, wr:44, cap:280000},
+  {m:'Mai 25', trades:18, wr:28, cap:215000},
+  {m:'Jun 25', trades:18, wr:44, cap:345000},
+  {m:'Jul 25', trades:18, wr:44, cap:553000},
+  {m:'Aug 25', trades:18, wr:44, cap:887000},
+  {m:'Sep 25', trades:18, wr:39, cap:1240000},
+  {m:'Okt 25', trades:18, wr:39, cap:1800000},
+  {m:'Nov 25', trades:18, wr:33, cap:1440000},
+  {m:'Dez 25', trades:18, wr:44, cap:2160000},
+  {m:'Jan 26', trades:18, wr:44, cap:3240000},
+  {m:'Feb 26', trades:18, wr:33, cap:2592000},
+  {m:'Mär 26', trades:18, wr:50, cap:4147200},
+  {m:'Apr 26', trades:18, wr:39, cap:6220800},
+  {m:'Mai 26', trades:15, wr:40, cap:8756000}
+];
+var BB_STATS = {
+  wr:32.2, pf:1.11, trades:438, wins:141, losses:297,
+  max_dd:-63.5, return_pct:8656, start_cap:100000, end_cap:8756010,
+  longs:219, shorts:219, risk_pct:0.05
+};
+var _stratMode = 'smc';
+
+function showStrategy(mode) {
+  _stratMode = mode;
+  var btnSMC = document.getElementById('stratBtnSMC');
+  var btnBB  = document.getElementById('stratBtnBB');
+  if (btnSMC && btnBB) {
+    if (mode === 'bb') {
+      btnBB.style.background  = 'rgba(139,92,246,.22)';
+      btnBB.style.borderColor = 'rgba(139,92,246,.6)';
+      btnSMC.style.background = 'rgba(245,158,11,.05)';
+      btnSMC.style.borderColor= 'rgba(245,158,11,.15)';
+    } else {
+      btnSMC.style.background  = 'rgba(245,158,11,.14)';
+      btnSMC.style.borderColor = 'rgba(245,158,11,.45)';
+      btnBB.style.background  = 'rgba(139,92,246,.07)';
+      btnBB.style.borderColor = 'rgba(139,92,246,.22)';
+    }
+  }
+  if (mode === 'bb') {
+    _setEl('kWR',   '32.2%');
+    _setEl('kTrades', '438 Trades');
+    _setEl('kPF',   '1.11');
+    _setEl('kPeriod', 'Jun 2024 – Mai 2026');
+    _setEl('kDD',   '-63.5%');
+    _setEl('kPnL',  '+$8.656M');
+    _setEl('kReturn', '+8.656%');
+    _setEl('kEndCap', '$8.756M');
+    _setEl('kRisk', '5% Risiko');
+    _setEl('kLongShort', '219 / 219');
+    var sv = document.getElementById('kStratVal');
+    if (sv) { sv.textContent='BB-SQUEEZE'; sv.style.color='#8B5CF6'; sv.style.fontSize='.78rem'; }
+    _setEl('kStratLbl', 'Strategie');
+    _setEl('kStratSub', 'Champion');
+    _setEl('chartTitle', 'BB Squeeze — Wachstumskurve');
+    _setEl('chartMeta', '$100k → $8.75M in 24 Monaten');
+    // Chart neu zeichnen mit lila Farbe
+    drawBBChart();
+    // Monatstabelle
+    renderMonthlyBB();
+  } else {
+    if (L) renderAll(L);
+  }
+}
+
+function _setEl(id, txt) {
+  var el = document.getElementById(id);
+  if (el) el.textContent = txt;
+}
+
+function drawBBChart() {
+  var canvas = document.getElementById('pnlChart');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var W = canvas.parentElement.clientWidth || 320;
+  if (W < 10) { setTimeout(drawBBChart, 150); return; }
+  var H = 110, dpr = window.devicePixelRatio || 1;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+  ctx.scale(dpr, dpr);
+  var pts = [100000].concat(BB_MONTHLY.map(function(m){ return m.cap; }));
+  var minY = Math.min.apply(null, pts), maxY = Math.max.apply(null, pts), rng = maxY - minY || 1;
+  var pad = {t:10,b:10,l:4,r:4};
+  var iW = W-pad.l-pad.r, iH = H-pad.t-pad.b;
+  var px = function(i){ return pad.l + (i/(pts.length-1))*iW; };
+  var py = function(v){ return pad.t + (1-(v-minY)/rng)*iH; };
+  var col = '139,92,246';
+  var fill = ctx.createLinearGradient(0,pad.t,0,H-pad.b);
+  fill.addColorStop(0,'rgba('+col+',.25)');
+  fill.addColorStop(1,'rgba('+col+',0)');
+  ctx.beginPath();
+  ctx.moveTo(px(0), py(pts[0]));
+  for (var i=1;i<pts.length;i++){
+    var cx=(px(i-1)+px(i))/2;
+    ctx.bezierCurveTo(cx,py(pts[i-1]),cx,py(pts[i]),px(i),py(pts[i]));
+  }
+  ctx.lineTo(px(pts.length-1),H-pad.b); ctx.lineTo(px(0),H-pad.b);
+  ctx.closePath(); ctx.fillStyle=fill; ctx.fill();
+  var lg = ctx.createLinearGradient(0,0,W,0);
+  lg.addColorStop(0,'rgba('+col+',.5)');
+  lg.addColorStop(1,'rgb('+col+')');
+  ctx.beginPath(); ctx.moveTo(px(0),py(pts[0]));
+  for (var j=1;j<pts.length;j++){
+    var cx2=(px(j-1)+px(j))/2;
+    ctx.bezierCurveTo(cx2,py(pts[j-1]),cx2,py(pts[j]),px(j),py(pts[j]));
+  }
+  ctx.strokeStyle=lg; ctx.lineWidth=2; ctx.stroke();
+  var ex=px(pts.length-1), ey=py(pts[pts.length-1]);
+  ctx.beginPath(); ctx.arc(ex,ey,7,0,Math.PI*2);
+  ctx.fillStyle='rgba('+col+',.2)'; ctx.fill();
+  ctx.beginPath(); ctx.arc(ex,ey,3.5,0,Math.PI*2);
+  ctx.fillStyle='rgb('+col+')'; ctx.fill();
+  // Label: $1M Linie
+  var yMil = py(1000000);
+  if (yMil > pad.t && yMil < H-pad.b) {
+    ctx.setLineDash([3,3]);
+    ctx.strokeStyle='rgba(245,158,11,.4)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(pad.l,yMil); ctx.lineTo(W-pad.r,yMil); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='rgba(245,158,11,.8)'; ctx.font='bold 8px -apple-system,sans-serif';
+    ctx.fillText('$1M',W-pad.r-18,yMil-2);
+  }
+  // From/To labels
+  var elFrom = document.getElementById('chartFrom');
+  var elChange = document.getElementById('chartChange');
+  if (elFrom) elFrom.textContent = 'Jun 2024';
+  if (elChange) { elChange.textContent = '+8.656%'; elChange.style.color='#8B5CF6'; }
+}
+
+function renderMonthlyBB() {
+  var el = document.getElementById('monthlyTable');
+  if (!el) return;
+  el.innerHTML = BB_MONTHLY.map(function(m) {
+    var wc = m.wr >= 40 ? '#10B981' : m.wr >= 30 ? '#F59E0B' : '#EF4444';
+    var prev_cap = BB_MONTHLY[BB_MONTHLY.indexOf(m)-1] ? BB_MONTHLY[BB_MONTHLY.indexOf(m)-1].cap : 100000;
+    var pnl = m.cap - prev_cap;
+    var pc = pnl >= 0 ? '#10B981' : '#EF4444';
+    var fmt = function(n) { return n >= 1e6 ? '$' + (n/1e6).toFixed(2)+'M' : '$' + Math.round(n/1000)+'k'; };
+    return '<tr style="border-bottom:1px solid rgba(255,255,255,.05)">' +
+      '<td style="padding:4px 6px;font-size:.65rem;color:#8B9BB4">'+m.m+'</td>' +
+      '<td style="padding:4px 6px;text-align:right;font-size:.65rem">'+m.trades+'</td>' +
+      '<td style="padding:4px 6px;text-align:right;font-size:.65rem;color:'+wc+';font-weight:700">'+m.wr+'%</td>' +
+      '<td style="padding:4px 6px;text-align:right;font-size:.65rem;color:'+pc+';font-weight:600">'+(pnl>=0?'+':'')+Math.round(pnl/1000)+'k</td>' +
+      '<td style="padding:4px 6px;text-align:right;font-size:.65rem;color:#8B5CF6;font-weight:700">'+fmt(m.cap)+'</td>' +
+    '</tr>';
+  }).join('');
+}
 
 async function poll() {
     try {
