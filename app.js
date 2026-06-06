@@ -114,7 +114,16 @@ function showStrategy(mode) {
     // Monatstabelle
     renderMonthlyBB();
   } else {
+    // SMC: alles auf Backtest-Daten zurücksetzen
     if (L) renderAll(L);
+    // Elemente die renderAll nicht kennt manuell zurücksetzen
+    var sv = document.getElementById('kStratVal');
+    if (sv) { sv.textContent='BOS+H4'; sv.style.color='#10B981'; sv.style.fontSize='.95rem'; }
+    _setEl('kStratLbl', 'H4-Filter');
+    _setEl('kStratSub', 'Strategie');
+    _setEl('chartTitle', 'Performance-Kurve');
+    var elChange = document.getElementById('chartChange');
+    if (elChange) elChange.style.color='';
   }
 }
 
