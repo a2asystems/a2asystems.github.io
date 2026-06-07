@@ -1478,13 +1478,12 @@ async function pollTopStep() {
     if (!ghTok() || !GHUSER || !GHREPO) return;
     try {
         const r = await fetch(
-            'https://api.github.com/repos/' + GHUSER + '/' + GHREPO + '/contents/agent_state.json',
+            'https://api.github.com/repos/' + GHUSER + '/' + GHREPO + '/contents/topstep.json',
             { headers: { 'Authorization': 'Bearer ' + ghTok() }, cache: 'no-store' }
         );
         if (!r.ok) return;
-        const d     = await r.json();
-        const state = JSON.parse(atob(d.content.replace(/\n/g, '')));
-        const tsx   = state.topstep_agent || {};
+        const d   = await r.json();
+        const tsx = JSON.parse(atob(d.content.replace(/\n/g, '')));
         if (!tsx.status || tsx.status !== 'ok') return;
 
         var panel = document.getElementById('tsxPanel');
