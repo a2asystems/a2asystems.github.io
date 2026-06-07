@@ -1218,6 +1218,8 @@ async function uploadLocalHistory(localMsgs) {
             var mf = await rGet.json(); sha = mf.sha;
             try { remote = JSON.parse(_b64dec(mf.content)); } catch(e) { remote = []; }
         }
+        // Chat wurde gezielt geleert (leer auf GitHub) — lokale alte Nachrichten NICHT re-uploaden
+        if (rGet.ok && remote.length === 0) return;
         // Merge: keep all unique messages by timestamp
         var byTs = {};
         remote.forEach(function(m){ byTs[m.ts]=m; });
