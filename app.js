@@ -1527,13 +1527,14 @@ async function pollTopStep() {
         var floor = tsx.floor_active;
         var bal   = tsx.balance || 50000;
 
+        var DAILY_GOAL = 600;
         var pnlEl = document.getElementById('tsxPnl');
         if (pnlEl) {
             pnlEl.textContent = (pnl >= 0 ? '+' : '') + pnl.toFixed(0) + '$';
-            pnlEl.style.color = pnl >= 0 ? '#10B981' : '#EF4444';
+            pnlEl.style.color = pnl >= DAILY_GOAL ? '#10B981' : pnl >= 0 ? '#F59E0B' : '#EF4444';
         }
         var pnlSub = document.getElementById('tsxPnlSub');
-        if (pnlSub) pnlSub.textContent = 'Bal: $' + bal.toLocaleString('de-AT', {maximumFractionDigits:0});
+        if (pnlSub) pnlSub.textContent = floor ? '🔒 Floor aktiv' : Math.round(Math.max(0, pnl) / DAILY_GOAL * 100) + '% von $600';
 
         var ddEl = document.getElementById('tsxDD');
         if (ddEl) {
@@ -1541,22 +1542,27 @@ async function pollTopStep() {
             ddEl.style.color = dd > 60 ? '#EF4444' : dd > 40 ? '#F59E0B' : '#10B981';
         }
         var ddMax = document.getElementById('tsxDDMax');
-        if (ddMax) ddMax.textContent = 'Max DD: ' + (tsx.max_dd_pct || dd).toFixed(1) + '%';
+        if (ddMax) ddMax.textContent = 'Bal: $' + bal.toLocaleString('de-AT', {maximumFractionDigits:0});
 
-        var trEl = document.getElementById('tsxTrades');
-        if (trEl) trEl.textContent = tr + (tr === 1 ? ' Trade' : ' Trades');
-        var wrEl = document.getElementById('tsxWR');
-        if (wrEl) wrEl.textContent = wr ? 'WR ' + wr + '%' : 'Win Rate';
-
-        var targetEl = document.getElementById('tsxTarget');
-        var floorTxtEl = document.getElementById('tsxFloorTxt');
-        var DAILY_GOAL = 600;
-        if (targetEl) {
-            var pct = Math.min(100, Math.max(0, (pnl / DAILY_GOAL) * 100));
-            targetEl.textContent = (pnl >= 0 ? '+' : '') + pnl.toFixed(0) + '$';
-            targetEl.style.color = pnl >= DAILY_GOAL ? '#10B981' : pnl > 0 ? '#F59E0B' : '#EF4444';
+        var wrValEl = document.getElementById('tsxWinRate');
+        if (wrValEl) {
+            wrValEl.textContent = tr > 0 ? wr + '%' : '—';
+            wrValEl.style.color = wr >= 60 ? '#10B981' : wr >= 40 ? '#F59E0B' : (tr > 0 ? '#EF4444' : 'var(--text1)');
         }
-        if (floorTxtEl) floorTxtEl.textContent = floor ? '🔒 Floor aktiv' : Math.round((pnl / DAILY_GOAL) * 100) + '% von $600';
+        var trSubEl = document.getElementById('tsxTrades');
+        if (trSubEl) trSubEl.textContent = tr + (tr === 1 ? ' Trade' : ' Trades') + (tsx.day_wins !== undefined ? ' (' + tsx.day_wins + 'W/' + tsx.day_losses + 'L)' : '');
+
+        var rrEl = document.getElementById('tsxRR');
+        var rr = tsx.day_rr || 0;
+        if (rrEl) {
+            rrEl.textContent = rr > 0 ? rr.toFixed(2) : '—';
+            rrEl.style.color = rr >= 1.5 ? '#10B981' : rr > 0 ? '#F59E0B' : 'var(--text1)';
+        }
+        var rrSub = document.getElementById('tsxRRSub');
+        if (rrSub) {
+            var avgWin = tsx.avg_win || 0, avgLoss = tsx.avg_loss || 0;
+            rrSub.textContent = (avgWin > 0 || avgLoss > 0) ? '+$' + avgWin.toFixed(0) + ' / -$' + avgLoss.toFixed(0) : 'Ø Win / Loss';
+        }
 
         var flEl = document.getElementById('tsxFloor');
         if (flEl) {
@@ -1582,6 +1588,13 @@ async function pollTopStep() {
             } else {
                 posEl.textContent = 'Keine offenen Positionen';
             }
+        }
+
+        // Chart und Monatstabelle mit TopStepX-History überschreiben wenn Daten vorhanden
+        var hist = tsx.daily_history || [];
+        if (hist.length >= 1) {
+            _drawTsxChart(hist, tsx);
+            _renderTsxMonthly(hist);
         }
     } catch(e) {}
 }
