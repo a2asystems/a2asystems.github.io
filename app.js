@@ -1580,6 +1580,7 @@ async function pollBotStatus() {
         _botStateSha = d.sha;
         const data = JSON.parse(atob(d.content.replace(/\n/g, '')));
         _renderBotStatus(data.bot_status || 'unknown');
+        _renderLiveMode(data.live_trading || false);
     } catch(e) {}
 }
 
