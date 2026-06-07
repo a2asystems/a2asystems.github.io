@@ -633,5 +633,7 @@
       "status": "pending",
       "dispatched": 1780689436624
     }
-  ]
+  ],
+  "bot_status": "stopped",
+  "bot_status_ts": "2026-06-07T13:43:03Z"
 }
