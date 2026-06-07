@@ -1156,7 +1156,7 @@ function _hasMojibake(msgs) {
 function initChat() {
     document.querySelectorAll('.pb-btn').forEach(b => b.classList.toggle('active', b.textContent.includes(ME)));
     // Version-based force-clear: increment _CHAT_VER to wipe all browsers' localStorage chat
-    var _CHAT_VER = '7';
+    var _CHAT_VER = '8';
     try {
         if (localStorage.getItem('gb_chat_ver') !== _CHAT_VER) {
             localStorage.removeItem('gb_chat');
