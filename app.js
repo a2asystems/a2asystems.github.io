@@ -1755,6 +1755,24 @@ async function setLiveMode(isLive) {
         );
         _renderLiveMode(isLive);
         toast(isLive ? '🔴 LIVE TRADING aktiviert!' : '✓ Dry-Run Modus aktiv');
+        // Commander-Chat Eintrag schreiben
+        try {
+            var now = new Date();
+            var ts = now.toLocaleDateString('de-AT') + ' ' + now.toLocaleTimeString('de-AT', {hour:'2-digit',minute:'2-digit'});
+            var chatMsg = isLive
+                ? '🔴 LIVE TRADING aktiviert — ' + ts + '\nBot handelt ab sofort echte MGC-Kontrakte bei TopStepX.'
+                : '⚪ Dry-Run aktiviert — ' + ts + '\nBot wechselt zu Simulationsmodus — keine echten Orders mehr.';
+            var cr = await fetch('https://api.github.com/repos/'+GHUSER+'/'+GHREPO+'/contents/chat_v2.json',
+                {headers:{'Authorization':'Bearer '+ghTok(),'Accept':'application/vnd.github.v3+json'},cache:'no-store'});
+            var csha=null, cmsgs=[];
+            if(cr.ok){var cd=await cr.json();csha=cd.sha;try{cmsgs=JSON.parse(atob(cd.content.replace(/\n/g,'')))}catch(e){cmsgs=[];}}
+            cmsgs.push({author:'System',content:chatMsg,ts:Date.now(),auto:false,role:'assistant'});
+            var cenc=btoa(unescape(encodeURIComponent(JSON.stringify(cmsgs))));
+            var cpay={message:'bot: live mode change',content:cenc};
+            if(csha)cpay.sha=csha;
+            await fetch('https://api.github.com/repos/'+GHUSER+'/'+GHREPO+'/contents/chat_v2.json',
+                {method:'PUT',headers:{'Authorization':'Bearer '+ghTok(),'Content-Type':'application/json'},body:JSON.stringify(cpay)});
+        } catch(e2) {}
         setTimeout(pollBotStatus, 3000);
     } catch(e) { toast('Fehler: ' + e.message, true); }
 }
