@@ -1471,6 +1471,76 @@ async function sendPolyMsg() {
 function onPolyKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendPolyMsg();}}
 function autoGrow(el){el.style.height='40px';el.style.height=Math.min(el.scrollHeight,110)+'px';}
 
+// ── BOT CONTROL ────────────────────────────────────────────────────────────
+var _botStateSha = null;
+
+async function pollBotStatus() {
+    if (!ghTok() || !GHUSER || !GHREPO) return;
+    try {
+        const r = await fetch(
+            'https://api.github.com/repos/' + GHUSER + '/' + GHREPO + '/contents/state.json',
+            { headers: { 'Authorization': 'Bearer ' + ghTok(), 'Accept': 'application/vnd.github.v3+json' }, cache: 'no-store' }
+        );
+        if (!r.ok) return;
+        const d    = await r.json();
+        _botStateSha = d.sha;
+        const data = JSON.parse(atob(d.content.replace(/\n/g, '')));
+        _renderBotStatus(data.bot_status || 'unknown');
+    } catch(e) {}
+}
+
+function _renderBotStatus(status) {
+    var dot  = document.getElementById('botDot');
+    var txt  = document.getElementById('botStatusTxt');
+    var btnS = document.getElementById('btnBotStart');
+    var btnX = document.getElementById('btnBotStop');
+    if (!dot) return;
+    if (status === 'running') {
+        dot.style.background = '#10B981';
+        if (txt) txt.textContent = 'Bot läuft';
+        if (btnS) btnS.style.display = 'none';
+        if (btnX) btnX.style.display = 'block';
+    } else if (status === 'stopped') {
+        dot.style.background = '#EF4444';
+        if (txt) txt.textContent = 'Bot gestoppt';
+        if (btnS) btnS.style.display = 'block';
+        if (btnX) btnX.style.display = 'none';
+    } else {
+        dot.style.background = '#374151';
+        if (txt) txt.textContent = 'Bot: Launcher nicht aktiv';
+        if (btnS) btnS.style.display = 'none';
+        if (btnX) btnX.style.display = 'none';
+    }
+}
+
+async function sendBotCommand(cmd) {
+    if (!ghTok() || !GHUSER || !GHREPO) { toast('Kein GitHub-Token', true); return; }
+    var txt = document.getElementById('botStatusTxt');
+    if (txt) txt.textContent = cmd === 'start' ? 'Bot wird gestartet…' : 'Bot wird gestoppt…';
+    try {
+        var r = await fetch(
+            'https://api.github.com/repos/' + GHUSER + '/' + GHREPO + '/contents/state.json',
+            { headers: { 'Authorization': 'Bearer ' + ghTok(), 'Accept': 'application/vnd.github.v3+json' }, cache: 'no-store' }
+        );
+        var sha = null, data = {};
+        if (r.ok) {
+            var d = await r.json();
+            sha  = d.sha;
+            data = JSON.parse(atob(d.content.replace(/\n/g, '')));
+        }
+        data.bot_command = cmd;
+        var encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+        var payload = { message: 'dashboard: bot ' + cmd, content: encoded };
+        if (sha) payload.sha = sha;
+        await fetch(
+            'https://api.github.com/repos/' + GHUSER + '/' + GHREPO + '/contents/state.json',
+            { method: 'PUT', headers: { 'Authorization': 'Bearer ' + ghTok(), 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
+        );
+        toast(cmd === 'start' ? 'Start-Befehl gesendet' : 'Stop-Befehl gesendet');
+        setTimeout(pollBotStatus, 5000);
+    } catch(e) { toast('Fehler: ' + e.message, true); }
+}
+
 // ── DISPATCH ───────────────────────────────────────────────────────────────
 function ghTok(){return localStorage.getItem('gh_token') || _embeddedGhTok || '';}
 
@@ -1796,6 +1866,7 @@ function _updateNotifBtn() {
     updateTokenBtn();
     setInterval(poll, 30000);
     setInterval(syncChat, 8000); // Echtzeit-Sync alle 8 Sekunden
+    pollBotStatus(); setInterval(pollBotStatus, 30000); // Bot-Status alle 30s
     setInterval(function(){
         var saved=(function(){try{return JSON.parse(localStorage.getItem('gb_chat')||'[]').filter(function(m){return !m.auto;});}catch(e){return [];}})();
         if(saved.length) uploadLocalHistory(saved);
