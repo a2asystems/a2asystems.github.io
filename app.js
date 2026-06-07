@@ -261,9 +261,9 @@ function renderHeader(d) {
         box = document.createElement('div');
         box.id = '_btParams';
         box.style.cssText = 'background:rgba(99,102,241,.07);border:1px solid rgba(99,102,241,.2);border-radius:10px;margin:0 0 10px 0;overflow:hidden';
-        var anchor = document.getElementById('kReturn');
-        var krow = anchor && anchor.closest ? anchor.closest('.kpi-grid') : null;
-        if (krow) krow.parentNode.insertBefore(box, krow);
+        var chartEl = document.getElementById('pnlChart');
+        var chartCard = chartEl && chartEl.closest ? chartEl.closest('.card') : null;
+        if (chartCard) chartCard.parentNode.insertBefore(box, chartCard);
     }
     var inp = 'background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px 10px;color:#F1F5F9;font-size:.78rem;font-family:inherit;outline:none;-webkit-appearance:none';
     box.innerHTML =
@@ -1517,29 +1517,44 @@ async function pollTopStep() {
         const tsx = JSON.parse(atob(d.content.replace(/\n/g, '')));
         if (!tsx.status || tsx.status !== 'ok') return;
 
-        var panel = document.getElementById('tsxPanel');
-        if (panel) panel.style.display = 'block';
-
         var pnl   = tsx.daily_pnl || 0;
         var dd    = tsx.drawdown_pct || 0;
         var tr    = tsx.day_trades || 0;
+        var wr    = tsx.day_wr || 0;
         var floor = tsx.floor_active;
+        var bal   = tsx.balance || 50000;
 
         var pnlEl = document.getElementById('tsxPnl');
         if (pnlEl) {
             pnlEl.textContent = (pnl >= 0 ? '+' : '') + pnl.toFixed(0) + '$';
             pnlEl.style.color = pnl >= 0 ? '#10B981' : '#EF4444';
         }
+        var pnlSub = document.getElementById('tsxPnlSub');
+        if (pnlSub) pnlSub.textContent = 'Bal: $' + bal.toLocaleString('de-AT', {maximumFractionDigits:0});
+
         var ddEl = document.getElementById('tsxDD');
         if (ddEl) {
             ddEl.textContent = dd.toFixed(1) + '%';
             ddEl.style.color = dd > 60 ? '#EF4444' : dd > 40 ? '#F59E0B' : '#10B981';
         }
+        var ddMax = document.getElementById('tsxDDMax');
+        if (ddMax) ddMax.textContent = 'Max DD: ' + (tsx.max_dd_pct || dd).toFixed(1) + '%';
+
         var trEl = document.getElementById('tsxTrades');
-        if (trEl) {
-            var wr = tsx.day_wr || 0;
-            trEl.textContent = tr + ' (' + wr + '%)';
+        if (trEl) trEl.textContent = tr + (tr === 1 ? ' Trade' : ' Trades');
+        var wrEl = document.getElementById('tsxWR');
+        if (wrEl) wrEl.textContent = wr ? 'WR ' + wr + '%' : 'Win Rate';
+
+        var targetEl = document.getElementById('tsxTarget');
+        var floorTxtEl = document.getElementById('tsxFloorTxt');
+        var DAILY_GOAL = 600;
+        if (targetEl) {
+            var pct = Math.min(100, Math.max(0, (pnl / DAILY_GOAL) * 100));
+            targetEl.textContent = (pnl >= 0 ? '+' : '') + pnl.toFixed(0) + '$';
+            targetEl.style.color = pnl >= DAILY_GOAL ? '#10B981' : pnl > 0 ? '#F59E0B' : '#EF4444';
         }
+        if (floorTxtEl) floorTxtEl.textContent = floor ? '🔒 Floor aktiv' : Math.round((pnl / DAILY_GOAL) * 100) + '% von $600';
+
         var flEl = document.getElementById('tsxFloor');
         if (flEl) {
             if (floor) {
