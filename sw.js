@@ -8,7 +8,7 @@ self.addEventListener('activate', function(e) { e.waitUntil(clients.claim()); })
 self.addEventListener('fetch', function(e) {
     var url = e.request.url;
     if (url.includes('api.github.com') || url.includes('data.json') ||
-        url.includes('chat.json') || url.includes('state.json')) return;
+        url.includes('chat_v2.json') || url.includes('state.json')) return;
     e.respondWith(fetch(e.request).catch(function() { return caches.match(e.request); }));
 });
 
@@ -43,7 +43,7 @@ async function bgCheck() {
     _busy = true;
     try {
         var r = await fetch(
-            'https://api.github.com/repos/' + _gu + '/' + _gr + '/contents/chat.json?_=' + Date.now(),
+            'https://api.github.com/repos/' + _gu + '/' + _gr + '/contents/chat_v2.json?_=' + Date.now(),
             { headers: { Authorization: 'Bearer ' + _gt, 'User-Agent': 'gold-bot', 'Cache-Control': 'no-cache' } }
         );
         if (!r.ok) return;
