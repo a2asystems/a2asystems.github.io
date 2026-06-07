@@ -1599,6 +1599,70 @@ async function pollTopStep() {
     } catch(e) {}
 }
 
+function _drawTsxChart(hist, tsx) {
+    var canvas = document.getElementById('pnlChart');
+    if (!canvas) return;
+    // Kapitalkurve aus daily_history + heutigem Stand
+    var pts = [];
+    var startBal = hist.length > 0 ? (hist[0].balance - hist[0].pnl) : (tsx.balance || 50000);
+    pts.push(startBal);
+    for (var i = 0; i < hist.length; i++) {
+        pts.push(hist[i].balance);
+    }
+    if (pts.length < 2) {
+        // Nur 1 Datenpunkt: heute mit aktuellem Stand anzeigen
+        pts = [tsx.balance - tsx.daily_pnl, tsx.balance];
+    }
+    // Benutze drawChart-Logik direkt über synthetisches Objekt
+    var fakeD = {
+        monthly: hist.map(function(h, i) {
+            return { cap: h.balance };
+        }),
+        start_cap: pts[0],
+        end_cap: pts[pts.length - 1],
+        trades: hist.reduce(function(s, h) { return s + h.trades; }, 0),
+        wr: hist.length > 0 ? (hist.reduce(function(s, h) { return s + h.wr; }, 0) / hist.length) : 0,
+        from_date: hist.length > 0 ? hist[0].date : new Date().toISOString().slice(0, 10),
+        to_date:   hist.length > 0 ? hist[hist.length - 1].date : new Date().toISOString().slice(0, 10),
+    };
+    _setEl('chartTitle', 'TopStepX — Kapitalkurve');
+    drawChart(fakeD);
+    var fromEl = document.getElementById('chartFrom');
+    if (fromEl) fromEl.textContent = fakeD.from_date.slice(0, 10);
+}
+
+function _renderTsxMonthly(hist) {
+    var tbody = document.getElementById('monthlyTable');
+    if (!tbody) return;
+    if (hist.length === 0) return;
+    // Gruppiere nach Monat
+    var months = {};
+    for (var i = 0; i < hist.length; i++) {
+        var h = hist[i];
+        var mo = h.date.slice(0, 7); // "2026-06"
+        if (!months[mo]) months[mo] = { pnl: 0, trades: 0, wins: 0, cap: h.balance };
+        months[mo].pnl    += h.pnl;
+        months[mo].trades += h.trades;
+        months[mo].wins   += (h.wins || 0);
+        months[mo].cap     = h.balance; // letzter Stand im Monat
+    }
+    var keys = Object.keys(months).sort();
+    tbody.innerHTML = keys.map(function(mo) {
+        var m = months[mo];
+        var wr = m.trades > 0 ? Math.round(m.wins / m.trades * 100) : 0;
+        var wrCol = wr >= 60 ? '#10B981' : wr >= 40 ? '#F59E0B' : '#EF4444';
+        var pnlCol = m.pnl >= 0 ? '#10B981' : '#EF4444';
+        var label = mo.slice(0, 4) + '-' + mo.slice(5, 7);
+        return '<tr style="border-bottom:1px solid rgba(255,255,255,.05)">' +
+            '<td style="padding:5px 8px;font-size:.68rem;color:var(--text2)">' + label + '</td>' +
+            '<td style="padding:5px 8px;text-align:right;font-size:.68rem;color:var(--text2)">' + m.trades + '</td>' +
+            '<td style="padding:5px 8px;text-align:right;font-size:.68rem;color:' + wrCol + ';font-weight:700">' + wr + '%</td>' +
+            '<td style="padding:5px 8px;text-align:right;font-size:.68rem;color:' + pnlCol + ';font-weight:700">' + (m.pnl >= 0 ? '+' : '') + m.pnl.toFixed(0) + '$</td>' +
+            '<td style="padding:5px 8px;text-align:right;font-size:.68rem;color:var(--text2)">$' + m.cap.toLocaleString('de-AT', {maximumFractionDigits:0}) + '</td>' +
+            '</tr>';
+    }).join('');
+}
+
 async function pollBotStatus() {
     if (!ghTok() || !GHUSER || !GHREPO) return;
     try {
