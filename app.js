@@ -900,6 +900,8 @@ function switchTab(tab) {
     if (tab === 'notes') renderNotes();
     if (tab === 'chat' && document.getElementById('chatBox') && !document.getElementById('chatBox').children.length) initChat();
     if (tab === 'poly') initPolyChat();
+    // Badge löschen wenn Chat-Tab geöffnet wird
+    if (tab === 'chat') { var b=document.getElementById('chatBadge'); if(b){b.textContent='0';b.style.display='none';} }
 }
 
 function startOptimizer() {
@@ -1041,17 +1043,34 @@ async function syncChat() {
                 sep.textContent = '— ' + newMsgs.length + ' neue Nachricht(en) —';
                 box.appendChild(sep);
             }
+            var fromOthers = 0;
             newMsgs.forEach(function(msg){
                 hist.push(msg);
                 renderMsg(msg.role, msg.content, msg.ts, msg.author);
-                // Browser-Benachrichtigung wenn Tab im Hintergrund & anderer User
-                if (msg.author !== ME && typeof Notification !== 'undefined' && Notification.permission === 'granted' && document.hidden) {
-                    new Notification('A2A · ' + (msg.author||'Commander'), {
-                        body: (msg.content||'').slice(0, 100),
-                        icon: './icon-192.png', tag: 'a2a-chat', renotify: true
-                    });
+                if (msg.author !== ME) {
+                    fromOthers++;
+                    // Browser-Benachrichtigung wenn Tab im Hintergrund
+                    if (typeof Notification !== 'undefined' && Notification.permission === 'granted' && document.hidden) {
+                        new Notification('A2A · ' + (msg.author||'Commander'), {
+                            body: (msg.content||'').slice(0, 100),
+                            icon: './icon-192.png', tag: 'a2a-chat', renotify: true
+                        });
+                    }
                 }
             });
+            // Badge auf Chat-Tab zeigen wenn Nachrichten von anderen kamen
+            if (fromOthers > 0) {
+                var chatBtn = document.querySelector('[data-tab="chat"]');
+                var isOnChat = chatBtn && chatBtn.classList.contains('show');
+                if (!isOnChat) {
+                    var badge = document.getElementById('chatBadge');
+                    if (badge) {
+                        var cur = parseInt(badge.textContent) || 0;
+                        badge.textContent = cur + fromOthers;
+                        badge.style.display = 'flex';
+                    }
+                }
+            }
             // SW über neuen Timestamp informieren
             if (navigator.serviceWorker && navigator.serviceWorker.controller) {
                 var maxTs = Math.max.apply(null, newMsgs.map(function(m){ return m.ts; }));
