@@ -83,11 +83,11 @@ function showStrategy(mode) {
     if (mode === 'bb') {
       btnBB.style.background  = 'rgba(139,92,246,.22)';
       btnBB.style.borderColor = 'rgba(139,92,246,.6)';
-      btnSMC.style.background = 'rgba(245,158,11,.05)';
-      btnSMC.style.borderColor= 'rgba(245,158,11,.15)';
+      btnSMC.style.background = 'rgba(255,255,255,.04)';
+      btnSMC.style.borderColor= 'rgba(255,255,255,.1)';
     } else {
-      btnSMC.style.background  = 'rgba(245,158,11,.14)';
-      btnSMC.style.borderColor = 'rgba(245,158,11,.45)';
+      btnSMC.style.background  = 'rgba(37,99,235,.14)';
+      btnSMC.style.borderColor = 'rgba(37,99,235,.45)';
       btnBB.style.background  = 'rgba(139,92,246,.07)';
       btnBB.style.borderColor = 'rgba(139,92,246,.22)';
     }
@@ -178,10 +178,10 @@ function drawBBChart() {
   var yMil = py(1000000);
   if (yMil > pad.t && yMil < H-pad.b) {
     ctx.setLineDash([3,3]);
-    ctx.strokeStyle='rgba(245,158,11,.4)'; ctx.lineWidth=1;
+    ctx.strokeStyle='rgba(37,99,235,.4)'; ctx.lineWidth=1;
     ctx.beginPath(); ctx.moveTo(pad.l,yMil); ctx.lineTo(W-pad.r,yMil); ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle='rgba(245,158,11,.8)'; ctx.font='bold 8px -apple-system,sans-serif';
+    ctx.fillStyle='rgba(96,165,250,.9)'; ctx.font='bold 8px -apple-system,sans-serif';
     ctx.fillText('$1M',W-pad.r-18,yMil-2);
   }
   // From/To labels
@@ -272,7 +272,7 @@ function renderHeader(d) {
         + '<span style="color:#6366F1;font-weight:700;font-size:.7rem">⚙ BACKTEST-KONFIGURATION</span>'
         + '&nbsp;&nbsp;<span style="color:#F1F5F9">'+sym+'</span>'
         + '&nbsp;·&nbsp;<span style="color:#F1F5F9">'+fd+' – '+td2+'</span>'
-        + '&nbsp;·&nbsp;Risiko <span style="color:#F59E0B;font-weight:700">'+rPct+'%</span>/Trade'
+        + '&nbsp;·&nbsp;Risiko <span style="color:#60A5FA;font-weight:700">'+rPct+'%</span>/Trade'
         + '&nbsp;·&nbsp;<span style="color:#475569">'+upd+'</span>'
         + '</span>'
         + '<span id="_btChev" style="color:#6366F1;font-size:.85rem;margin-left:10px;transition:transform .25s;flex-shrink:0">▼</span>'
@@ -287,7 +287,7 @@ function renderHeader(d) {
         + _aaRow('Short-Trades','<input id="_aaShort" type="checkbox" '+ashort+' style="width:22px;height:22px;accent-color:#10B981;cursor:pointer">',true)
         + '<div style="display:flex;gap:10px;margin-top:14px">'
         + '<button onclick="_runAccOpt(false)" style="flex:1;background:rgba(99,102,241,.18);border:1px solid rgba(99,102,241,.4);color:#818CF8;font-size:.78rem;font-weight:700;padding:13px;border-radius:10px;cursor:pointer;touch-action:manipulation">▶ Backtest</button>'
-        + '<button onclick="_runAccOpt(true)" style="flex:1;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);color:#F59E0B;font-size:.78rem;font-weight:700;padding:13px;border-radius:10px;cursor:pointer;touch-action:manipulation">🔍 Optimieren</button>'
+        + '<button onclick="_runAccOpt(true)" style="flex:1;background:rgba(37,99,235,.15);border:1px solid rgba(37,99,235,.4);color:#60A5FA;font-size:.78rem;font-weight:700;padding:13px;border-radius:10px;cursor:pointer;touch-action:manipulation">🔍 Optimieren</button>'
         + '</div>'
         + '</div></div>';
 }
@@ -609,7 +609,7 @@ function renderStrategies(d) {
         const isActive = s.active || (s.name||'').includes('Aktuell aktiv');
         const activeBadge = isActive
             ? '<span style="background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.4);color:#10B981;font-size:.55rem;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap">✓ AKTIV</span>'
-            : `<button onclick="event.stopPropagation();activateVariant('${esc(s.id||s.name||'')}','${esc(s.name||'')}')" style="background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);color:#F59E0B;font-size:.55rem;font-weight:700;padding:3px 9px;border-radius:20px;cursor:pointer;touch-action:manipulation;white-space:nowrap">Aktivieren</button>`;
+            : `<button onclick="event.stopPropagation();activateVariant('${esc(s.id||s.name||'')}','${esc(s.name||'')}')" style="background:rgba(37,99,235,.12);border:1px solid rgba(37,99,235,.35);color:#60A5FA;font-size:.55rem;font-weight:700;padding:3px 9px;border-radius:20px;cursor:pointer;touch-action:manipulation;white-space:nowrap">Aktivieren</button>`;
         return `<div class="str-row" onclick="showVariantDetail(${i})" style="align-items:center;gap:6px;cursor:pointer">
           <div class="str-rank">${i+1}</div>
           <div class="str-info" style="flex:1;min-width:0">
@@ -970,10 +970,10 @@ function renderAssetPicker() {
     grid.innerHTML = assets.map(function(a) {
         var pending = _pendingAssets[a.symbol];
         var isActive = (pending !== undefined) ? pending : a.active;
-        var borderColor = isActive ? 'var(--gold)' : 'var(--border)';
-        var bgColor = isActive ? 'rgba(245,158,11,.1)' : 'var(--card)';
-        var nameColor = isActive ? 'var(--gold)' : 'var(--text2)';
-        var badge = isActive ? '<span style="font-size:.55rem;background:var(--gold);color:#000;padding:2px 5px;border-radius:4px;font-weight:700">AKTIV</span>' : '<span style="font-size:.55rem;background:var(--border);color:var(--text2);padding:2px 5px;border-radius:4px">INAKTIV</span>';
+        var borderColor = isActive ? 'rgba(37,99,235,.55)' : 'var(--border)';
+        var bgColor = isActive ? 'rgba(37,99,235,.12)' : 'var(--card)';
+        var nameColor = isActive ? 'var(--blue-bright)' : 'var(--text2)';
+        var badge = isActive ? '<span style="font-size:.55rem;background:rgba(37,99,235,.85);color:#fff;padding:2px 5px;border-radius:4px;font-weight:700">AKTIV</span>' : '<span style="font-size:.55rem;background:rgba(255,255,255,.07);color:var(--text3);padding:2px 5px;border-radius:4px">INAKTIV</span>';
         var spin = (pending !== undefined) ? '<span style="font-size:.65rem;color:var(--text2)"> ⟳</span>' : '';
         return '<button type="button" onclick="toggleAsset(\'' + a.symbol + '\',' + !isActive + ')" style="'
             + 'background:' + bgColor + ';border:1px solid ' + borderColor + ';'
