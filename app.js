@@ -1517,6 +1517,9 @@ async function pollTopStep() {
         const tsx = JSON.parse(atob(d.content.replace(/\n/g, '')));
         if (!tsx.status || tsx.status !== 'ok') return;
 
+        var panel = document.getElementById('tsxPanel');
+        if (panel && panel.style.display === 'none') panel.style.display = 'block';
+
         var pnl   = tsx.daily_pnl || 0;
         var dd    = tsx.drawdown_pct || 0;
         var tr    = tsx.day_trades || 0;
