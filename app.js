@@ -1668,6 +1668,7 @@ async function sendBotCommand(cmd) {
             data = JSON.parse(atob(d.content.replace(/\n/g, '')));
         }
         data.bot_command = cmd;
+        if (cmd === 'stop') data.live_trading = false; // Sicherheit: Stoppen setzt immer auf Dry-Run zurück
         var encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
         var payload = { message: 'dashboard: bot ' + cmd, content: encoded };
         if (sha) payload.sha = sha;
@@ -1675,7 +1676,8 @@ async function sendBotCommand(cmd) {
             'https://api.github.com/repos/' + GHUSER + '/' + GHREPO + '/contents/state.json',
             { method: 'PUT', headers: { 'Authorization': 'Bearer ' + ghTok(), 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
         );
-        toast(cmd === 'start' ? 'Start-Befehl gesendet' : 'Stop-Befehl gesendet');
+        if (cmd === 'stop') _renderLiveMode(false);
+        toast(cmd === 'start' ? 'Start-Befehl gesendet' : 'Stop-Befehl gesendet — Dry-Run aktiv');
         setTimeout(pollBotStatus, 5000);
     } catch(e) { toast('Fehler: ' + e.message, true); }
 }
