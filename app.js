@@ -1608,6 +1608,50 @@ function _renderBotStatus(status) {
     }
 }
 
+function _renderLiveMode(isLive) {
+    var dot  = document.getElementById('liveDot');
+    var txt  = document.getElementById('liveTxt');
+    var btnL = document.getElementById('btnGoLive');
+    var btnD = document.getElementById('btnGoDry');
+    if (!dot) return;
+    if (isLive) {
+        dot.style.background = '#EF4444';
+        if (txt) { txt.textContent = 'LIVE TRADING aktiv'; txt.style.color = '#EF4444'; txt.style.fontWeight = '800'; }
+        if (btnL) btnL.style.display = 'none';
+        if (btnD) btnD.style.display = 'inline-block';
+    } else {
+        dot.style.background = '#F59E0B';
+        if (txt) { txt.textContent = 'Dry-Run Modus'; txt.style.color = '#F59E0B'; txt.style.fontWeight = '700'; }
+        if (btnL) btnL.style.display = 'inline-block';
+        if (btnD) btnD.style.display = 'none';
+    }
+}
+
+async function setLiveMode(isLive) {
+    if (!ghTok() || !GHUSER || !GHREPO) { toast('Kein GitHub-Token', true); return; }
+    if (isLive && !confirm('⚠️ LIVE TRADING aktivieren?\n\nDer Bot platziert ab sofort ECHTE Orders bei TopStepX.\n\nNur aktivieren wenn Dry-Run Signale geprüft wurden!')) return;
+    if (!isLive && !confirm('Live Trading deaktivieren?\n\nBot wechselt in Dry-Run Modus — keine echten Orders mehr.')) return;
+    try {
+        var r = await fetch(
+            'https://api.github.com/repos/' + GHUSER + '/' + GHREPO + '/contents/state.json',
+            { headers: { 'Authorization': 'Bearer ' + ghTok(), 'Accept': 'application/vnd.github.v3+json' }, cache: 'no-store' }
+        );
+        var sha = null, data = {};
+        if (r.ok) { var d = await r.json(); sha = d.sha; data = JSON.parse(atob(d.content.replace(/\n/g, ''))); }
+        data.live_trading = isLive;
+        var encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+        var payload = { message: 'dashboard: live_trading=' + isLive, content: encoded };
+        if (sha) payload.sha = sha;
+        await fetch(
+            'https://api.github.com/repos/' + GHUSER + '/' + GHREPO + '/contents/state.json',
+            { method: 'PUT', headers: { 'Authorization': 'Bearer ' + ghTok(), 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
+        );
+        _renderLiveMode(isLive);
+        toast(isLive ? '🔴 LIVE TRADING aktiviert!' : '✓ Dry-Run Modus aktiv');
+        setTimeout(pollBotStatus, 3000);
+    } catch(e) { toast('Fehler: ' + e.message, true); }
+}
+
 async function sendBotCommand(cmd) {
     if (!ghTok() || !GHUSER || !GHREPO) { toast('Kein GitHub-Token', true); return; }
     var txt = document.getElementById('botStatusTxt');
