@@ -1066,6 +1066,16 @@ async function syncChat() {
         const m = await r.json();
         _chatSha = m.sha;
         let remote; try { remote = JSON.parse(_b64dec(m.content)); } catch(e) { return; }
+        // GitHub ist leer (Chat wurde geleert) aber lokal noch alte Nachrichten → sofort aufräumen
+        var localNonAuto = hist.filter(function(h){return !h.auto;});
+        if (remote.length === 0 && localNonAuto.length > 0) {
+            hist = hist.filter(function(h){return h.auto;});
+            try { localStorage.removeItem('gb_chat'); } catch(e) {}
+            var box2 = document.getElementById('chatBox');
+            if (box2) box2.innerHTML = '';
+            welcome();
+            return;
+        }
         const knownTs = new Set(hist.map(function(h){return h.ts;}));
         const newMsgs = remote.filter(function(msg){return !msg.auto && !knownTs.has(msg.ts);});
         if (newMsgs.length > 0) {
