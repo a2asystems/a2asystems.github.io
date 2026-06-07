@@ -1161,13 +1161,15 @@ async function manualSync() {
     const st = document.getElementById('syncStatus');
     if (st) st.textContent = '⏳ Lade hoch…';
     const saved = (function(){ try{return JSON.parse(localStorage.getItem('gb_chat')||'[]').filter(function(m){return !m.auto;});}catch(e){return [];} })();
-    if (st) st.textContent = saved.length + ' lokale Msgs gefunden…';
-    await uploadLocalHistory(saved);
+    if (saved.length) await uploadLocalHistory(saved);
+    // Full reload: clear DOM + hist so syncChat fetches everything from GitHub fresh
+    const box = document.getElementById('chatBox');
+    if (box) box.innerHTML = '';
+    hist = [];
     if (st) st.textContent = '⏳ Sync läuft…';
     await syncChat();
-    const box = document.getElementById('chatBox');
     const n = box ? box.querySelectorAll('.msg').length : 0;
-    if (st) st.textContent = '✓ Sync fertig · ' + n + ' Msgs · ' + new Date().toLocaleTimeString('de',{hour:'2-digit',minute:'2-digit'});
+    if (st) st.textContent = '✓ ' + n + ' Msgs · ' + new Date().toLocaleTimeString('de',{hour:'2-digit',minute:'2-digit'});
 }
 
 async function uploadLocalHistory(localMsgs) {
