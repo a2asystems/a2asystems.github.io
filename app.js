@@ -1474,6 +1474,70 @@ function autoGrow(el){el.style.height='40px';el.style.height=Math.min(el.scrollH
 // ── BOT CONTROL ────────────────────────────────────────────────────────────
 var _botStateSha = null;
 
+async function pollTopStep() {
+    if (!ghTok() || !GHUSER || !GHREPO) return;
+    try {
+        const r = await fetch(
+            'https://api.github.com/repos/' + GHUSER + '/' + GHREPO + '/contents/agent_state.json',
+            { headers: { 'Authorization': 'Bearer ' + ghTok() }, cache: 'no-store' }
+        );
+        if (!r.ok) return;
+        const d     = await r.json();
+        const state = JSON.parse(atob(d.content.replace(/\n/g, '')));
+        const tsx   = state.topstep_agent || {};
+        if (!tsx.status || tsx.status !== 'ok') return;
+
+        var panel = document.getElementById('tsxPanel');
+        if (panel) panel.style.display = 'block';
+
+        var pnl   = tsx.daily_pnl || 0;
+        var dd    = tsx.drawdown_pct || 0;
+        var tr    = tsx.day_trades || 0;
+        var floor = tsx.floor_active;
+
+        var pnlEl = document.getElementById('tsxPnl');
+        if (pnlEl) {
+            pnlEl.textContent = (pnl >= 0 ? '+' : '') + pnl.toFixed(0) + '$';
+            pnlEl.style.color = pnl >= 0 ? '#10B981' : '#EF4444';
+        }
+        var ddEl = document.getElementById('tsxDD');
+        if (ddEl) {
+            ddEl.textContent = dd.toFixed(1) + '%';
+            ddEl.style.color = dd > 60 ? '#EF4444' : dd > 40 ? '#F59E0B' : '#10B981';
+        }
+        var trEl = document.getElementById('tsxTrades');
+        if (trEl) {
+            var wr = tsx.day_wr || 0;
+            trEl.textContent = tr + ' (' + wr + '%)';
+        }
+        var flEl = document.getElementById('tsxFloor');
+        if (flEl) {
+            if (floor) {
+                flEl.style.display = 'block';
+                flEl.style.background = 'rgba(16,185,129,.15)';
+                flEl.style.color = '#10B981';
+                flEl.textContent = 'Profit Floor aktiv — Max Risiko: ' + (tsx.max_risk_now || 0).toFixed(0) + '$';
+            } else {
+                flEl.style.display = 'none';
+            }
+        }
+        var posEl = document.getElementById('tsxPositions');
+        if (posEl) {
+            var pos = tsx.open_positions || [];
+            if (pos.length) {
+                posEl.innerHTML = pos.map(function(p) {
+                    var col = p.pnl >= 0 ? '#10B981' : '#EF4444';
+                    return '<span style="color:var(--text3)">' + p.symbol + '</span> ' +
+                           p.direction + ' ' + p.size + 'x &nbsp; ' +
+                           '<span style="color:' + col + '">' + (p.pnl >= 0 ? '+' : '') + p.pnl.toFixed(0) + '$</span>';
+                }).join('&nbsp;&nbsp;·&nbsp;&nbsp;');
+            } else {
+                posEl.textContent = 'Keine offenen Positionen';
+            }
+        }
+    } catch(e) {}
+}
+
 async function pollBotStatus() {
     if (!ghTok() || !GHUSER || !GHREPO) return;
     try {
@@ -1867,6 +1931,7 @@ function _updateNotifBtn() {
     setInterval(poll, 30000);
     setInterval(syncChat, 8000); // Echtzeit-Sync alle 8 Sekunden
     pollBotStatus(); setInterval(pollBotStatus, 30000); // Bot-Status alle 30s
+    pollTopStep();   setInterval(pollTopStep,   60000); // TopStepX Live alle 60s
     setInterval(function(){
         var saved=(function(){try{return JSON.parse(localStorage.getItem('gb_chat')||'[]').filter(function(m){return !m.auto;});}catch(e){return [];}})();
         if(saved.length) uploadLocalHistory(saved);
