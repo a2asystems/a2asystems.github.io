@@ -1032,7 +1032,7 @@ async function clearChat() {
     if (ghTok() && GHUSER && GHREPO) {
         try {
             var rGet = await fetch(
-                'https://api.github.com/repos/'+GHUSER+'/'+GHREPO+'/contents/chat.json',
+                'https://api.github.com/repos/'+GHUSER+'/'+GHREPO+'/contents/chat_v2.json',
                 {headers:{Authorization:'Bearer '+ghTok(),'User-Agent':'gold-bot'}}
             );
             var sha = null;
@@ -1040,7 +1040,7 @@ async function clearChat() {
             var body = {message:'Clear chat', content: btoa('[]')};
             if (sha) body.sha = sha;
             var rPut = await fetch(
-                'https://api.github.com/repos/'+GHUSER+'/'+GHREPO+'/contents/chat.json',
+                'https://api.github.com/repos/'+GHUSER+'/'+GHREPO+'/contents/chat_v2.json',
                 {method:'PUT', headers:{Authorization:'Bearer '+ghTok(),'Content-Type':'application/json','User-Agent':'gold-bot'}, body:JSON.stringify(body)}
             );
             if (rPut.ok) { _chatSha = (await rPut.json()).content.sha; }
@@ -1058,7 +1058,7 @@ async function syncChat() {
     if (!ghTok() || !GHUSER || !GHREPO) return;
     try {
         const r = await fetch(
-            'https://api.github.com/repos/'+GHUSER+'/'+GHREPO+'/contents/chat.json',
+            'https://api.github.com/repos/'+GHUSER+'/'+GHREPO+'/contents/chat_v2.json',
             {headers:{Authorization:'Bearer '+ghTok(),'User-Agent':'gold-bot','Cache-Control':'no-cache'}}
         );
         if (r.status === 404) return;
@@ -1134,7 +1134,7 @@ async function pushChatMsg(entry) {
     for (var attempt=0; attempt<3; attempt++) {
         try {
             var rGet = await fetch(
-                'https://api.github.com/repos/'+GHUSER+'/'+GHREPO+'/contents/chat.json',
+                'https://api.github.com/repos/'+GHUSER+'/'+GHREPO+'/contents/chat_v2.json',
                 {headers:{Authorization:'Bearer '+ghTok(),'User-Agent':'gold-bot'}}
             );
             var messages = [], sha = null;
@@ -1148,7 +1148,7 @@ async function pushChatMsg(entry) {
             var body = {message:'Chat update', content:btoa(unescape(encodeURIComponent(JSON.stringify(messages))))};
             if (sha) body.sha = sha;
             var rPut = await fetch(
-                'https://api.github.com/repos/'+GHUSER+'/'+GHREPO+'/contents/chat.json',
+                'https://api.github.com/repos/'+GHUSER+'/'+GHREPO+'/contents/chat_v2.json',
                 {method:'PUT', headers:{Authorization:'Bearer '+ghTok(),'Content-Type':'application/json','User-Agent':'gold-bot'}, body:JSON.stringify(body)}
             );
             if (rPut.status===409) { await new Promise(function(r){setTimeout(r,800+Math.random()*400);}); continue; }
@@ -1220,7 +1220,7 @@ async function uploadLocalHistory(localMsgs) {
     if (!ghTok() || !GHUSER || !GHREPO || !localMsgs.length) return;
     try {
         var rGet = await fetch(
-            'https://api.github.com/repos/'+GHUSER+'/'+GHREPO+'/contents/chat.json',
+            'https://api.github.com/repos/'+GHUSER+'/'+GHREPO+'/contents/chat_v2.json',
             {headers:{Authorization:'Bearer '+ghTok(),'User-Agent':'gold-bot'}}
         );
         var remote = [], sha = null;
@@ -1239,7 +1239,7 @@ async function uploadLocalHistory(localMsgs) {
         var body = {message:'Upload local history ('+ME+')', content:btoa(unescape(encodeURIComponent(JSON.stringify(merged))))};
         if (sha) body.sha = sha;
         var rPut = await fetch(
-            'https://api.github.com/repos/'+GHUSER+'/'+GHREPO+'/contents/chat.json',
+            'https://api.github.com/repos/'+GHUSER+'/'+GHREPO+'/contents/chat_v2.json',
             {method:'PUT', headers:{Authorization:'Bearer '+ghTok(),'Content-Type':'application/json','User-Agent':'gold-bot'}, body:JSON.stringify(body)}
         );
         if (rPut.ok) console.log('Local history uploaded to GitHub ✓');
