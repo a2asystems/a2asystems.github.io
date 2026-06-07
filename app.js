@@ -1145,10 +1145,13 @@ function initChat() {
     // Skip welcome when there are saved messages so it doesn't confuse the timeline.
     saved.forEach(function(m) { renderMsg(m.role, m.content, m.ts, m.author); });
     if (saved.length === 0) { welcome(); }
-    // Upload local history to GitHub first, then pull everyone else's messages
+    // Full reload from GitHub: clear DOM+hist so ALL messages are fetched fresh
     setTimeout(function(){
         const st = document.getElementById('syncStatus');
         if (st) st.textContent = '⏳ Syncing…';
+        const box = document.getElementById('chatBox');
+        if (box) box.innerHTML = '';
+        hist = [];
         uploadLocalHistory(saved).then(function(){
             return syncChat();
         }).then(function(){
