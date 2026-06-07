@@ -1020,6 +1020,40 @@ async function toggleAsset(symbol, activate) {
 // ── CHAT ───────────────────────────────────────────────────────────────────
 var _chatSha = null;
 
+async function clearChat() {
+    if (!confirm('Chat wirklich löschen?\n\nAlle Nachrichten werden unwiderruflich gelöscht — auch auf GitHub.')) return;
+    var st = document.getElementById('syncStatus');
+    if (st) st.textContent = '⏳ Lösche…';
+    try { localStorage.removeItem('gb_chat'); } catch(e) {}
+    hist = [];
+    _chatSha = null;
+    var box = document.getElementById('chatBox');
+    if (box) box.innerHTML = '';
+    if (ghTok() && GHUSER && GHREPO) {
+        try {
+            var rGet = await fetch(
+                'https://api.github.com/repos/'+GHUSER+'/'+GHREPO+'/contents/chat.json',
+                {headers:{Authorization:'Bearer '+ghTok(),'User-Agent':'gold-bot'}}
+            );
+            var sha = null;
+            if (rGet.ok) { sha = (await rGet.json()).sha; }
+            var body = {message:'Clear chat', content: btoa('[]')};
+            if (sha) body.sha = sha;
+            var rPut = await fetch(
+                'https://api.github.com/repos/'+GHUSER+'/'+GHREPO+'/contents/chat.json',
+                {method:'PUT', headers:{Authorization:'Bearer '+ghTok(),'Content-Type':'application/json','User-Agent':'gold-bot'}, body:JSON.stringify(body)}
+            );
+            if (rPut.ok) { _chatSha = (await rPut.json()).content.sha; }
+            if (st) st.textContent = 'Chat gelöscht ✓';
+        } catch(e) {
+            if (st) st.textContent = 'Gelöscht (lokal)';
+        }
+    } else {
+        if (st) st.textContent = 'Gelöscht (lokal)';
+    }
+    welcome();
+}
+
 async function syncChat() {
     if (!ghTok() || !GHUSER || !GHREPO) return;
     try {
@@ -1145,13 +1179,10 @@ function initChat() {
     // Skip welcome when there are saved messages so it doesn't confuse the timeline.
     saved.forEach(function(m) { renderMsg(m.role, m.content, m.ts, m.author); });
     if (saved.length === 0) { welcome(); }
-    // Full reload from GitHub: clear DOM+hist so ALL messages are fetched fresh
+    // Sync mit GitHub: neue Nachrichten holen (DOM bleibt — kein Flash)
     setTimeout(function(){
-        const st = document.getElementById('syncStatus');
+        var st = document.getElementById('syncStatus');
         if (st) st.textContent = '⏳ Syncing…';
-        const box = document.getElementById('chatBox');
-        if (box) box.innerHTML = '';
-        hist = [];
         uploadLocalHistory(saved).then(function(){
             return syncChat();
         }).then(function(){
@@ -1852,6 +1883,7 @@ function _updateNotifBtn() {
         hdr.appendChild(nb);
     }
 
+    var DEL_BTN_HTML = '<button type="button" id="delBtn" onclick="clearChat()" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#EF4444;font-size:.6rem;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;touch-action:manipulation" title="Chat löschen">🗑</button>';
     var bar = document.getElementById('syncBar');
     var chatBox = document.getElementById('chatBox');
     if (!bar && chatBox) {
@@ -1860,24 +1892,35 @@ function _updateNotifBtn() {
         bar.style.cssText = 'display:flex;align-items:center;gap:6px;padding:6px 14px;border-bottom:1px solid rgba(255,255,255,.08);background:#07090E;flex-shrink:0';
         bar.innerHTML = '<span id="syncStatus" style="font-size:.6rem;color:#8B9BB4;flex:1">Sync bereit</span>'
             + NOTIF_BTN
+            + DEL_BTN_HTML
             + '<button type="button" id="syncBtn" style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#10B981;font-size:.6rem;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;touch-action:manipulation">↻ Sync</button>';
         chatBox.parentNode.insertBefore(bar, chatBox);
+    } else if (bar && !document.getElementById('delBtn')) {
+        // Del-Button in bestehendes HTML-syncBar einfügen
+        var delBtnEl = document.createElement('button');
+        delBtnEl.type = 'button'; delBtnEl.id = 'delBtn'; delBtnEl.onclick = clearChat;
+        delBtnEl.style.cssText = 'background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#EF4444;font-size:.6rem;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;touch-action:manipulation';
+        delBtnEl.title = 'Chat löschen'; delBtnEl.textContent = '🗑';
+        var syncBtn0 = document.getElementById('syncBtn');
+        if (syncBtn0) bar.insertBefore(delBtnEl, syncBtn0);
+        else bar.appendChild(delBtnEl);
     }
     var btn = document.getElementById('syncBtn');
     if (btn) btn.onclick = manualSync;
-    // Also inject into poly chat
+    // Poly chat — eigene SyncBar ohne del (poly hat eigene localStorage-Logik)
     var polyBox = document.getElementById('polyChatBox');
     var polyBar = document.getElementById('polySyncBar');
     if (!polyBar && polyBox) {
-        polyBar = bar ? bar.cloneNode(true) : null;
-        if (polyBar) {
-            polyBar.id = 'polySyncBar';
-            polyBar.querySelector('#syncStatus').id = 'polySyncStatus';
-            polyBar.querySelector('#syncBtn').id = 'polySyncBtn';
-            polyBar.querySelector('#polySyncBtn').onclick = manualSync;
-            polyBox.parentNode.insertBefore(polyBar, polyBox);
-        }
+        polyBar = document.createElement('div');
+        polyBar.id = 'polySyncBar';
+        polyBar.style.cssText = 'display:flex;align-items:center;gap:6px;padding:6px 14px;border-bottom:1px solid rgba(255,255,255,.08);background:#07090E;flex-shrink:0';
+        polyBar.innerHTML = '<span id="polySyncStatus" style="font-size:.6rem;color:#8B9BB4;flex:1">Sync bereit</span>'
+            + NOTIF_BTN
+            + '<button type="button" id="polySyncBtn" style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#10B981;font-size:.6rem;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;touch-action:manipulation">↻ Sync</button>';
+        polyBox.parentNode.insertBefore(polyBar, polyBox);
     }
+    var polyBtn = document.getElementById('polySyncBtn');
+    if (polyBtn) polyBtn.onclick = manualSync;
     _updateNotifBtn();
 })();
 
