@@ -1630,11 +1630,12 @@ function _drawTsxChart(hist, tsx) {
         pts = [tsx.balance - tsx.daily_pnl, tsx.balance];
     }
     // Benutze drawChart-Logik direkt über synthetisches Objekt
+    // Startpunkt immer als ersten Eintrag einfügen → monthly hat mindestens 2 Punkte
+    // → drawChart nutzt den korrekten monthly-Pfad statt den Simulations-Fallback
+    var fakeMonthly = [{cap: pts[0]}].concat(hist.map(function(h) { return { cap: h.balance }; }));
     var fakeD = {
         _tsx: true, // Markierung: dieser Aufruf kommt von TopStepX (nicht Backtest-Unterdrückung)
-        monthly: hist.map(function(h, i) {
-            return { cap: h.balance };
-        }),
+        monthly: fakeMonthly,
         start_cap: pts[0],
         end_cap: pts[pts.length - 1],
         trades: hist.reduce(function(s, h) { return s + h.trades; }, 0),
