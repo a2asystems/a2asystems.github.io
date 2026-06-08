@@ -30,6 +30,7 @@ var _embeddedGhTok = _cds.gt ? _cds.gt.split(',').map(Number).map(function(c){re
 
 let L = LIVE;
 let hist = [], busy = false;
+var _tsxDataAvailable = false; // gesetzt sobald TopStepX daily_history vorliegt
 let ME = (function(){ try { return localStorage.getItem('gb_persona')||'Dominik'; } catch(e){ return 'Dominik'; } })();
 function setPers(name) {
     ME = name;
@@ -396,7 +397,7 @@ function renderKPIs(d) {
     if (sv) { sv.textContent='BOS+H4'; sv.style.color='#10B981'; sv.style.fontSize='.95rem'; }
     _setEl('kStratLbl', 'H4-Filter');
     _setEl('kStratSub', 'Strategie');
-    _setEl('chartTitle', 'Performance-Kurve');
+    if (!_tsxDataAvailable) _setEl('chartTitle', 'Performance-Kurve');
     var elChange = document.getElementById('chartChange');
     if (elChange) elChange.style.color = '';
     const fd=d.from_date||'', td=d.to_date||'';
@@ -416,8 +417,8 @@ function renderKPIs(d) {
     if (elCap)  { elCap.textContent  = ec   ? '$'+ec.toLocaleString('de-DE',{maximumFractionDigits:0}) : '–'; }
     if (elLS)   { const l=d.longs||0, s=d.shorts||0; elLS.textContent = (l||s) ? l+'L / '+s+'S' : '–'; }
     if (elRisk) { elRisk.textContent = d.risk_pct ? (d.risk_pct*100).toFixed(0)+'% Risiko' : '–'; }
-    // Monatstabelle rendern
-    renderMonthly(d.monthly||[]);
+    // Monatstabelle rendern (nicht wenn TopStepX-Daten aktiv sind)
+    if (!_tsxDataAvailable) renderMonthly(d.monthly||[]);
 
     // Karten anklickbar machen (Detail-Popup)
     var _addTap = function(elId, title, rows) {
@@ -473,6 +474,8 @@ function renderMonthly(monthly) {
 
 // ── CHART ──────────────────────────────────────────────────────────────────
 function drawChart(d) {
+    // TopStepX-Daten aktiv → Backtest-Chart unterdrücken (nur TSX-Aufrufe mit d._tsx dürfen)
+    if (_tsxDataAvailable && !d._tsx) return;
     const canvas = document.getElementById('pnlChart');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -1605,6 +1608,7 @@ async function pollTopStep() {
         // Chart und Monatstabelle mit TopStepX-History überschreiben wenn Daten vorhanden
         var hist = tsx.daily_history || [];
         if (hist.length >= 1) {
+            _tsxDataAvailable = true; // Backtest-Rendering ab jetzt permanent unterdrücken
             _drawTsxChart(hist, tsx);
             _renderTsxMonthly(hist);
         }
@@ -1627,6 +1631,7 @@ function _drawTsxChart(hist, tsx) {
     }
     // Benutze drawChart-Logik direkt über synthetisches Objekt
     var fakeD = {
+        _tsx: true, // Markierung: dieser Aufruf kommt von TopStepX (nicht Backtest-Unterdrückung)
         monthly: hist.map(function(h, i) {
             return { cap: h.balance };
         }),
