@@ -544,7 +544,7 @@
       "symbol": "USOIL",
       "active": false,
       "name": "Asset deaktiviert: USOIL",
-      "status": "pending",
+      "status": "expired",
       "dispatched": 1780686053486
     },
     {
@@ -552,7 +552,7 @@
       "symbol": "US30",
       "active": false,
       "name": "Asset deaktiviert: US30",
-      "status": "pending",
+      "status": "expired",
       "dispatched": 1780686056343
     },
     {
@@ -560,7 +560,7 @@
       "symbol": "NAS100",
       "active": false,
       "name": "Asset deaktiviert: NAS100",
-      "status": "pending",
+      "status": "expired",
       "dispatched": 1780686057380
     },
     {
@@ -568,7 +568,7 @@
       "symbol": "BTCUSD",
       "active": false,
       "name": "Asset deaktiviert: BTCUSD",
-      "status": "pending",
+      "status": "expired",
       "dispatched": 1780686058423
     },
     {
@@ -576,7 +576,7 @@
       "symbol": "XAGUSD",
       "active": false,
       "name": "Asset deaktiviert: XAGUSD",
-      "status": "pending",
+      "status": "expired",
       "dispatched": 1780686059655
     },
     {
@@ -584,7 +584,7 @@
       "symbol": "USDJPY",
       "active": false,
       "name": "Asset deaktiviert: USDJPY",
-      "status": "pending",
+      "status": "expired",
       "dispatched": 1780686060932
     },
     {
@@ -592,7 +592,7 @@
       "symbol": "ETHUSD",
       "active": false,
       "name": "Asset deaktiviert: ETHUSD",
-      "status": "pending",
+      "status": "expired",
       "dispatched": 1780686061962
     },
     {
@@ -600,7 +600,7 @@
       "symbol": "GBPUSD",
       "active": false,
       "name": "Asset deaktiviert: GBPUSD",
-      "status": "pending",
+      "status": "expired",
       "dispatched": 1780686063622
     },
     {
@@ -608,7 +608,7 @@
       "symbol": "EURUSD",
       "active": false,
       "name": "Asset deaktiviert: EURUSD",
-      "status": "pending",
+      "status": "expired",
       "dispatched": 1780686065833
     },
     {
@@ -621,7 +621,7 @@
         "risk_pct": 0.1,
         "allow_short": false
       },
-      "status": "pending",
+      "status": "expired",
       "dispatched": 1780686482482
     },
     {
@@ -630,7 +630,7 @@
         "min_wr": 0.6,
         "min_trades": 15
       },
-      "status": "pending",
+      "status": "expired",
       "dispatched": 1780689436624
     }
   ],
