@@ -910,10 +910,10 @@ function switchTab(tab) {
 
 // ── BITGET ──────────────────────────────────────────────────────────────────
 var BG_STRATS = {
-    'd': {name:'D — SMC 1:1 ★',      wr:71,   weekly_pct:9.02, max_dd:22,   trades_week:14.9, color:'#3D8EFF',  rr:'1:1',    desc:'Aktuell live'},
-    'a': {name:'A — Long-only',       wr:80,   weekly_pct:8.4,  max_dd:10.6, trades_week:1.1,  color:'#10B981',  rr:'~1.5:1', desc:'Jan–Mär 2026'},
-    'b': {name:'B — Long+Short★',     wr:75,   weekly_pct:5.7,  max_dd:21.4, trades_week:1.0,  color:'#60A5FA',  rr:'~2.5:1', desc:'Jan–Mai 2026'},
-    'c': {name:'C — BB Squeeze',      wr:32.2, weekly_pct:4.4,  max_dd:63.5, trades_week:4.2,  color:'#8B5CF6',  rr:'3:1',    desc:'2 Jahre, hohe WR nötig'}
+    'd': {name:'D — SMC 1:1 (TopStepX)', wr:71,   weekly_pct:9.02, max_dd:22,   trades_week:14.9, color:'#3D8EFF',  rr:'1:1',    desc:'TopStepX Futures'},
+    'a': {name:'A — Long-only ★ (Bitget)',wr:80,   weekly_pct:8.4,  max_dd:10.6, trades_week:1.1,  color:'#F59E0B',  rr:'1.5:1',  desc:'Bitget Swing · Jan–Mär 2026'},
+    'b': {name:'B — Long+Short',          wr:75,   weekly_pct:5.7,  max_dd:21.4, trades_week:1.0,  color:'#60A5FA',  rr:'2.5:1',  desc:'Jan–Mai 2026'},
+    'c': {name:'C — BB Squeeze',          wr:32.2, weekly_pct:4.4,  max_dd:63.5, trades_week:4.2,  color:'#8B5CF6',  rr:'3:1',    desc:'2 Jahre, hohe WR nötig'}
 };
 
 function _bgFmt$(n) { return '$' + Math.abs(n).toLocaleString('de-DE', {minimumFractionDigits:0,maximumFractionDigits:0}); }
