@@ -885,7 +885,7 @@ function renderPoly(d) { return; // disabled
 }
 
 // ── TABS ───────────────────────────────────────────────────────────────────
-var _tabMap = {stats:'panelDashboard', agents:'panelAgents', poly:'panelPoly', topstep:'panelTopstep', bitget:'panelBitget', chat:'panelChat', notes:'panelNotes'};
+var _tabMap = {stats:'panelDashboard', agents:'panelAgents', topstep:'panelTopstep', bitget:'panelBitget', chat:'panelChat', notes:'panelNotes'};
 function switchTab(tab) {
     var targetId = _tabMap[tab];
     // Update panel visibility
@@ -902,7 +902,6 @@ function switchTab(tab) {
     });
     if (tab === 'notes') renderNotes();
     if (tab === 'chat' && document.getElementById('chatBox') && !document.getElementById('chatBox').children.length) initChat();
-    if (tab === 'poly') initPolyChat();
     if (tab === 'bitget') initBitget();
     if (tab === 'topstep' && typeof LIVE !== 'undefined') _refreshTsx2Panel(LIVE.tsx || {});
     // Badge löschen wenn Chat-Tab geöffnet wird
@@ -1502,7 +1501,7 @@ function showTyping() {
     d.innerHTML='<div class="t-bubble"><div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div></div>';
     box.appendChild(d); box.scrollTop=0;
 }
-function hideTyping() { ['typer','polyTyper'].forEach(function(id){const e=document.getElementById(id);if(e)e.remove();}); }
+function hideTyping() { var e=document.getElementById('typer'); if(e) e.remove(); }
 
 async function sendMsg() {
     if (busy) return;
@@ -1536,8 +1535,8 @@ async function sendMsg() {
 
 function onKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
 
-// ── POLY SCOUT — eigenständiger Bot für Polymarket ────────────────────────
-var polyHist = [], polyBusy = false;
+// ── POLY SCOUT (removed) ──────────────────────────────────────────────────
+var polyHist = [], polyBusy = false; // stubs kept to avoid reference errors
 
 function polySystemPrompt() {
     var d = L;
@@ -1671,7 +1670,9 @@ async function sendPolyMsg() {
     }
 }
 
-function onPolyKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendPolyMsg();}}
+function onPolyKey(e){}
+function initPolyChat(){}
+function sendPolyMsg(){}
 function autoGrow(el){el.style.height='40px';el.style.height=Math.min(el.scrollHeight,110)+'px';}
 
 // ── BOT CONTROL ────────────────────────────────────────────────────────────
