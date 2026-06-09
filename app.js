@@ -911,8 +911,8 @@ function switchTab(tab) {
 // ── BITGET ──────────────────────────────────────────────────────────────────
 var BG_STRATS = {
     'd': {name:'D — SMC 1:1 (TopStepX)', wr:71,   weekly_pct:9.02, max_dd:22,   trades_week:14.9, color:'#3D8EFF',  rr:'1:1',    desc:'TopStepX Futures'},
-    'a': {name:'A — Long-only ★ (Bitget)',wr:80,   weekly_pct:8.4,  max_dd:10.6, trades_week:1.1,  color:'#F59E0B',  rr:'1.5:1',  desc:'Bitget Swing · Jan–Mär 2026'},
-    'b': {name:'B — Long+Short (Bitget Alt.)',wr:75, weekly_pct:5.7,  max_dd:21.4, trades_week:5.0,  color:'#60A5FA',  rr:'2.5:1',  desc:'5 Charts · Long+Short'},
+    'a': {name:'A — Long-only ★ (Bitget)',wr:60,   weekly_pct:11.15,max_dd:26.5, trades_week:4.5,  color:'#F59E0B',  rr:'1.5:1',  desc:'5% Risiko · 5 Charts · Jan–Jun 2026'},
+    'b': {name:'B — Long+Short (Bitget)', wr:52.6, weekly_pct:50.22,max_dd:53.5, trades_week:17.5, color:'#60A5FA',  rr:'2:1',    desc:'5% Risiko · 5 Charts · Jan–Jun 2026'},
     'c': {name:'C — BB Squeeze',          wr:32.2, weekly_pct:4.4,  max_dd:63.5, trades_week:4.2,  color:'#8B5CF6',  rr:'3:1',    desc:'2 Jahre, hohe WR nötig'}
 };
 
