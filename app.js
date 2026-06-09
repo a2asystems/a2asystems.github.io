@@ -1128,29 +1128,47 @@ function initBitget() {
 
     // ── Trades Heute (immer rendern, auch ohne Verbindung) ───────────────────
     var fills = bg.fills_today || [];
+    var closedFills = fills.filter(function(f) { return f.result !== 'OPEN'; });
+    var openFills   = fills.filter(function(f) { return f.result === 'OPEN'; });
     var bdg = document.getElementById('bgTradesBadge');
     if (bdg) {
         bdg.textContent = fills.length;
         bdg.style.background = fills.length > 0 ? 'rgba(245,158,11,.18)' : 'rgba(55,65,81,.3)';
         bdg.style.color = fills.length > 0 ? '#F59E0B' : 'var(--text3)';
     }
-    var tEl = document.getElementById('bgTradesHtml');
-    if (tEl) {
+    var cbdg = document.getElementById('bgClosedBadge');
+    if (cbdg) cbdg.textContent = closedFills.length;
+    var obdg = document.getElementById('bgOpenBadge');
+    if (obdg) obdg.textContent = openFills.length;
+
+    function _fillRow(f) {
+        var col = f.pnl > 0 ? '#10B981' : (f.pnl < 0 ? '#EF4444' : '#9DB4CC');
+        var res = f.result || (f.pnl > 0 ? 'WIN' : f.pnl < 0 ? 'LOSS' : 'OPEN');
+        return '<div style="display:flex;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid rgba(255,255,255,.05)">'
+            + '<span style="font-size:.52rem;font-weight:800;padding:2px 6px;border-radius:4px;background:' + col + '22;color:' + col + ';border:1px solid ' + col + '44;flex-shrink:0">' + res + '</span>'
+            + '<span style="font-size:.68rem;font-weight:700;color:#F0F4FF">' + (f.symbol || '?') + '</span>'
+            + '<span style="font-size:.6rem;color:#9DB4CC">' + (f.side || '') + ' · ' + (f.qty || 0) + ' @ ' + (f.price || 0).toFixed(2) + '</span>'
+            + '<span style="margin-left:auto;font-size:.75rem;font-weight:800;color:' + col + '">' + (f.pnl >= 0 ? '+$' : '-$') + Math.abs(f.pnl || 0).toFixed(2) + '</span>'
+            + '</div>';
+    }
+    var cEl = document.getElementById('bgTradesClosedHtml');
+    if (cEl) {
         if (!conn) {
-            tEl.innerHTML = '<div style="font-size:.65rem;color:var(--text3);padding:8px 2px;text-align:center">API nicht verbunden · keine Fills</div>';
-        } else if (fills.length === 0) {
-            tEl.innerHTML = '<div style="font-size:.65rem;color:var(--text3);padding:8px 2px;text-align:center">Keine Fills heute</div>';
+            cEl.innerHTML = '<div style="font-size:.65rem;color:var(--text3);padding:8px 2px;text-align:center">API nicht verbunden · keine Fills</div>';
+        } else if (closedFills.length === 0) {
+            cEl.innerHTML = '<div style="font-size:.65rem;color:var(--text3);padding:6px 2px">Keine geschlossenen Trades heute</div>';
         } else {
-            tEl.innerHTML = fills.slice().reverse().map(function(f) {
-                var col = f.pnl > 0 ? '#10B981' : (f.pnl < 0 ? '#EF4444' : '#9DB4CC');
-                var res = f.result || (f.pnl > 0 ? 'WIN' : f.pnl < 0 ? 'LOSS' : 'OPEN');
-                return '<div style="display:flex;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid rgba(255,255,255,.05)">'
-                    + '<span style="font-size:.52rem;font-weight:800;padding:2px 6px;border-radius:4px;background:' + col + '22;color:' + col + ';border:1px solid ' + col + '44;flex-shrink:0">' + res + '</span>'
-                    + '<span style="font-size:.68rem;font-weight:700;color:#F0F4FF">' + (f.symbol || '?') + '</span>'
-                    + '<span style="font-size:.6rem;color:#9DB4CC">' + (f.side || '') + ' · ' + (f.qty || 0) + ' @ ' + (f.price || 0).toFixed(2) + '</span>'
-                    + '<span style="margin-left:auto;font-size:.75rem;font-weight:800;color:' + col + '">' + (f.pnl >= 0 ? '+$' : '-$') + Math.abs(f.pnl || 0).toFixed(2) + '</span>'
-                    + '</div>';
-            }).join('');
+            cEl.innerHTML = closedFills.slice().reverse().map(_fillRow).join('');
+        }
+    }
+    var oEl = document.getElementById('bgTradesOpenHtml');
+    if (oEl) {
+        if (!conn) {
+            oEl.innerHTML = '';
+        } else if (openFills.length === 0) {
+            oEl.innerHTML = '<div style="font-size:.65rem;color:var(--text3);padding:6px 2px">Keine offenen Positionen</div>';
+        } else {
+            oEl.innerHTML = openFills.slice().reverse().map(_fillRow).join('');
         }
     }
 }
