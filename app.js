@@ -258,14 +258,7 @@ function renderHeader(d) {
     var upd  = d.updated || '–';
     var cap  = d.start_cap || 10000;
     var ashort = d.allow_short ? 'checked' : '';
-    if (!box) {
-        box = document.createElement('div');
-        box.id = '_btParams';
-        box.style.cssText = 'background:rgba(99,102,241,.07);border:1px solid rgba(99,102,241,.2);border-radius:10px;margin:0 0 10px 0;overflow:hidden';
-        var chartEl = document.getElementById('pnlChart');
-        var chartCard = chartEl && chartEl.closest ? chartEl.closest('.card') : null;
-        if (chartCard) chartCard.parentNode.insertBefore(box, chartCard);
-    }
+    if (!box) return;
     var inp = 'background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px 10px;color:#F1F5F9;font-size:.78rem;font-family:inherit;outline:none;-webkit-appearance:none';
     box.innerHTML =
         '<div onclick="_btToggle()" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;font-size:.65rem;color:#8B9BB4;user-select:none;-webkit-user-select:none">'
@@ -2699,18 +2692,6 @@ function _updateNotifBtn() {
     var chartCard = chartEl && chartEl.closest ? chartEl.closest('.card') : null;
     if (!chartCard) return;
 
-    // Extra KPI-Zeile VOR dem Chart einfügen (Return / End-Kapital / Long-Short / H4)
-    if (!document.getElementById('kReturn')) {
-        var kRow = document.createElement('div');
-        kRow.className = 'kpi-grid';
-        kRow.style.cssText = 'grid-template-columns:repeat(4,1fr);margin-top:0';
-        kRow.innerHTML =
-            '<div class="kpi" style="--kc:#10B981;--kg:rgba(16,185,129,.15)"><div class="kpi-lbl">Return</div><div class="kpi-val" id="kReturn" style="font-size:1.35rem">–</div><div class="kpi-sub">Gesamt-Rendite</div></div>' +
-            '<div class="kpi" style="--kc:#6366F1;--kg:rgba(99,102,241,.15)"><div class="kpi-lbl">End-Kapital</div><div class="kpi-val" id="kEndCap" style="font-size:1.1rem">–</div><div class="kpi-sub" id="kRisk">–</div></div>' +
-            '<div class="kpi" style="--kc:#F59E0B;--kg:rgba(245,158,11,.15)"><div class="kpi-lbl">Long / Short</div><div class="kpi-val" id="kLongShort" style="font-size:1.25rem">–</div><div class="kpi-sub">Richtungen</div></div>' +
-            '<div class="kpi" style="--kc:#14B8A6;--kg:rgba(20,184,166,.15)"><div class="kpi-lbl">H4-Filter</div><div class="kpi-val" style="font-size:.95rem;color:#10B981">BOS+H4</div><div class="kpi-sub">Strategie</div></div>';
-        chartCard.insertAdjacentElement('beforebegin', kRow);
-    }
     // Monatliche Auswertung NACH dem Chart einfügen
     if (!document.getElementById('monthlyTable')) {
         var mDiv = document.createElement('div');
