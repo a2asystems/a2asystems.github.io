@@ -885,7 +885,7 @@ function renderPoly(d) {
 }
 
 // ── TABS ───────────────────────────────────────────────────────────────────
-var _tabMap = {stats:'panelDashboard', agents:'panelAgents', poly:'panelPoly', bitget:'panelBitget', chat:'panelChat', notes:'panelNotes'};
+var _tabMap = {stats:'panelDashboard', agents:'panelAgents', poly:'panelPoly', topstep:'panelTopstep', bitget:'panelBitget', chat:'panelChat', notes:'panelNotes'};
 function switchTab(tab) {
     var targetId = _tabMap[tab];
     // Update panel visibility
@@ -904,6 +904,7 @@ function switchTab(tab) {
     if (tab === 'chat' && document.getElementById('chatBox') && !document.getElementById('chatBox').children.length) initChat();
     if (tab === 'poly') initPolyChat();
     if (tab === 'bitget') initBitget();
+    if (tab === 'topstep' && typeof LIVE !== 'undefined') _refreshTsx2Panel(LIVE.tsx || {});
     // Badge löschen wenn Chat-Tab geöffnet wird
     if (tab === 'chat') { var b=document.getElementById('chatBadge'); if(b){b.textContent='0';b.style.display='none';} }
 }
@@ -1768,6 +1769,9 @@ async function pollTopStep() {
             _drawTsxChart(hist, tsx);
             _renderTsxMonthly(hist);
         }
+
+        // Dedicated TopStepX panel updaten
+        _refreshTsx2Panel(tsx);
     } catch(e) {}
 }
 
@@ -1956,6 +1960,96 @@ function _renderLiveMode(isLive) {
         if (btnL) btnL.style.display = 'inline-block';
         if (btnD) btnD.style.display = 'none';
     }
+    // Sync TopStepX dedicated panel indicator
+    var d2 = document.getElementById('tsx2LiveDot'), t2 = document.getElementById('tsx2LiveTxt');
+    if (d2) d2.style.background = isLive ? '#EF4444' : '#F59E0B';
+    if (t2) { t2.textContent = isLive ? 'LIVE TRADING aktiv' : 'Dry-Run Modus'; t2.style.color = isLive ? '#EF4444' : '#F59E0B'; }
+}
+
+function _refreshTsx2Panel(tsx) {
+    var pnl   = tsx.daily_pnl || 0;
+    var dd    = tsx.drawdown_pct || 0;
+    var ddUsed= tsx.drawdown_used || 0;
+    var ddMax = tsx.drawdown_max || 2500;
+    var tr    = tsx.day_trades || 0;
+    var wr    = tsx.day_wr || 0;
+    var floor = tsx.floor_active;
+    var bal   = tsx.balance || 0;
+    var realPnl = tsx.realized_pnl || 0;
+    var openPnl = tsx.open_pnl || 0;
+    var el;
+
+    // Connection badge
+    el = document.getElementById('tsx2ConnBadge');
+    if (el) {
+        var ok = bal > 0 || tr > 0;
+        el.textContent = ok ? '● Verbunden' : '· Keine Daten';
+        el.style.background = ok ? 'rgba(16,185,129,.15)' : 'rgba(55,65,81,.4)';
+        el.style.color = ok ? '#10B981' : 'var(--text3)';
+    }
+
+    var DAILY_GOAL = 600;
+    el = document.getElementById('tsx2Pnl');
+    if (el) { el.textContent = (pnl >= 0 ? '+' : '') + pnl.toFixed(0) + '$'; el.style.color = pnl >= DAILY_GOAL ? '#10B981' : pnl >= 0 ? '#F59E0B' : '#EF4444'; }
+    el = document.getElementById('tsx2PnlSub');
+    if (el) el.textContent = floor ? '🔒 Floor aktiv' : Math.round(Math.max(0, pnl) / DAILY_GOAL * 100) + '% von $600';
+
+    el = document.getElementById('tsx2DD');
+    if (el) { el.textContent = dd.toFixed(1) + '%'; el.style.color = dd > 60 ? '#EF4444' : dd > 40 ? '#F59E0B' : '#10B981'; }
+    el = document.getElementById('tsx2DDSub');
+    if (el) el.textContent = 'Bal: $' + bal.toLocaleString('de-AT', {maximumFractionDigits:0});
+
+    el = document.getElementById('tsx2WinRate');
+    if (el) { el.textContent = tr > 0 ? wr + '%' : '—'; el.style.color = wr >= 60 ? '#10B981' : wr >= 40 ? '#F59E0B' : (tr > 0 ? '#EF4444' : 'var(--text1)'); }
+    el = document.getElementById('tsx2Trades');
+    if (el) el.textContent = tr + (tr === 1 ? ' Trade' : ' Trades') + (tsx.day_wins !== undefined ? ' (' + tsx.day_wins + 'W/' + tsx.day_losses + 'L)' : '');
+
+    el = document.getElementById('tsx2RR');
+    var rr = tsx.day_rr || 0;
+    if (el) { el.textContent = rr > 0 ? rr.toFixed(2) : '—'; el.style.color = rr >= 1.5 ? '#10B981' : rr > 0 ? '#F59E0B' : 'var(--text1)'; }
+    el = document.getElementById('tsx2RRSub');
+    if (el) { var aw = tsx.avg_win || 0, al = tsx.avg_loss || 0; el.textContent = (aw > 0 || al > 0) ? '+$' + aw.toFixed(0) + ' / -$' + al.toFixed(0) : 'Ø Win / Loss'; }
+
+    el = document.getElementById('tsx2Floor');
+    if (el) { if (floor) { el.style.display = 'block'; el.style.background = 'rgba(16,185,129,.15)'; el.style.color = '#10B981'; el.textContent = 'Profit Floor aktiv — Max Risiko: ' + (tsx.max_risk_now || 0).toFixed(0) + '$'; } else { el.style.display = 'none'; } }
+
+    // Drawdown bar
+    var ddPct = ddMax > 0 ? Math.min(100, ddUsed / ddMax * 100) : 0;
+    el = document.getElementById('tsx2DDBar');
+    if (el) { el.style.width = ddPct + '%'; el.style.background = ddPct > 70 ? '#EF4444' : ddPct > 40 ? '#F59E0B' : '#10B981'; }
+    el = document.getElementById('tsx2DDUsed');
+    if (el) el.textContent = '$' + ddUsed.toFixed(0) + ' / $' + ddMax.toLocaleString('de-AT', {maximumFractionDigits:0});
+
+    // Positions
+    el = document.getElementById('tsx2Positions');
+    if (el) {
+        var pos = tsx.open_positions || [];
+        if (pos.length) {
+            el.innerHTML = pos.map(function(p) {
+                var col = p.pnl >= 0 ? '#10B981' : '#EF4444';
+                return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06)">'
+                    + '<span style="font-size:.55rem;font-weight:800;padding:2px 6px;border-radius:4px;background:' + col + '22;color:' + col + ';border:1px solid ' + col + '44">' + (p.direction || '?') + '</span>'
+                    + '<span style="font-size:.7rem;font-weight:700;color:#F0F4FF">' + (p.symbol || '?') + '</span>'
+                    + '<span style="font-size:.65rem;color:#9DB4CC">' + (p.size || 0) + 'x</span>'
+                    + '<span style="margin-left:auto;font-size:.72rem;font-weight:700;color:' + col + '">' + (p.pnl >= 0 ? '+' : '') + (p.pnl || 0).toFixed(0) + '$</span>'
+                    + '</div>';
+            }).join('');
+        } else {
+            el.textContent = 'Keine offenen Positionen';
+        }
+    }
+
+    // Konto details
+    el = document.getElementById('tsx2Bal');
+    if (el) el.textContent = bal > 0 ? '$' + bal.toLocaleString('de-AT', {maximumFractionDigits:0}) : '–';
+    el = document.getElementById('tsx2RealPnL');
+    if (el) { el.textContent = (realPnl >= 0 ? '+$' : '-$') + Math.abs(realPnl).toFixed(0); el.style.color = realPnl >= 0 ? '#10B981' : '#EF4444'; }
+    el = document.getElementById('tsx2OpenPnL');
+    if (el) { el.textContent = (openPnl >= 0 ? '+$' : '-$') + Math.abs(openPnl).toFixed(0); el.style.color = openPnl >= 0 ? '#10B981' : '#EF4444'; }
+
+    // Trades badge
+    el = document.getElementById('tsx2TradesBadge');
+    if (el) el.textContent = tr;
 }
 
 function _renderBitgetLiveMode(isLive) {
