@@ -1013,6 +1013,53 @@ function initBitget() {
         });
         el = document.getElementById('bgPosList');
         if (el) el.innerHTML = posHtml || '<div style="font-size:.65rem;color:var(--text3);padding:4px 0">Keine offene Position</div>';
+
+        // ── Stats-Seite: Bitget-Kurzfassung ─────────────────────────────────
+        var totalPnl  = bg.total_realized_pnl || 0;
+        var totalTr   = bg.total_trades  || 0;
+        var totalWins = bg.total_wins    || 0;
+        var wr = totalTr > 0 ? Math.round(totalWins / totalTr * 100) : 0;
+        el = document.getElementById('bgSumBalance');
+        if (el) el.textContent = bal > 0 ? '$' + bal.toFixed(2) : '–';
+        el = document.getElementById('bgSumTotalPnl');
+        if (el) { el.textContent = (totalPnl >= 0 ? '+$' : '-$') + Math.abs(totalPnl).toFixed(2); el.style.color = totalPnl >= 0 ? '#10B981' : '#EF4444'; }
+        el = document.getElementById('bgSumWR');
+        if (el) { el.textContent = totalTr > 0 ? wr + '%' : '–'; el.style.color = wr >= 60 ? '#10B981' : wr >= 40 ? '#F59E0B' : '#EF4444'; }
+        el = document.getElementById('bgSumTrades');
+        if (el) el.textContent = totalTr + ' Trades';
+        el = document.getElementById('bgSumUnreal');
+        if (el) { el.textContent = (unpnl >= 0 ? '+$' : '-$') + Math.abs(unpnl).toFixed(2); el.style.color = unpnl >= 0 ? '#10B981' : '#EF4444'; }
+        el = document.getElementById('bgSumPosCnt');
+        if (el) el.textContent = positions.length + ' Pos.';
+
+        // ── Stats-Seite: Variante C (Bitget Live) ───────────────────────────
+        el = document.getElementById('bgLiveWR');
+        if (el) { el.textContent = totalTr > 0 ? wr + '%' : '–'; el.style.color = wr >= 60 ? '#10B981' : wr >= 40 ? '#F59E0B' : '#EF4444'; }
+        el = document.getElementById('bgLiveTrades');
+        if (el) el.textContent = totalTr > 0 ? totalTr : '–';
+        el = document.getElementById('bgLivePnL');
+        if (el) { el.textContent = (totalPnl >= 0 ? '+$' : '-$') + Math.abs(totalPnl).toFixed(2); el.style.color = totalPnl >= 0 ? '#10B981' : '#EF4444'; }
+        el = document.getElementById('bgLiveBal');
+        if (el) el.textContent = bal > 0 ? '$' + bal.toFixed(2) : '–';
+        var hist = bg.daily_history || [];
+        var fillsHtml = '';
+        var recentFills = (bg.fills_today || []).slice(-5).reverse();
+        recentFills.forEach(function(f) {
+            var c = f.pnl > 0 ? '#10B981' : (f.pnl < 0 ? '#EF4444' : '#9DB4CC');
+            fillsHtml += '<span style="margin-right:8px;color:' + c + '">' + (f.symbol || '?') + ' ' + (f.pnl >= 0 ? '+$' : '-$') + Math.abs(f.pnl || 0).toFixed(2) + '</span>';
+        });
+        el = document.getElementById('bgLiveFills');
+        if (el) el.innerHTML = fillsHtml || '<span style="color:var(--text3)">Keine Fills heute</span>';
+        if (hist.length > 0) {
+            var period = hist[0].date + ' – ' + hist[hist.length - 1].date;
+            el = document.getElementById('bgLivePeriod');
+            if (el) el.textContent = period;
+        }
+
+        // Bitget-Chart zeichnen (falls aktiver Tab)
+        if (_activeChartMode === 'bg') {
+            _drawBitgetChart(hist, bg);
+        }
     }
 }
 
@@ -1756,6 +1803,67 @@ function _drawTsxChart(hist, tsx) {
     drawChart(fakeD);
     var fromEl = document.getElementById('chartFrom');
     if (fromEl) fromEl.textContent = fakeD.from_date.slice(0, 10);
+}
+
+var _activeChartMode = 'tsx'; // 'tsx' | 'bg'
+
+function switchChart(mode) {
+    _activeChartMode = mode;
+    var btnTsx = document.getElementById('btnChartTsx');
+    var btnBg  = document.getElementById('btnChartBg');
+    if (btnTsx) { btnTsx.style.background = mode === 'tsx' ? 'rgba(37,99,235,.35)' : 'rgba(37,99,235,.18)'; btnTsx.style.borderColor = mode === 'tsx' ? 'rgba(37,99,235,.7)' : 'rgba(37,99,235,.4)'; }
+    if (btnBg)  { btnBg.style.background  = mode === 'bg'  ? 'rgba(245,158,11,.22)' : 'rgba(245,158,11,.08)'; btnBg.style.borderColor  = mode === 'bg'  ? 'rgba(245,158,11,.6)'  : 'rgba(245,158,11,.3)'; }
+    if (typeof LIVE === 'undefined') return;
+    if (mode === 'tsx') {
+        var tsxH = (LIVE.tsx && LIVE.tsx.daily_history) ? LIVE.tsx.daily_history : [];
+        if (tsxH.length > 0) { _drawTsxChart(tsxH, LIVE.tsx); }
+    } else {
+        var bgH = (LIVE.bitget && LIVE.bitget.daily_history) ? LIVE.bitget.daily_history : [];
+        _drawBitgetChart(bgH, LIVE.bitget || {});
+    }
+}
+
+function _drawBitgetChart(hist, bg) {
+    var canvas = document.getElementById('pnlChart');
+    if (!canvas) return;
+    var pts = [];
+    var startBal = bg.start_balance || 0;
+    if (hist.length > 0) {
+        if (startBal <= 0) startBal = hist[0].balance - (hist[0].pnl || 0);
+        pts.push(startBal);
+        for (var i = 0; i < hist.length; i++) { pts.push(hist[i].balance); }
+    } else if (bg.balance > 0) {
+        var cur = bg.balance;
+        var pnlT = bg.realized_pnl_today || 0;
+        pts = [cur - pnlT, cur];
+    }
+    if (pts.length < 2) {
+        _setEl('chartTitle', 'Bitget — Kapitalkurve');
+        return;
+    }
+    var fakeMonthly = [{cap: pts[0]}].concat(
+        hist.length > 0 ? hist.map(function(h) { return { cap: h.balance }; }) : [{cap: pts[pts.length-1]}]
+    );
+    var fakeD = {
+        _tsx: true,
+        monthly:    fakeMonthly,
+        start_cap:  pts[0],
+        end_cap:    pts[pts.length - 1],
+        trades:     hist.reduce(function(s, h) { return s + (h.trades || 0); }, 0),
+        wr:         0,
+        from_date:  hist.length > 0 ? hist[0].date : new Date().toISOString().slice(0, 10),
+        to_date:    hist.length > 0 ? hist[hist.length - 1].date : new Date().toISOString().slice(0, 10),
+    };
+    _setEl('chartTitle', 'Bitget — Kapitalkurve');
+    drawChart(fakeD);
+    var fromEl = document.getElementById('chartFrom');
+    if (fromEl) fromEl.textContent = fakeD.from_date.slice(0, 10);
+    var changeEl = document.getElementById('chartChange');
+    if (changeEl) {
+        var chg = pts[pts.length-1] - pts[0];
+        changeEl.textContent = (chg >= 0 ? '+$' : '-$') + Math.abs(chg).toFixed(2);
+        changeEl.style.color = chg >= 0 ? '#10B981' : '#EF4444';
+    }
 }
 
 function _renderTsxMonthly(hist) {
