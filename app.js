@@ -1124,27 +1124,33 @@ function initBitget() {
         if (_activeChartMode === 'bg') {
             _drawBitgetChart(hist, bg);
         }
+    }
 
-        // ── Trades Heute ────────────────────────────────────────────────────
-        var fills = bg.fills_today || [];
-        var bdg = document.getElementById('bgTradesBadge');
-        if (bdg) { bdg.textContent = fills.length; bdg.style.background = fills.length > 0 ? 'rgba(245,158,11,.18)' : 'rgba(55,65,81,.3)'; }
-        var tEl = document.getElementById('bgTradesHtml');
-        if (tEl) {
-            if (fills.length === 0) {
-                tEl.innerHTML = '<div style="font-size:.65rem;color:var(--text3);padding:6px 2px">Keine Fills heute</div>';
-            } else {
-                tEl.innerHTML = fills.slice().reverse().map(function(f) {
-                    var col = f.pnl > 0 ? '#10B981' : (f.pnl < 0 ? '#EF4444' : '#9DB4CC');
-                    var res = f.result || (f.pnl > 0 ? 'WIN' : f.pnl < 0 ? 'LOSS' : 'OPEN');
-                    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)">'
-                        + '<span style="font-size:.52rem;font-weight:800;padding:2px 6px;border-radius:4px;background:' + col + '22;color:' + col + ';border:1px solid ' + col + '44;flex-shrink:0">' + res + '</span>'
-                        + '<span style="font-size:.68rem;font-weight:700;color:#F0F4FF">' + (f.symbol || '?') + '</span>'
-                        + '<span style="font-size:.6rem;color:#9DB4CC">' + (f.side || '') + ' · ' + (f.qty || 0) + ' @ ' + (f.price || 0).toFixed(2) + '</span>'
-                        + '<span style="margin-left:auto;font-size:.75rem;font-weight:800;color:' + col + '">' + (f.pnl >= 0 ? '+$' : '-$') + Math.abs(f.pnl || 0).toFixed(2) + '</span>'
-                        + '</div>';
-                }).join('');
-            }
+    // ── Trades Heute (immer rendern, auch ohne Verbindung) ───────────────────
+    var fills = bg.fills_today || [];
+    var bdg = document.getElementById('bgTradesBadge');
+    if (bdg) {
+        bdg.textContent = fills.length;
+        bdg.style.background = fills.length > 0 ? 'rgba(245,158,11,.18)' : 'rgba(55,65,81,.3)';
+        bdg.style.color = fills.length > 0 ? '#F59E0B' : 'var(--text3)';
+    }
+    var tEl = document.getElementById('bgTradesHtml');
+    if (tEl) {
+        if (!conn) {
+            tEl.innerHTML = '<div style="font-size:.65rem;color:var(--text3);padding:8px 2px;text-align:center">API nicht verbunden · keine Fills</div>';
+        } else if (fills.length === 0) {
+            tEl.innerHTML = '<div style="font-size:.65rem;color:var(--text3);padding:8px 2px;text-align:center">Keine Fills heute</div>';
+        } else {
+            tEl.innerHTML = fills.slice().reverse().map(function(f) {
+                var col = f.pnl > 0 ? '#10B981' : (f.pnl < 0 ? '#EF4444' : '#9DB4CC');
+                var res = f.result || (f.pnl > 0 ? 'WIN' : f.pnl < 0 ? 'LOSS' : 'OPEN');
+                return '<div style="display:flex;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid rgba(255,255,255,.05)">'
+                    + '<span style="font-size:.52rem;font-weight:800;padding:2px 6px;border-radius:4px;background:' + col + '22;color:' + col + ';border:1px solid ' + col + '44;flex-shrink:0">' + res + '</span>'
+                    + '<span style="font-size:.68rem;font-weight:700;color:#F0F4FF">' + (f.symbol || '?') + '</span>'
+                    + '<span style="font-size:.6rem;color:#9DB4CC">' + (f.side || '') + ' · ' + (f.qty || 0) + ' @ ' + (f.price || 0).toFixed(2) + '</span>'
+                    + '<span style="margin-left:auto;font-size:.75rem;font-weight:800;color:' + col + '">' + (f.pnl >= 0 ? '+$' : '-$') + Math.abs(f.pnl || 0).toFixed(2) + '</span>'
+                    + '</div>';
+            }).join('');
         }
     }
 }
