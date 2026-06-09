@@ -1805,6 +1805,7 @@ async function pollBotStatus() {
         const data = JSON.parse(atob(d.content.replace(/\n/g, '')));
         _renderBotStatus(data.bot_status || 'unknown');
         _renderLiveMode(data.live_trading || false);
+        _renderBitgetLiveMode(data.live_bitget || false);
     } catch(e) {}
 }
 
@@ -1849,6 +1850,50 @@ function _renderLiveMode(isLive) {
         if (btnL) btnL.style.display = 'inline-block';
         if (btnD) btnD.style.display = 'none';
     }
+}
+
+function _renderBitgetLiveMode(isLive) {
+    var dot  = document.getElementById('bgLiveDot');
+    var txt  = document.getElementById('bgLiveTxt');
+    var btnL = document.getElementById('btnBgGoLive');
+    var btnD = document.getElementById('btnBgGoDry');
+    if (!dot) return;
+    if (isLive) {
+        dot.style.background = '#EF4444';
+        if (txt) { txt.textContent = 'LIVE aktiv · Bitget Futures'; txt.style.color = '#EF4444'; txt.style.fontWeight = '800'; }
+        if (btnL) btnL.style.display = 'none';
+        if (btnD) btnD.style.display = 'inline-block';
+    } else {
+        dot.style.background = '#F59E0B';
+        if (txt) { txt.textContent = 'Dry-Run Modus'; txt.style.color = '#F59E0B'; txt.style.fontWeight = '700'; }
+        if (btnL) btnL.style.display = 'inline-block';
+        if (btnD) btnD.style.display = 'none';
+    }
+}
+
+async function setBitgetLiveMode(isLive) {
+    if (!ghTok() || !GHUSER || !GHREPO) { toast('Kein GitHub-Token', true); return; }
+    if (isLive && !confirm('⚠️ BITGET LIVE TRADING aktivieren?\n\nDer Bot platziert ab sofort ECHTE Orders bei Bitget Futures.\n\nNur aktivieren wenn Dry-Run Signale geprüft wurden!')) return;
+    if (!isLive && !confirm('Bitget Live Trading deaktivieren?\n\nBot wechselt in Dry-Run Modus — keine echten Bitget Orders mehr.')) return;
+    try {
+        var r = await fetch(
+            'https://api.github.com/repos/' + GHUSER + '/' + GHREPO + '/contents/state.json',
+            { headers: { 'Authorization': 'Bearer ' + ghTok(), 'Accept': 'application/vnd.github.v3+json' }, cache: 'no-store' }
+        );
+        var sha = null, data = {};
+        if (r.ok) { var d = await r.json(); sha = d.sha; data = JSON.parse(atob(d.content.replace(/\n/g, ''))); }
+        data.live_bitget = isLive;
+        var encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+        var payload = { message: 'dashboard: live_bitget=' + isLive, content: encoded };
+        if (sha) payload.sha = sha;
+        await fetch(
+            'https://api.github.com/repos/' + GHUSER + '/' + GHREPO + '/contents/state.json',
+            { method: 'PUT', headers: { 'Authorization': 'Bearer ' + ghTok(), 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
+        );
+        _renderBitgetLiveMode(isLive);
+        toast(isLive ? '🔴 Bitget LIVE aktiviert!' : '✓ Bitget Dry-Run aktiv');
+        setTimeout(pollBotStatus, 3000);
+    } catch(e) { toast('Fehler: ' + e.message, true); }
 }
 
 async function setLiveMode(isLive) {
@@ -1910,7 +1955,7 @@ async function sendBotCommand(cmd) {
             data = JSON.parse(atob(d.content.replace(/\n/g, '')));
         }
         data.bot_command = cmd;
-        if (cmd === 'stop') data.live_trading = false; // Sicherheit: Stoppen setzt immer auf Dry-Run zurück
+        if (cmd === 'stop') { data.live_trading = false; data.live_bitget = false; } // Sicherheit: Stoppen setzt immer auf Dry-Run zurück
         var encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
         var payload = { message: 'dashboard: bot ' + cmd, content: encoded };
         if (sha) payload.sha = sha;
@@ -1918,7 +1963,7 @@ async function sendBotCommand(cmd) {
             'https://api.github.com/repos/' + GHUSER + '/' + GHREPO + '/contents/state.json',
             { method: 'PUT', headers: { 'Authorization': 'Bearer ' + ghTok(), 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
         );
-        if (cmd === 'stop') _renderLiveMode(false);
+        if (cmd === 'stop') { _renderLiveMode(false); _renderBitgetLiveMode(false); }
         toast(cmd === 'start' ? 'Start-Befehl gesendet' : 'Stop-Befehl gesendet — Dry-Run aktiv');
         setTimeout(pollBotStatus, 5000);
     } catch(e) { toast('Fehler: ' + e.message, true); }
