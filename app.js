@@ -903,7 +903,7 @@ function switchTab(tab) {
     if (tab === 'notes') renderNotes();
     if (tab === 'chat' && document.getElementById('chatBox') && !document.getElementById('chatBox').children.length) initChat();
     if (tab === 'bitget') initBitget();
-    if (tab === 'topstep' && typeof LIVE !== 'undefined') _refreshTsx2Panel(LIVE.tsx || {});
+    if (tab === 'topstep') { calcTopstep(); _updateTsx2Chart(); if (typeof LIVE !== 'undefined') _refreshTsx2Panel(LIVE.tsx || {}); }
     // Badge löschen wenn Chat-Tab geöffnet wird
     if (tab === 'chat') { var b=document.getElementById('chatBadge'); if(b){b.textContent='0';b.style.display='none';} }
 }
@@ -2235,6 +2235,9 @@ function _refreshTsx2Panel(tsx) {
     // Trades badge
     el = document.getElementById('tsx2TradesBadge');
     if (el) el.textContent = tr;
+
+    calcTopstep();
+    _updateTsx2Chart();
 }
 
 function _renderBitgetLiveMode(isLive) {
