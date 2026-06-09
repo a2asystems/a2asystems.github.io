@@ -885,7 +885,7 @@ function renderPoly(d) {
 }
 
 // ── TABS ───────────────────────────────────────────────────────────────────
-var _tabMap = {stats:'panelDashboard', agents:'panelAgents', poly:'panelPoly', chat:'panelChat', notes:'panelNotes'};
+var _tabMap = {stats:'panelDashboard', agents:'panelAgents', poly:'panelPoly', bitget:'panelBitget', chat:'panelChat', notes:'panelNotes'};
 function switchTab(tab) {
     var targetId = _tabMap[tab];
     // Update panel visibility
@@ -903,8 +903,119 @@ function switchTab(tab) {
     if (tab === 'notes') renderNotes();
     if (tab === 'chat' && document.getElementById('chatBox') && !document.getElementById('chatBox').children.length) initChat();
     if (tab === 'poly') initPolyChat();
+    if (tab === 'bitget') initBitget();
     // Badge löschen wenn Chat-Tab geöffnet wird
     if (tab === 'chat') { var b=document.getElementById('chatBadge'); if(b){b.textContent='0';b.style.display='none';} }
+}
+
+// ── BITGET ──────────────────────────────────────────────────────────────────
+var BG_STRATS = {
+    'd': {name:'D — SMC 1:1 ★',      wr:71,   weekly_pct:9.02, max_dd:22,   trades_week:14.9, color:'#3D8EFF',  rr:'1:1',    desc:'Aktuell live'},
+    'a': {name:'A — Long-only',       wr:80,   weekly_pct:8.4,  max_dd:10.6, trades_week:1.1,  color:'#10B981',  rr:'~1.5:1', desc:'Jan–Mär 2026'},
+    'b': {name:'B — Long+Short★',     wr:75,   weekly_pct:5.7,  max_dd:21.4, trades_week:1.0,  color:'#60A5FA',  rr:'~2.5:1', desc:'Jan–Mai 2026'},
+    'c': {name:'C — BB Squeeze',      wr:32.2, weekly_pct:4.4,  max_dd:63.5, trades_week:4.2,  color:'#8B5CF6',  rr:'3:1',    desc:'2 Jahre, hohe WR nötig'}
+};
+
+function _bgFmt$(n) { return '$' + Math.abs(n).toLocaleString('de-DE', {minimumFractionDigits:0,maximumFractionDigits:0}); }
+function _bgFmtPct(n) { return (n >= 0 ? '+' : '') + n.toFixed(1) + '%'; }
+
+function calcBitget() {
+    var strat = (document.getElementById('bgStrategy')||{}).value || 'd';
+    var capital = parseFloat((document.getElementById('bgCapital')||{}).value) || 1000;
+    var s = BG_STRATS[strat];
+    if (!s) return;
+    var wkly = s.weekly_pct / 100;
+
+    var infoEl = document.getElementById('bgStratInfo');
+    if (infoEl) {
+        infoEl.innerHTML = [
+            ['Win Rate', s.wr + '%', s.color],
+            ['R:R', s.rr, s.color],
+            ['Trades/Woche', s.trades_week, '#9DB4CC'],
+            ['Max DD', '-' + s.max_dd + '%', '#EF4444']
+        ].map(function(x) {
+            return '<div style="text-align:center">'
+                + '<div style="font-size:.55rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">' + x[0] + '</div>'
+                + '<div style="font-size:.8rem;font-weight:800;color:' + x[2] + '">' + x[1] + '</div></div>';
+        }).join('');
+    }
+
+    var periods = [
+        {label:'1 Woche', weeks:1},
+        {label:'1 Monat', weeks:4.33},
+        {label:'3 Monate', weeks:13},
+        {label:'6 Monate', weeks:26},
+        {label:'1 Jahr', weeks:52}
+    ];
+    var max1yr = capital * Math.pow(1 + wkly, 52);
+    var rows = '';
+    for (var i = 0; i < periods.length; i++) {
+        var p = periods[i];
+        var end = capital * Math.pow(1 + wkly, p.weeks);
+        var gain = end - capital;
+        var pct = (gain / capital) * 100;
+        var col = gain >= 0 ? '#10B981' : '#EF4444';
+        var bar_w = Math.min(100, ((end - capital) / (max1yr - capital)) * 100);
+        rows += '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05)">'
+            + '<span style="font-size:.68rem;color:var(--text2);flex-shrink:0;width:72px">' + p.label + '</span>'
+            + '<div style="flex:1;height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden">'
+            + '<div style="height:100%;width:' + bar_w.toFixed(0) + '%;background:' + s.color + ';border-radius:2px;opacity:.8"></div></div>'
+            + '<div style="text-align:right;flex-shrink:0">'
+            + '<div style="font-size:.85rem;font-weight:900;color:' + col + '">' + (gain >= 0 ? '+' : '') + _bgFmt$(gain) + '</div>'
+            + '<div style="font-size:.58rem;color:var(--text3)">' + _bgFmt$(end) + ' (' + _bgFmtPct(pct) + ')</div>'
+            + '</div></div>';
+    }
+    var resEl = document.getElementById('bgResults');
+    if (resEl) resEl.innerHTML = rows;
+
+    var riskEl = document.getElementById('bgRiskNote');
+    if (riskEl) riskEl.innerHTML = '<strong style="color:#F59E0B">⚠ Backtest-Projektion</strong> · Keine Garantie. '
+        + 'Historischer Max Drawdown: <strong style="color:#EF4444">-' + s.max_dd + '%</strong> '
+        + '→ maximaler Verlust auf ' + _bgFmt$(capital) + ': <strong style="color:#EF4444">-' + _bgFmt$(capital * s.max_dd / 100) + '</strong>';
+}
+
+function initBitget() {
+    calcBitget();
+    var L = (typeof LIVE !== 'undefined') ? LIVE : {};
+    var bg = L.bitget || {};
+    var conn = !!bg.connected;
+
+    var badge = document.getElementById('bgConnBadge');
+    if (badge) {
+        badge.textContent = conn ? '● Verbunden' : '· Nicht verbunden';
+        badge.style.background = conn ? 'rgba(16,185,129,.15)' : 'rgba(55,65,81,.4)';
+        badge.style.color = conn ? '#10B981' : 'var(--text3)';
+    }
+    var note = document.getElementById('bgConnNote');
+    if (note) note.style.display = conn ? 'none' : 'block';
+
+    if (conn) {
+        var bal = bg.balance || 0;
+        var pnlT = bg.realized_pnl_today || 0;
+        var unpnl = bg.unrealized_pnl || 0;
+        var positions = bg.positions || [];
+        var el; el = document.getElementById('bgBalance');
+        if (el) { el.textContent = bal > 0 ? '$' + bal.toFixed(2) : '–'; }
+        el = document.getElementById('bgPnLToday');
+        if (el) { el.textContent = (pnlT >= 0 ? '+$' : '-$') + Math.abs(pnlT).toFixed(2); el.style.color = pnlT >= 0 ? '#10B981' : '#EF4444'; }
+        el = document.getElementById('bgUnrealPnL');
+        if (el) { el.textContent = (unpnl >= 0 ? '+$' : '-$') + Math.abs(unpnl).toFixed(2); el.style.color = unpnl >= 0 ? '#10B981' : '#EF4444'; }
+        el = document.getElementById('bgPosCnt');
+        if (el) el.textContent = positions.length + ' Positionen';
+        var posHtml = '';
+        positions.forEach(function(p) {
+            var c = p.direction === 'long' ? '#10B981' : '#EF4444';
+            var pnl = p.unrealizedPnl || 0;
+            posHtml += '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)">'
+                + '<span style="font-size:.55rem;font-weight:800;padding:2px 6px;border-radius:4px;background:' + c + '22;color:' + c + ';border:1px solid ' + c + '44">' + (p.direction||'?').toUpperCase() + '</span>'
+                + '<span style="font-size:.7rem;font-weight:700;color:#F0F4FF">' + (p.symbol||'?') + '</span>'
+                + '<span style="font-size:.62rem;color:#9DB4CC">' + (p.size||0) + 'x</span>'
+                + '<span style="margin-left:auto;font-size:.72rem;font-weight:700;color:' + c + '">' + (pnl >= 0 ? '+$' : '-$') + Math.abs(pnl).toFixed(2) + '</span>'
+                + '</div>';
+        });
+        el = document.getElementById('bgPosList');
+        if (el) el.innerHTML = posHtml || '<div style="font-size:.65rem;color:var(--text3);padding:4px 0">Keine offene Position</div>';
+    }
 }
 
 function startOptimizer() {
