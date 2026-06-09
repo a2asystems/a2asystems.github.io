@@ -972,8 +972,72 @@ function calcBitget() {
         + '→ maximaler Verlust auf ' + _bgFmt$(capital) + ': <strong style="color:#EF4444">-' + _bgFmt$(capital * s.max_dd / 100) + '</strong>';
 }
 
+// ── TOPSTEP STRATEGIE-RECHNER ────────────────────────────────────────────────
+var TSX_STRATS = {
+    'elite':  {name:'SMC Elite ★ (Live)',  wr:69.4, weekly_pct:0.44, max_dd:3.5,  trades_week:10, color:'#2563EB', pf:'1.28', desc:'MGC Gold · 5% Risiko · Jan–Jun 2026'},
+    'moderat':{name:'SMC Moderat',         wr:65,   weekly_pct:0.22, max_dd:2.0,  trades_week:5,  color:'#10B981', pf:'1.15', desc:'2.5% Risiko · Reduzierte Frequenz'},
+};
+
+function calcTopstep() {
+    var strat   = (document.getElementById('tsxStrategy')||{}).value || 'elite';
+    var capital = parseFloat((document.getElementById('tsxCapital')||{}).value) || 50000;
+    var s = TSX_STRATS[strat];
+    if (!s) return;
+    var wkly = s.weekly_pct / 100;
+
+    var infoEl = document.getElementById('tsxStratInfo');
+    if (infoEl) {
+        infoEl.innerHTML = [
+            ['Win Rate', s.wr + '%', s.color],
+            ['Profit Fak.', s.pf, s.color],
+            ['Trades/Woche', s.trades_week, '#9DB4CC'],
+            ['Max DD', '-' + s.max_dd + '%', '#EF4444']
+        ].map(function(x) {
+            return '<div style="text-align:center">'
+                + '<div style="font-size:.55rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">' + x[0] + '</div>'
+                + '<div style="font-size:.8rem;font-weight:800;color:' + x[2] + '">' + x[1] + '</div></div>';
+        }).join('');
+    }
+
+    var periods = [
+        {label:'1 Woche',   weeks:1},
+        {label:'1 Monat',   weeks:4.33},
+        {label:'3 Monate',  weeks:13},
+        {label:'6 Monate',  weeks:26},
+        {label:'1 Jahr',    weeks:52}
+    ];
+    var max1yr = capital * Math.pow(1 + wkly, 52);
+    var rows = '';
+    for (var i = 0; i < periods.length; i++) {
+        var p = periods[i];
+        var end  = capital * Math.pow(1 + wkly, p.weeks);
+        var gain = end - capital;
+        var net  = gain * 0.8;
+        var pct  = (gain / capital) * 100;
+        var col  = gain >= 0 ? '#10B981' : '#EF4444';
+        var bar_w = max1yr > capital ? Math.min(100, ((end - capital) / (max1yr - capital)) * 100) : 0;
+        rows += '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05)">'
+            + '<span style="font-size:.68rem;color:var(--text2);flex-shrink:0;width:72px">' + p.label + '</span>'
+            + '<div style="flex:1;height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden">'
+            + '<div style="height:100%;width:' + bar_w.toFixed(0) + '%;background:' + s.color + ';border-radius:2px;opacity:.8"></div></div>'
+            + '<div style="text-align:right;flex-shrink:0">'
+            + '<div style="font-size:.85rem;font-weight:900;color:' + col + '">' + (net >= 0 ? '+' : '') + _bgFmt$(net) + '</div>'
+            + '<div style="font-size:.58rem;color:var(--text3)">' + _bgFmtPct(pct) + ' · brutto ' + _bgFmt$(gain) + '</div>'
+            + '</div></div>';
+    }
+    var resEl = document.getElementById('tsxResults');
+    if (resEl) resEl.innerHTML = rows;
+
+    var riskEl = document.getElementById('tsxRiskNote');
+    if (riskEl) riskEl.innerHTML = '<strong style="color:#2563EB">⚠ Backtest-Projektion (80% Payout)</strong> · Keine Garantie. '
+        + 'Max Drawdown: <strong style="color:#EF4444">-' + s.max_dd + '%</strong> '
+        + '→ max. Verlust: <strong style="color:#EF4444">-' + _bgFmt$(capital * s.max_dd / 100) + '</strong> · '
+        + 'TopStepX zahlt 80% der Gewinne aus (nach Combine-Pass).';
+}
+
 function initBitget() {
     calcBitget();
+    _updateBgChart();
     var L = (typeof LIVE !== 'undefined') ? LIVE : {};
     var bg = L.bitget || {};
     var conn = !!bg.connected;
@@ -1869,6 +1933,126 @@ function _drawBitgetChart(hist, bg) {
         changeEl.textContent = (chg >= 0 ? '+$' : '-$') + Math.abs(chg).toFixed(2);
         changeEl.style.color = chg >= 0 ? '#10B981' : '#EF4444';
     }
+}
+
+// ── PANEL EQUITY CHARTS ───────────────────────────────────────────────────────
+function _drawPanelChart(canvasId, pts, opts) {
+    var canvas = document.getElementById(canvasId);
+    if (!canvas || pts.length < 2) return;
+    opts = opts || {};
+    var dpr = window.devicePixelRatio || 1;
+    var W   = canvas.offsetWidth || canvas.parentElement.offsetWidth || 300;
+    var H   = 130;
+    canvas.width  = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+    var ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, W, H);
+
+    var pad  = 6;
+    var minV = Math.min.apply(null, pts);
+    var maxV = Math.max.apply(null, pts);
+    var range = (maxV - minV) || (Math.abs(pts[0]) * 0.01) || 1;
+    var xFn  = function(i) { return pad + (i / (pts.length - 1)) * (W - pad * 2); };
+    var yFn  = function(v) { return H - pad - ((v - minV) / range) * (H - pad * 2); };
+
+    var isUp = pts[pts.length - 1] >= pts[0];
+    var rgb  = isUp ? '16,185,129' : '239,68,68';
+    var col  = isUp ? '#10B981' : '#EF4444';
+
+    // Gradient fill
+    var grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, 'rgba(' + rgb + ',.22)');
+    grad.addColorStop(1, 'rgba(' + rgb + ',0)');
+    ctx.beginPath();
+    ctx.moveTo(xFn(0), yFn(pts[0]));
+    for (var i = 1; i < pts.length; i++) ctx.lineTo(xFn(i), yFn(pts[i]));
+    ctx.lineTo(xFn(pts.length - 1), H);
+    ctx.lineTo(xFn(0), H);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Baseline
+    ctx.beginPath();
+    ctx.moveTo(pad, yFn(pts[0]));
+    ctx.lineTo(W - pad, yFn(pts[0]));
+    ctx.setLineDash([3, 4]);
+    ctx.strokeStyle = 'rgba(255,255,255,.1)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Line
+    ctx.beginPath();
+    ctx.moveTo(xFn(0), yFn(pts[0]));
+    for (var i = 1; i < pts.length; i++) ctx.lineTo(xFn(i), yFn(pts[i]));
+    ctx.strokeStyle = col;
+    ctx.lineWidth = 2;
+    ctx.lineJoin  = 'round';
+    ctx.stroke();
+
+    // End dot
+    ctx.beginPath();
+    ctx.arc(xFn(pts.length - 1), yFn(pts[pts.length - 1]), 3.5, 0, Math.PI * 2);
+    ctx.fillStyle = col;
+    ctx.fill();
+
+    // Change label
+    var chgEl = opts.changeId ? document.getElementById(opts.changeId) : null;
+    if (chgEl) {
+        var chg = pts[pts.length - 1] - pts[0];
+        var pct = pts[0] > 0 ? (chg / pts[0] * 100) : 0;
+        chgEl.textContent = (chg >= 0 ? '+$' : '-$') + Math.abs(chg).toFixed(2) + ' (' + (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%)';
+        chgEl.style.color = isUp ? '#10B981' : '#EF4444';
+    }
+    // From label
+    var fromEl2 = opts.fromId ? document.getElementById(opts.fromId) : null;
+    if (fromEl2 && opts.fromDate) fromEl2.textContent = opts.fromDate;
+}
+
+function _updateBgChart() {
+    if (typeof LIVE === 'undefined') return;
+    var bg   = LIVE.bitget || {};
+    var hist = bg.daily_history || [];
+    var pts  = [];
+    if (hist.length > 0) {
+        var s = bg.start_balance > 0 ? bg.start_balance : (hist[0].balance - (hist[0].pnl || 0));
+        pts.push(s);
+        hist.forEach(function(h) { pts.push(h.balance); });
+    } else if (bg.balance > 0) {
+        var pnlT = bg.realized_pnl_today || 0;
+        pts = [bg.balance - pnlT, bg.balance];
+    }
+    if (pts.length < 2) return;
+    _drawPanelChart('bgChart', pts, {
+        changeId: 'bgChartChange',
+        fromId:   'bgChartFrom',
+        fromDate: hist.length > 0 ? hist[0].date : ''
+    });
+}
+
+function _updateTsx2Chart() {
+    if (typeof LIVE === 'undefined') return;
+    var tsx  = LIVE.tsx || {};
+    var hist = tsx.daily_history || [];
+    var pts  = [];
+    if (hist.length > 0) {
+        var s = hist[0].balance - (hist[0].pnl || 0);
+        pts.push(s);
+        hist.forEach(function(h) { pts.push(h.balance); });
+    } else if (tsx.balance > 0) {
+        var pnlT = tsx.daily_pnl || 0;
+        pts = [tsx.balance - pnlT, tsx.balance];
+    }
+    if (pts.length < 2) return;
+    _drawPanelChart('tsx2Chart', pts, {
+        changeId: 'tsx2ChartChange',
+        fromId:   'tsx2ChartFrom',
+        fromDate: hist.length > 0 ? hist[0].date : ''
+    });
 }
 
 function _renderTsxMonthly(hist) {
