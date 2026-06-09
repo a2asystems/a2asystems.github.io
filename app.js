@@ -238,7 +238,7 @@ async function poll() {
 // ── RENDER ─────────────────────────────────────────────────────────────────
 function renderAll(d) {
     [renderHeader, renderKPIs, drawChart, renderStatus, renderRisk,
-     renderStrategies, renderAgents, renderSignals, renderEvents, renderPoly
+     renderStrategies, renderAgents, renderSignals, renderEvents
     ].forEach(function(fn){ try { fn(d); } catch(e) { console.error(fn.name, e); } });
 }
 
@@ -741,8 +741,8 @@ function renderEvents(d) {
     }).join('');
 }
 
-// ── POLYMARKET ─────────────────────────────────────────────────────────────
-function renderPoly(d) {
+// ── POLYMARKET (removed) ────────────────────────────────────────────────────
+function renderPoly(d) { return; // disabled
     var poly = d.polymarket || {};
     var opps = poly.opportunities || [];
     var orders = poly.all_orders || poly.orders_placed || [];
