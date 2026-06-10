@@ -1164,6 +1164,45 @@ function initBitget() {
             oEl.innerHTML = openFills.slice().reverse().map(_fillRow).join('');
         }
     }
+
+    // ── Trade-Verlauf (alle Tage) ────────────────────────────────────────────
+    var allFills = bg.all_fills || [];
+    var histBdg = document.getElementById('bgHistBadge');
+    if (histBdg) histBdg.textContent = allFills.length;
+    var histEl = document.getElementById('bgAllTradesHtml');
+    if (histEl) {
+        if (!conn) {
+            histEl.innerHTML = '<div style="font-size:.65rem;color:var(--text3);padding:8px 2px;text-align:center">API nicht verbunden</div>';
+        } else if (allFills.length === 0) {
+            histEl.innerHTML = '<div style="font-size:.65rem;color:var(--text3);padding:8px 2px;text-align:center">Keine Trades gespeichert</div>';
+        } else {
+            // Gruppieren nach Datum
+            var byDate = {};
+            allFills.forEach(function(f) {
+                var d = f.time || '?';
+                if (!byDate[d]) byDate[d] = [];
+                byDate[d].push(f);
+            });
+            var dates = Object.keys(byDate).sort().reverse();
+            var html = '';
+            dates.forEach(function(d) {
+                var dayFills = byDate[d];
+                var dayPnl = dayFills.reduce(function(s, f) { return s + (f.pnl || 0); }, 0);
+                var wins   = dayFills.filter(function(f) { return f.pnl > 0; }).length;
+                var closed = dayFills.filter(function(f) { return f.result !== 'OPEN'; });
+                var pnlCol = dayPnl >= 0 ? '#10B981' : '#EF4444';
+                html += '<div style="margin-bottom:2px">'
+                    + '<div style="display:flex;align-items:center;gap:6px;padding:5px 4px;background:rgba(255,255,255,.04);border-radius:6px;cursor:pointer" onclick="(function(el){var n=el.nextElementSibling;n.style.display=n.style.display===\'none\'?\'block\':\'none\';})(this)">'
+                    + '<span style="font-size:.65rem;font-weight:700;color:#9DB4CC">' + d + '</span>'
+                    + '<span style="font-size:.58rem;color:var(--text3)">' + closed.length + ' Trades · ' + wins + ' Wins</span>'
+                    + '<span style="margin-left:auto;font-size:.7rem;font-weight:800;color:' + pnlCol + '">' + (dayPnl >= 0 ? '+$' : '-$') + Math.abs(dayPnl).toFixed(2) + '</span>'
+                    + '</div>'
+                    + '<div style="display:none;padding:0 2px">' + dayFills.map(_fillRow).join('') + '</div>'
+                    + '</div>';
+            });
+            histEl.innerHTML = html;
+        }
+    }
 }
 
 function startOptimizer() {
