@@ -1135,13 +1135,26 @@ function initBitget() {
     if (obdg) obdg.textContent = openFills.length;
 
     function _fillRow(f) {
-        var col = f.pnl > 0 ? '#10B981' : (f.pnl < 0 ? '#EF4444' : '#9DB4CC');
-        var res = f.result || (f.pnl > 0 ? 'WIN' : f.pnl < 0 ? 'LOSS' : 'OPEN');
-        return '<div style="display:flex;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid rgba(255,255,255,.05)">'
+        var col  = f.pnl > 0 ? '#10B981' : (f.pnl < 0 ? '#EF4444' : '#9DB4CC');
+        var res  = f.result || (f.pnl > 0 ? 'WIN' : f.pnl < 0 ? 'LOSS' : 'OPEN');
+        var fee  = f.fee || 0;
+        var net  = (f.pnl || 0) + fee;
+        var netCol = net > 0 ? '#10B981' : (net < 0 ? '#EF4444' : '#9DB4CC');
+        var typ  = f.tradeSide === 'open' ? 'ENTRY' : (f.tradeSide === 'close' ? 'EXIT' : (f.tradeSide || ''));
+        var typCol = f.tradeSide === 'open' ? '#60A5FA' : '#F59E0B';
+        var hasPnl = f.pnl !== 0 || fee !== 0;
+        return '<div style="padding:6px 4px;border-bottom:1px solid rgba(255,255,255,.05)">'
+            + '<div style="display:flex;align-items:center;gap:6px">'
+            + (typ ? '<span style="font-size:.48rem;font-weight:800;padding:1px 5px;border-radius:3px;background:' + typCol + '22;color:' + typCol + ';border:1px solid ' + typCol + '33;flex-shrink:0">' + typ + '</span>' : '')
             + '<span style="font-size:.52rem;font-weight:800;padding:2px 6px;border-radius:4px;background:' + col + '22;color:' + col + ';border:1px solid ' + col + '44;flex-shrink:0">' + res + '</span>'
             + '<span style="font-size:.68rem;font-weight:700;color:#F0F4FF">' + (f.symbol || '?') + '</span>'
-            + '<span style="font-size:.6rem;color:#9DB4CC">' + (f.side || '') + ' · ' + (f.qty || 0) + ' @ ' + (f.price || 0).toFixed(2) + '</span>'
-            + '<span style="margin-left:auto;font-size:.75rem;font-weight:800;color:' + col + '">' + (f.pnl >= 0 ? '+$' : '-$') + Math.abs(f.pnl || 0).toFixed(2) + '</span>'
+            + '<span style="font-size:.58rem;color:#9DB4CC">' + (f.side || '') + ' · ' + (f.qty || 0) + ' @ $' + (f.price || 0).toFixed(2) + '</span>'
+            + '<span style="margin-left:auto;font-size:.72rem;font-weight:800;color:' + col + '">' + (f.pnl >= 0 ? '+$' : '-$') + Math.abs(f.pnl || 0).toFixed(2) + '</span>'
+            + '</div>'
+            + (hasPnl ? '<div style="display:flex;justify-content:flex-end;gap:12px;margin-top:2px">'
+            + '<span style="font-size:.55rem;color:#6B7A90">Gebühr: <span style="color:#EF444488">-$' + Math.abs(fee).toFixed(4) + '</span></span>'
+            + '<span style="font-size:.55rem;color:#6B7A90">Netto: <span style="font-weight:700;color:' + netCol + '">' + (net >= 0 ? '+$' : '-$') + Math.abs(net).toFixed(2) + '</span></span>'
+            + '</div>' : '')
             + '</div>';
     }
     var cEl = document.getElementById('bgTradesClosedHtml');
