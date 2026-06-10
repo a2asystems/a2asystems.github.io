@@ -1938,6 +1938,7 @@ async function pollTopStep() {
         }
 
         // Dedicated TopStepX panel updaten
+        _tsxLastData = tsx;
         _refreshTsx2Panel(tsx);
     } catch(e) {}
 }
