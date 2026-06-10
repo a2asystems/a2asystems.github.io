@@ -1199,18 +1199,28 @@ function initBitget() {
             var dates = Object.keys(byDate).sort().reverse();
             var html = '';
             dates.forEach(function(d) {
-                var dayFills = byDate[d];
-                var dayPnl = dayFills.reduce(function(s, f) { return s + (f.pnl || 0); }, 0);
-                var wins   = dayFills.filter(function(f) { return f.pnl > 0; }).length;
-                var closed = dayFills.filter(function(f) { return f.result !== 'OPEN'; });
-                var pnlCol = dayPnl >= 0 ? '#10B981' : '#EF4444';
-                html += '<div style="margin-bottom:2px">'
-                    + '<div style="display:flex;align-items:center;gap:6px;padding:5px 4px;background:rgba(255,255,255,.04);border-radius:6px;cursor:pointer" onclick="(function(el){var n=el.nextElementSibling;n.style.display=n.style.display===\'none\'?\'block\':\'none\';})(this)">'
-                    + '<span style="font-size:.65rem;font-weight:700;color:#9DB4CC">' + d + '</span>'
-                    + '<span style="font-size:.58rem;color:var(--text3)">' + closed.length + ' Trades · ' + wins + ' Wins</span>'
-                    + '<span style="margin-left:auto;font-size:.7rem;font-weight:800;color:' + pnlCol + '">' + (dayPnl >= 0 ? '+$' : '-$') + Math.abs(dayPnl).toFixed(2) + '</span>'
+                var dayFills  = byDate[d];
+                var dayPnl    = dayFills.reduce(function(s, f) { return s + (f.pnl || 0); }, 0);
+                var dayFees   = dayFills.reduce(function(s, f) { return s + (f.fee || 0); }, 0);
+                var dayNet    = dayPnl + dayFees;
+                var wins      = dayFills.filter(function(f) { return f.pnl > 0; }).length;
+                var losses    = dayFills.filter(function(f) { return f.pnl < 0; }).length;
+                var closed    = dayFills.filter(function(f) { return f.result !== 'OPEN'; });
+                var netCol    = dayNet >= 0 ? '#10B981' : '#EF4444';
+                var bruttoCol = dayPnl >= 0 ? '#10B981' : '#EF4444';
+                html += '<div style="margin-bottom:4px">'
+                    + '<div style="padding:7px 8px;background:rgba(255,255,255,.04);border-radius:8px;cursor:pointer;border:1px solid rgba(255,255,255,.06)" onclick="(function(el){var n=el.nextElementSibling;n.style.display=n.style.display===\'none\'?\'block\':\'none\';})(this)">'
+                    + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">'
+                    + '<span style="font-size:.68rem;font-weight:700;color:#C8D8E8">' + d + '</span>'
+                    + '<span style="font-size:.58rem;color:var(--text3)">' + closed.length + ' Trades · ' + wins + 'W ' + losses + 'L</span>'
+                    + '<span style="margin-left:auto;font-size:.75rem;font-weight:800;color:' + netCol + '">' + (dayNet >= 0 ? '+$' : '-$') + Math.abs(dayNet).toFixed(2) + ' netto</span>'
                     + '</div>'
-                    + '<div style="display:none;padding:0 2px">' + dayFills.map(_fillRow).join('') + '</div>'
+                    + '<div style="display:flex;gap:14px">'
+                    + '<span style="font-size:.55rem;color:#6B7A90">Brutto: <span style="color:' + bruttoCol + '">' + (dayPnl >= 0 ? '+$' : '-$') + Math.abs(dayPnl).toFixed(2) + '</span></span>'
+                    + '<span style="font-size:.55rem;color:#6B7A90">Gebühren: <span style="color:#EF444488">-$' + Math.abs(dayFees).toFixed(2) + '</span></span>'
+                    + '</div>'
+                    + '</div>'
+                    + '<div style="display:none;padding:0 2px;margin-top:2px">' + dayFills.map(_fillRow).join('') + '</div>'
                     + '</div>';
             });
             histEl.innerHTML = html;
