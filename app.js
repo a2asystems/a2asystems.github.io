@@ -31,6 +31,7 @@ var _embeddedGhTok = _cds.gt ? _cds.gt.split(',').map(Number).map(function(c){re
 let L = LIVE;
 let hist = [], busy = false;
 var _tsxDataAvailable = false; // gesetzt sobald TopStepX daily_history vorliegt
+var _tsxLastData = null;       // letzter erfolgreicher Abruf aus topstep.json
 let ME = (function(){ try { return localStorage.getItem('gb_persona')||'Dominik'; } catch(e){ return 'Dominik'; } })();
 function setPers(name) {
     ME = name;
