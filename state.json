@@ -640,8 +640,13 @@
       "symbol": "XAGUSD",
       "active": true,
       "name": "Asset aktiviert: XAGUSD",
-      "status": "running",
-      "dispatched": 1781035336316
+      "status": "done",
+      "dispatched": 1781035336316,
+      "result": {
+        "ok": true,
+        "symbol": "XAGUSD",
+        "active": true
+      }
     }
   ],
   "bot_status": "running",
