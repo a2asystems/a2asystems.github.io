@@ -652,5 +652,5 @@
   "bot_status": "running",
   "bot_status_ts": "2026-06-07T13:51:59Z",
   "live_trading": true,
-  "live_bitget": false
+  "live_bitget": true
 }
