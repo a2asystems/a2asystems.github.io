@@ -640,7 +640,7 @@
       "symbol": "XAGUSD",
       "active": true,
       "name": "Asset aktiviert: XAGUSD",
-      "status": "pending",
+      "status": "running",
       "dispatched": 1781035336316
     }
   ],
