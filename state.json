@@ -294,10 +294,12 @@
       "symbol": "NAS100",
       "active": true,
       "name": "Asset aktiviert: NAS100",
-      "status": "running",
+      "status": "done",
       "dispatched": 1780293544164,
       "result": {
-        "skipped": true
+        "ok": true,
+        "symbol": "XAGUSD",
+        "active": true
       }
     },
     {
