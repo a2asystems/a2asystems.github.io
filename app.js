@@ -1120,15 +1120,16 @@ function initBitget() {
         }
     }
 
-    // ── Trades Heute (immer rendern, auch ohne Verbindung) ───────────────────
-    var fills = bg.fills_today || [];
-    var closedFills = fills.filter(function(f) { return f.result !== 'OPEN'; });
-    var openFills   = fills.filter(function(f) { return f.result === 'OPEN'; });
+    // ── Trades ab 09.06. (immer rendern, auch ohne Verbindung) ──────────────
+    var allFillsRaw = bg.all_fills || [];
+    var closedFills = allFillsRaw.filter(function(f) { return (f.time || '') >= '2026-06-09' && f.result !== 'OPEN'; });
+    var openFills   = (bg.fills_today || []).filter(function(f) { return f.result === 'OPEN'; });
+    var _totalFills = closedFills.length + openFills.length;
     var bdg = document.getElementById('bgTradesBadge');
     if (bdg) {
-        bdg.textContent = fills.length;
-        bdg.style.background = fills.length > 0 ? 'rgba(245,158,11,.18)' : 'rgba(55,65,81,.3)';
-        bdg.style.color = fills.length > 0 ? '#F59E0B' : 'var(--text3)';
+        bdg.textContent = _totalFills;
+        bdg.style.background = _totalFills > 0 ? 'rgba(245,158,11,.18)' : 'rgba(55,65,81,.3)';
+        bdg.style.color = _totalFills > 0 ? '#F59E0B' : 'var(--text3)';
     }
     var cbdg = document.getElementById('bgClosedBadge');
     if (cbdg) cbdg.textContent = closedFills.length;
@@ -2107,8 +2108,14 @@ function _drawPanelChart(canvasId, pts, opts) {
     var chgEl = opts.changeId ? document.getElementById(opts.changeId) : null;
     if (chgEl) {
         var chg = pts[pts.length - 1] - pts[0];
-        var pct = pts[0] > 0 ? (chg / pts[0] * 100) : 0;
-        chgEl.textContent = (chg >= 0 ? '+$' : '-$') + Math.abs(chg).toFixed(2) + ' (' + (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%)';
+        var label;
+        if (pts[0] === 0) {
+            label = (chg >= 0 ? '+$' : '-$') + Math.abs(chg).toFixed(2) + ' Gesamt P&L';
+        } else {
+            var pct = pts[0] > 0 ? (chg / pts[0] * 100) : 0;
+            label = (chg >= 0 ? '+$' : '-$') + Math.abs(chg).toFixed(2) + ' (' + (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%)';
+        }
+        chgEl.textContent = label;
         chgEl.style.color = isUp ? '#10B981' : '#EF4444';
     }
     // From label
@@ -2120,14 +2127,12 @@ function _updateBgChart() {
     if (typeof LIVE === 'undefined') return;
     var bg   = LIVE.bitget || {};
     var hist = bg.daily_history || [];
-    var pts  = [];
+    var pts  = [0];
     if (hist.length > 0) {
-        var s = bg.start_balance > 0 ? bg.start_balance : (hist[0].balance - (hist[0].pnl || 0));
-        pts.push(s);
-        hist.forEach(function(h) { pts.push(h.balance); });
+        var cum = 0;
+        hist.forEach(function(h) { cum += (h.pnl || 0); pts.push(parseFloat(cum.toFixed(2))); });
     } else if (bg.balance > 0) {
-        var pnlT = bg.realized_pnl_today || 0;
-        pts = [bg.balance - pnlT, bg.balance];
+        pts = [0, bg.realized_pnl_today || 0];
     }
     if (pts.length < 2) return;
     _drawPanelChart('bgChart', pts, {
@@ -2135,20 +2140,19 @@ function _updateBgChart() {
         fromId:   'bgChartFrom',
         fromDate: hist.length > 0 ? hist[0].date : ''
     });
+    _buildPnlCalendar('bgCalendar', hist);
 }
 
 function _updateTsx2Chart() {
     if (typeof LIVE === 'undefined') return;
     var tsx  = LIVE.tsx || {};
     var hist = tsx.daily_history || [];
-    var pts  = [];
+    var pts  = [0];
     if (hist.length > 0) {
-        var s = hist[0].balance - (hist[0].pnl || 0);
-        pts.push(s);
-        hist.forEach(function(h) { pts.push(h.balance); });
+        var cum = 0;
+        hist.forEach(function(h) { cum += (h.pnl || 0); pts.push(parseFloat(cum.toFixed(2))); });
     } else if (tsx.balance > 0) {
-        var pnlT = tsx.daily_pnl || 0;
-        pts = [tsx.balance - pnlT, tsx.balance];
+        pts = [0, tsx.daily_pnl || 0];
     }
     if (pts.length < 2) return;
     _drawPanelChart('tsx2Chart', pts, {
@@ -2156,6 +2160,83 @@ function _updateTsx2Chart() {
         fromId:   'tsx2ChartFrom',
         fromDate: hist.length > 0 ? hist[0].date : ''
     });
+    _buildPnlCalendar('tsxCalendar', hist);
+}
+
+// ── PNL KALENDER ─────────────────────────────────────────────────────────────
+var _bgCalHist  = [];
+var _tsxCalHist = [];
+var _bgCalNav   = null;
+var _tsxCalNav  = null;
+
+function _calNav(id, delta) {
+    var nav  = id === 'bgCalendar' ? _bgCalNav  : _tsxCalNav;
+    var hist = id === 'bgCalendar' ? _bgCalHist : _tsxCalHist;
+    if (!nav) return;
+    nav.m += delta;
+    if (nav.m > 11) { nav.m = 0; nav.y++; }
+    if (nav.m < 0)  { nav.m = 11; nav.y--; }
+    _buildPnlCalendar(id, hist);
+}
+
+function _buildPnlCalendar(containerId, history) {
+    var el = document.getElementById(containerId);
+    if (!el) return;
+    if (containerId === 'bgCalendar') { _bgCalHist = history; }
+    else                              { _tsxCalHist = history; }
+    var nav = containerId === 'bgCalendar' ? _bgCalNav : _tsxCalNav;
+    if (!nav) {
+        var now0 = new Date();
+        nav = {y: now0.getFullYear(), m: now0.getMonth()};
+        if (containerId === 'bgCalendar') _bgCalNav = nav;
+        else                              _tsxCalNav = nav;
+    }
+    var pnlMap = {};
+    history.forEach(function(h) { if (h.date) pnlMap[h.date] = h.pnl || 0; });
+    var year = nav.y, month = nav.m;
+    var now = new Date();
+    var todayStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+    var MN = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+    var DN = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+    var firstWd = new Date(year, month, 1).getDay();
+    var offset  = (firstWd + 6) % 7;
+    var days    = new Date(year, month + 1, 0).getDate();
+    var html = '<div>';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">';
+    html += '<span onclick="_calNav(\'' + containerId + '\',-1)" style="cursor:pointer;padding:2px 9px;font-size:.68rem;color:var(--text3);border-radius:4px;border:1px solid rgba(255,255,255,.1)">&#8249;</span>';
+    html += '<span style="font-size:.65rem;font-weight:700;color:var(--text)">' + MN[month] + ' ' + year + '</span>';
+    html += '<span onclick="_calNav(\'' + containerId + '\',1)" style="cursor:pointer;padding:2px 9px;font-size:.68rem;color:var(--text3);border-radius:4px;border:1px solid rgba(255,255,255,.1)">&#8250;</span>';
+    html += '</div>';
+    html += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:2px">';
+    DN.forEach(function(d) { html += '<div style="font-size:.48rem;text-align:center;color:var(--text3);padding:1px 0">' + d + '</div>'; });
+    html += '</div>';
+    html += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px">';
+    for (var e = 0; e < offset; e++) html += '<div></div>';
+    for (var d = 1; d <= days; d++) {
+        var ds = year + '-' + String(month+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+        var hasPnl = pnlMap.hasOwnProperty(ds);
+        var pnl = hasPnl ? pnlMap[ds] : null;
+        var bg, tc, pt;
+        if (!hasPnl) {
+            bg = 'rgba(255,255,255,.04)'; tc = 'rgba(255,255,255,.25)'; pt = '';
+        } else if (pnl > 0) {
+            bg = 'rgba(16,185,129,.2)';  tc = '#10B981';
+            pt = '+$' + (pnl >= 1000 ? (pnl/1000).toFixed(1)+'k' : pnl.toFixed(0));
+        } else if (pnl < 0) {
+            bg = 'rgba(239,68,68,.2)';   tc = '#EF4444';
+            pt = '-$' + (Math.abs(pnl) >= 1000 ? (Math.abs(pnl)/1000).toFixed(1)+'k' : Math.abs(pnl).toFixed(0));
+        } else {
+            bg = 'rgba(255,255,255,.06)'; tc = 'var(--text3)'; pt = '$0';
+        }
+        var border = ds === todayStr ? 'border:1px solid rgba(255,255,255,.4)' : 'border:1px solid rgba(255,255,255,.07)';
+        var fw = ds === todayStr ? '900' : '600';
+        html += '<div style="' + border + ';border-radius:4px;background:' + bg + ';padding:3px 1px;min-height:30px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px">';
+        html += '<div style="font-size:.5rem;color:' + tc + ';font-weight:' + fw + '">' + d + '</div>';
+        if (pt) html += '<div style="font-size:.4rem;color:' + tc + ';line-height:1">' + pt + '</div>';
+        html += '</div>';
+    }
+    html += '</div></div>';
+    el.innerHTML = html;
 }
 
 function _renderTsxMonthly(hist) {
