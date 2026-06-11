@@ -294,7 +294,7 @@
       "symbol": "NAS100",
       "active": true,
       "name": "Asset aktiviert: NAS100",
-      "status": "done",
+      "status": "running",
       "dispatched": 1780293544164,
       "result": {
         "ok": true,
