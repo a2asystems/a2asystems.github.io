@@ -25,8 +25,9 @@ var _cds = (_cfg && _cfg.dataset) ? _cfg.dataset : {};
 var GHUSER = _cds.gu || '';
 var GHREPO = _cds.gr || '';
 var IMGBB  = _cds.ib || '';
-var apiKey = _cds.ak ? _cds.ak.split(',').map(Number).map(function(c){return String.fromCharCode(c^5);}).join('') : '';
-var _embeddedGhTok = _cds.gt ? _cds.gt.split(',').map(Number).map(function(c){return String.fromCharCode(c^5);}).join('') : '';
+var apiKey = ''; // keys no longer stored in browser
+var _embeddedGhTok = ''; // use localStorage token or proxy
+var PROXY_URL = (_cds.proxy || '').replace(/\/$/, '');
 
 let L = LIVE;
 let hist = [], busy = false;
@@ -1676,14 +1677,14 @@ async function sendMsg() {
     const txt=inp.value.trim(); if(!txt) return;
     inp.value=''; inp.style.height='40px';
     addMsg('user',txt);
-    if (!apiKey) { addMsg('assistant','⚠️ Kein API Key konfiguriert.'); return; }
+    if (!PROXY_URL) { addMsg('assistant','⚠️ Proxy nicht erreichbar — Tailscale aktiv?'); return; }
     busy=true; document.getElementById('sendBtn').disabled=true; const _pSend=document.getElementById('polySendBtn'); if(_pSend)_pSend.disabled=true; showTyping();
     try {
         const msgs=hist.slice(0,-1).map(m=>({role:m.role==='user'?'user':'assistant',content:m.content}));
         msgs.push({role:'user',content:txt});
-        const res=await fetch('https://api.anthropic.com/v1/messages',{
+        const res=await fetch(PROXY_URL+'/proxy/claude',{
             method:'POST',
-            headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+            headers:{'Content-Type':'application/json'},
             body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1024,system:sysPrompt(),messages:msgs})
         });
         if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'API Fehler');}
@@ -1809,7 +1810,7 @@ async function sendPolyMsg() {
     var txt = inp.value.trim(); if (!txt) return;
     inp.value = ''; inp.style.height = '40px';
     polyAddMsg('user', txt);
-    if (!apiKey) { polyAddMsg('assistant', '⚠️ Kein API Key konfiguriert.'); return; }
+    if (!PROXY_URL) { polyAddMsg('assistant', '⚠️ Proxy nicht erreichbar — Tailscale aktiv?'); return; }
     polyBusy = true;
     var sendBtn = document.getElementById('polySendBtn');
     if (sendBtn) sendBtn.disabled = true;
@@ -1817,9 +1818,9 @@ async function sendPolyMsg() {
     try {
         var msgs = polyHist.slice(0,-1).map(function(m){ return {role: m.role==='user'?'user':'assistant', content: m.content}; });
         msgs.push({role:'user', content:txt});
-        var res = await fetch('https://api.anthropic.com/v1/messages', {
+        var res = await fetch(PROXY_URL+'/proxy/claude', {
             method: 'POST',
-            headers: {'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+            headers: {'Content-Type':'application/json'},
             body: JSON.stringify({model:'claude-sonnet-4-6', max_tokens:1024, system:polySystemPrompt(), messages:msgs})
         });
         if (!res.ok) { var er = await res.json(); throw new Error(er.error?.message||'API Fehler'); }
