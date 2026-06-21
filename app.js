@@ -2334,16 +2334,12 @@ function _renderTsxMonthly(hist) {
 }
 
 async function pollBotStatus() {
-    if (!ghTok() || !GHUSER || !GHREPO) return;
+    // state.json liegt oeffentlich im GitHub-Pages-Repo — direkt lesbar OHNE Token.
+    // (Der GitHub-Token wurde beim Security-Fix aus dem Browser entfernt.)
     try {
-        const r = await fetch(
-            'https://api.github.com/repos/' + GHUSER + '/' + GHREPO + '/contents/state.json',
-            { headers: { 'Authorization': 'Bearer ' + ghTok(), 'Accept': 'application/vnd.github.v3+json' }, cache: 'no-store' }
-        );
+        const r = await fetch('./state.json?t=' + Date.now(), { cache: 'no-store' });
         if (!r.ok) return;
-        const d    = await r.json();
-        _botStateSha = d.sha;
-        const data = JSON.parse(atob(d.content.replace(/\n/g, '')));
+        const data = await r.json();
         _renderBotStatus(data.bot_status || 'unknown');
         _renderLiveMode(data.live_trading || false);
         _renderBitgetLiveMode(data.live_bitget || false);
