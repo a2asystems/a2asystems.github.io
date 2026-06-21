@@ -967,6 +967,67 @@ function calcBitget() {
         + '→ maximaler Verlust auf ' + _bgFmt$(capital) + ': <strong style="color:#EF4444">-' + _bgFmt$(capital * s.max_dd / 100) + '</strong>';
 }
 
+// ── NQ-ORB STRATEGIE-PANEL ───────────────────────────────────────────────────
+var ORB_STATUS_MAP = {
+    'closed':       {txt: 'Geschlossen / Wartet auf US-Open', col: '#6B7280'},
+    'waiting_or':   {txt: 'Opening Range bildet sich',        col: '#F59E0B'},
+    'in_range':     {txt: 'In Range — wartet auf Breakout',   col: '#22D3EE'},
+    'long':         {txt: 'LONG aktiv',                       col: '#10B981'},
+    'short':        {txt: 'SHORT aktiv',                      col: '#EF4444'},
+    'done':         {txt: 'Trade heute erledigt',             col: '#A78BFA'}
+};
+
+function calcOrb(d) {
+    var orb = (d && d.orb) || (typeof LIVE !== 'undefined' && LIVE.orb) || null;
+    if (!orb) return;
+    var st    = orb.status || {};
+    var stats = orb.stats  || {};
+
+    function _set(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; }
+    function _num(v, dec) {
+        if (v === null || v === undefined || v === '' || isNaN(v)) return '—';
+        return Number(v).toLocaleString('de-AT', {minimumFractionDigits: dec, maximumFractionDigits: dec});
+    }
+
+    // Name + Badge
+    _set('orbName', orb.name || 'NQ 60-Min Opening-Range-Breakout');
+    var badge = document.getElementById('orbActiveBadge');
+    if (badge) {
+        if (orb.active) {
+            badge.textContent = 'AKTIV';
+            badge.style.background = 'rgba(16,185,129,.18)';
+            badge.style.color = '#10B981';
+            badge.style.borderColor = 'rgba(16,185,129,.4)';
+        } else {
+            badge.textContent = 'INAKTIV';
+            badge.style.background = 'rgba(107,114,128,.2)';
+            badge.style.color = '#9CA3AF';
+            badge.style.borderColor = 'rgba(107,114,128,.4)';
+        }
+    }
+
+    // Status
+    var map = ORB_STATUS_MAP[st.status] || ORB_STATUS_MAP['closed'];
+    _set('orbStatusTxt', map.txt);
+    var dot = document.getElementById('orbStatusDot');
+    if (dot) dot.style.background = map.col;
+    var stxt = document.getElementById('orbStatusTxt');
+    if (stxt) stxt.style.color = map.col;
+
+    // Opening Range
+    _set('orbHigh',  st.or_high != null ? _num(st.or_high, 2) : '—');
+    _set('orbLow',   st.or_low  != null ? _num(st.or_low, 2)  : '—');
+    _set('orbRange', st.range   != null ? _num(st.range, 0)   : '—');
+    _set('orbPrice', st.price   != null ? _num(st.price, 2)   : '—');
+
+    // Validierte Stats
+    if (stats.expectancy_usd != null) _set('orbExp',      '~$' + stats.expectancy_usd);
+    if (stats.per_week_50k   != null) _set('orbWeek',     '~$' + stats.per_week_50k);
+    if (stats.win_rate       != null) _set('orbWr',       stats.win_rate + '%');
+    if (stats.quarters_pos   != null) _set('orbQuarters', stats.quarters_pos);
+    if (stats.validated      != null) _set('orbValidated', stats.validated);
+}
+
 // ── TOPSTEP STRATEGIE-RECHNER ────────────────────────────────────────────────
 var TSX_STRATS = {
     'elite':  {name:'SMC Elite ★ (Live)',  wr:69.4, weekly_pct:0.44, max_dd:3.5,  trades_week:10, color:'#2563EB', pf:'1.28', desc:'MGC Gold · 5% Risiko · Jan–Jun 2026'},
