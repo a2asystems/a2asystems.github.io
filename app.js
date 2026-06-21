@@ -240,7 +240,7 @@ async function poll() {
 // ── RENDER ─────────────────────────────────────────────────────────────────
 function renderAll(d) {
     [renderHeader, renderKPIs, drawChart, renderStatus, renderRisk,
-     renderStrategies, renderAgents, renderSignals, renderEvents
+     renderStrategies, renderAgents, renderSignals, renderEvents, calcOrb
     ].forEach(function(fn){ try { fn(d); } catch(e) { console.error(fn.name, e); } });
 }
 
