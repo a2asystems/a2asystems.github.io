@@ -223,18 +223,30 @@ async function poll() {
             var lrm = parseInt(localStorage.getItem('_last_reload_mrb')||'0', 10);
             if (d.min_required_build > lrm) {
                 localStorage.setItem('_last_reload_mrb', String(d.min_required_build));
-                window.location.reload(true);
+                hardReload(d.min_required_build);
                 return;
             }
         }
         // Neue Version erkannt — APP_BUILD ist gesetzt aber veraltet
         if (APP_BUILD > 0 && d.build_ts && d.build_ts > APP_BUILD) {
-            console.log('Neue Version erkannt — Seite wird aktualisiert...');
-            window.location.reload(true);
+            console.log('Neue Version erkannt — harter Reload...');
+            hardReload(d.build_ts);
             return;
         }
         L = d; renderAll(L);
     } catch(e) {}
+}
+
+// Harter Reload (iOS-PWA-sicher): Caches leeren + URL-Cache-Buster erzwingt frische
+// index.html/app.js. window.location.reload(true) wird von Safari/iOS ignoriert.
+function hardReload(ver) {
+    try {
+        if ('caches' in window) {
+            caches.keys().then(function(ks){ ks.forEach(function(k){ caches.delete(k); }); });
+        }
+    } catch(e) {}
+    var base = location.pathname.replace(/[?#].*$/, '');
+    location.replace(base + '?_v=' + ver);
 }
 
 // ── RENDER ─────────────────────────────────────────────────────────────────
