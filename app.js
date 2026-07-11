@@ -89,8 +89,8 @@ function showStrategy(mode) {
       btnSMC.style.background = 'rgba(255,255,255,.04)';
       btnSMC.style.borderColor= 'rgba(255,255,255,.1)';
     } else {
-      btnSMC.style.background  = 'rgba(37,99,235,.14)';
-      btnSMC.style.borderColor = 'rgba(37,99,235,.45)';
+      btnSMC.style.background  = 'rgba(0,209,255,.14)';
+      btnSMC.style.borderColor = 'rgba(0,209,255,.45)';
       btnBB.style.background  = 'rgba(139,92,246,.07)';
       btnBB.style.borderColor = 'rgba(139,92,246,.22)';
     }
@@ -181,10 +181,10 @@ function drawBBChart() {
   var yMil = py(1000000);
   if (yMil > pad.t && yMil < H-pad.b) {
     ctx.setLineDash([3,3]);
-    ctx.strokeStyle='rgba(37,99,235,.4)'; ctx.lineWidth=1;
+    ctx.strokeStyle='rgba(0,209,255,.4)'; ctx.lineWidth=1;
     ctx.beginPath(); ctx.moveTo(pad.l,yMil); ctx.lineTo(W-pad.r,yMil); ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle='rgba(96,165,250,.9)'; ctx.font='bold 8px -apple-system,sans-serif';
+    ctx.fillStyle='rgba(77,223,255,.9)'; ctx.font='bold 8px -apple-system,sans-serif';
     ctx.fillText('$1M',W-pad.r-18,yMil-2);
   }
   // From/To labels
@@ -280,7 +280,7 @@ function renderHeader(d) {
         + '<span style="color:#6366F1;font-weight:700;font-size:.7rem">⚙ BACKTEST-KONFIGURATION</span>'
         + '&nbsp;&nbsp;<span style="color:#F1F5F9">'+sym+'</span>'
         + '&nbsp;·&nbsp;<span style="color:#F1F5F9">'+fd+' – '+td2+'</span>'
-        + '&nbsp;·&nbsp;Risiko <span style="color:#60A5FA;font-weight:700">'+rPct+'%</span>/Trade'
+        + '&nbsp;·&nbsp;Risiko <span style="color:#4DDFFF;font-weight:700">'+rPct+'%</span>/Trade'
         + '&nbsp;·&nbsp;<span style="color:#475569">'+upd+'</span>'
         + '</span>'
         + '<span id="_btChev" style="color:#6366F1;font-size:.85rem;margin-left:10px;transition:transform .25s;flex-shrink:0">▼</span>'
@@ -295,7 +295,7 @@ function renderHeader(d) {
         + _aaRow('Short-Trades','<input id="_aaShort" type="checkbox" '+ashort+' style="width:22px;height:22px;accent-color:#10B981;cursor:pointer">',true)
         + '<div style="display:flex;gap:10px;margin-top:14px">'
         + '<button onclick="_runAccOpt(false)" style="flex:1;background:rgba(99,102,241,.18);border:1px solid rgba(99,102,241,.4);color:#818CF8;font-size:.78rem;font-weight:700;padding:13px;border-radius:10px;cursor:pointer;touch-action:manipulation">▶ Backtest</button>'
-        + '<button onclick="_runAccOpt(true)" style="flex:1;background:rgba(37,99,235,.15);border:1px solid rgba(37,99,235,.4);color:#60A5FA;font-size:.78rem;font-weight:700;padding:13px;border-radius:10px;cursor:pointer;touch-action:manipulation">🔍 Optimieren</button>'
+        + '<button onclick="_runAccOpt(true)" style="flex:1;background:rgba(0,209,255,.15);border:1px solid rgba(0,209,255,.4);color:#4DDFFF;font-size:.78rem;font-weight:700;padding:13px;border-radius:10px;cursor:pointer;touch-action:manipulation">🔍 Optimieren</button>'
         + '</div>'
         + '</div></div>';
 }
@@ -619,7 +619,7 @@ function renderStrategies(d) {
         const isActive = s.active || (s.name||'').includes('Aktuell aktiv');
         const activeBadge = isActive
             ? '<span style="background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.4);color:#10B981;font-size:.55rem;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap">✓ AKTIV</span>'
-            : `<button onclick="event.stopPropagation();activateVariant('${esc(s.id||s.name||'')}','${esc(s.name||'')}')" style="background:rgba(37,99,235,.12);border:1px solid rgba(37,99,235,.35);color:#60A5FA;font-size:.55rem;font-weight:700;padding:3px 9px;border-radius:20px;cursor:pointer;touch-action:manipulation;white-space:nowrap">Aktivieren</button>`;
+            : `<button onclick="event.stopPropagation();activateVariant('${esc(s.id||s.name||'')}','${esc(s.name||'')}')" style="background:rgba(0,209,255,.12);border:1px solid rgba(0,209,255,.35);color:#4DDFFF;font-size:.55rem;font-weight:700;padding:3px 9px;border-radius:20px;cursor:pointer;touch-action:manipulation;white-space:nowrap">Aktivieren</button>`;
         return `<div class="str-row" onclick="showVariantDetail(${i})" style="align-items:center;gap:6px;cursor:pointer">
           <div class="str-rank">${i+1}</div>
           <div class="str-info" style="flex:1;min-width:0">
@@ -918,7 +918,7 @@ function switchTab(tab) {
 // ── BITGET ──────────────────────────────────────────────────────────────────
 var BG_STRATS = {
     'a': {name:'A — Long-only ★ (Bitget)',wr:60,   weekly_pct:11.15,max_dd:26.5, trades_week:4.5,  color:'#F59E0B',  rr:'1.5:1',  desc:'5% Risiko · 5 Charts · Jan–Jun 2026'},
-    'b': {name:'B — Long+Short (Bitget)', wr:52.6, weekly_pct:50.22,max_dd:53.5, trades_week:17.5, color:'#60A5FA',  rr:'2:1',    desc:'5% Risiko · 5 Charts · Jan–Jun 2026'},
+    'b': {name:'B — Long+Short (Bitget)', wr:52.6, weekly_pct:50.22,max_dd:53.5, trades_week:17.5, color:'#4DDFFF',  rr:'2:1',    desc:'5% Risiko · 5 Charts · Jan–Jun 2026'},
 };
 
 function _bgFmt$(n) { return '$' + Math.abs(n).toLocaleString('de-DE', {minimumFractionDigits:0,maximumFractionDigits:0}); }
@@ -1042,7 +1042,7 @@ function calcOrb(d) {
 
 // ── TOPSTEP STRATEGIE-RECHNER ────────────────────────────────────────────────
 var TSX_STRATS = {
-    'elite':  {name:'SMC Elite ★ (Live)',  wr:69.4, weekly_pct:0.44, max_dd:3.5,  trades_week:10, color:'#2563EB', pf:'1.28', desc:'MGC Gold · 5% Risiko · Jan–Jun 2026'},
+    'elite':  {name:'SMC Elite ★ (Live)',  wr:69.4, weekly_pct:0.44, max_dd:3.5,  trades_week:10, color:'#00D1FF', pf:'1.28', desc:'MGC Gold · 5% Risiko · Jan–Jun 2026'},
     'moderat':{name:'SMC Moderat',         wr:65,   weekly_pct:0.22, max_dd:2.0,  trades_week:5,  color:'#10B981', pf:'1.15', desc:'2.5% Risiko · Reduzierte Frequenz'},
 };
 
@@ -1097,7 +1097,7 @@ function calcTopstep() {
     if (resEl) resEl.innerHTML = rows;
 
     var riskEl = document.getElementById('tsxRiskNote');
-    if (riskEl) riskEl.innerHTML = '<strong style="color:#2563EB">⚠ Backtest-Projektion (80% Payout)</strong> · Keine Garantie. '
+    if (riskEl) riskEl.innerHTML = '<strong style="color:#00D1FF">⚠ Backtest-Projektion (80% Payout)</strong> · Keine Garantie. '
         + 'Max Drawdown: <strong style="color:#EF4444">-' + s.max_dd + '%</strong> '
         + '→ max. Verlust: <strong style="color:#EF4444">-' + _bgFmt$(capital * s.max_dd / 100) + '</strong> · '
         + 'TopStepX zahlt 80% der Gewinne aus (nach Combine-Pass).';
@@ -1217,7 +1217,7 @@ function initBitget() {
         var net  = (f.pnl || 0) + fee;
         var netCol = net > 0 ? '#10B981' : (net < 0 ? '#EF4444' : '#9DB4CC');
         var typ  = f.tradeSide === 'open' ? 'ENTRY' : (f.tradeSide === 'close' ? 'EXIT' : (f.tradeSide || ''));
-        var typCol = f.tradeSide === 'open' ? '#60A5FA' : '#F59E0B';
+        var typCol = f.tradeSide === 'open' ? '#4DDFFF' : '#F59E0B';
         var hasPnl = f.pnl !== 0 || fee !== 0;
         return '<div style="padding:6px 4px;border-bottom:1px solid rgba(255,255,255,.05)">'
             + '<div style="display:flex;align-items:center;gap:6px">'
@@ -1370,10 +1370,10 @@ function renderAssetPicker() {
     grid.innerHTML = assets.map(function(a) {
         var pending = _pendingAssets[a.symbol];
         var isActive = (pending !== undefined) ? pending : a.active;
-        var borderColor = isActive ? 'rgba(37,99,235,.55)' : 'var(--border)';
-        var bgColor = isActive ? 'rgba(37,99,235,.12)' : 'var(--card)';
+        var borderColor = isActive ? 'rgba(0,209,255,.55)' : 'var(--border)';
+        var bgColor = isActive ? 'rgba(0,209,255,.12)' : 'var(--card)';
         var nameColor = isActive ? 'var(--blue-bright)' : 'var(--text2)';
-        var badge = isActive ? '<span style="font-size:.55rem;background:rgba(37,99,235,.85);color:#fff;padding:2px 5px;border-radius:4px;font-weight:700">AKTIV</span>' : '<span style="font-size:.55rem;background:rgba(255,255,255,.07);color:var(--text3);padding:2px 5px;border-radius:4px">INAKTIV</span>';
+        var badge = isActive ? '<span style="font-size:.55rem;background:rgba(0,209,255,.85);color:#fff;padding:2px 5px;border-radius:4px;font-weight:700">AKTIV</span>' : '<span style="font-size:.55rem;background:rgba(255,255,255,.07);color:var(--text3);padding:2px 5px;border-radius:4px">INAKTIV</span>';
         var spin = (pending !== undefined) ? '<span style="font-size:.65rem;color:var(--text2)"> ⟳</span>' : '';
         return '<button type="button" onclick="toggleAsset(\'' + a.symbol + '\',' + !isActive + ')" style="'
             + 'background:' + bgColor + ';border:1px solid ' + borderColor + ';'
@@ -2058,7 +2058,7 @@ function switchChart(mode) {
     _activeChartMode = mode;
     var btnTsx = document.getElementById('btnChartTsx');
     var btnBg  = document.getElementById('btnChartBg');
-    if (btnTsx) { btnTsx.style.background = mode === 'tsx' ? 'rgba(37,99,235,.35)' : 'rgba(37,99,235,.18)'; btnTsx.style.borderColor = mode === 'tsx' ? 'rgba(37,99,235,.7)' : 'rgba(37,99,235,.4)'; }
+    if (btnTsx) { btnTsx.style.background = mode === 'tsx' ? 'rgba(0,209,255,.35)' : 'rgba(0,209,255,.18)'; btnTsx.style.borderColor = mode === 'tsx' ? 'rgba(0,209,255,.7)' : 'rgba(0,209,255,.4)'; }
     if (btnBg)  { btnBg.style.background  = mode === 'bg'  ? 'rgba(245,158,11,.22)' : 'rgba(245,158,11,.08)'; btnBg.style.borderColor  = mode === 'bg'  ? 'rgba(245,158,11,.6)'  : 'rgba(245,158,11,.3)'; }
     if (typeof LIVE === 'undefined') return;
     if (mode === 'tsx') {
