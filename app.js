@@ -277,7 +277,7 @@ function renderHeader(d) {
     box.innerHTML =
         '<div onclick="_btToggle()" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;font-size:.65rem;color:#8B9BB4;user-select:none;-webkit-user-select:none">'
         + '<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
-        + '<span style="color:#6366F1;font-weight:700;font-size:.7rem">≡ BACKTEST-KONFIGURATION</span>'
+        + '<span style="color:#6366F1;font-weight:700;font-size:.7rem">BACKTEST-KONFIGURATION</span>'
         + '&nbsp;&nbsp;<span style="color:#F1F5F9">'+sym+'</span>'
         + '&nbsp;·&nbsp;<span style="color:#F1F5F9">'+fd+' – '+td2+'</span>'
         + '&nbsp;·&nbsp;Risiko <span style="color:#4DDFFF;font-weight:700">'+rPct+'%</span>/Trade'
@@ -329,7 +329,7 @@ async function _runAccOpt(optimize) {
         toast('Optimizer gestartet — Ergebnis in ~5 Min. im Dashboard');
         await dispatch({type:'optimize', params:{min_wr:0.60, min_trades:15}});
     } else {
-        toast('Backtest gestartet — Ergebnis in ~2 Min. im Commander ▦');
+        toast('Backtest gestartet — Ergebnis in ~2 Min. im Commander');
         await dispatch({type:'backtest', params:{symbol:sym, from_date:from, to_date:to||undefined, initial_cap:cap, risk_pct:risk, allow_short:ashort}});
     }
 }
@@ -577,7 +577,7 @@ function renderStatus(d) {
     const mEl = document.getElementById('macroVal');
     const mPill = document.getElementById('macroPill');
     if (d.macro_blocked) {
-        mEl.textContent = '■ BLOCKIERT';
+        mEl.textContent = 'BLOCKIERT';
         mEl.style.color = 'var(--red)';
         mPill.style.borderColor = 'rgba(239,68,68,.28)';
     } else {
@@ -612,7 +612,7 @@ function renderRisk(d) {
 function renderStrategies(d) {
     const el = document.getElementById('stratList');
     const v = d.variants||[];
-    if (!v.length) { el.innerHTML='<div class="empty"><div class="empty-ico">↻</div>Noch keine Strategien</div>'; return; }
+    if (!v.length) { el.innerHTML='<div class="empty">Noch keine Strategien</div>'; return; }
     const top = [...v].sort((a,b)=>(b.wr||0)-(a.wr||0)).slice(0,6);
     _variants = top;
     el.innerHTML = top.map((s,i) => {
@@ -689,11 +689,11 @@ function drawStratsChart(top) {
 function renderAgents(d) {
     const el = document.getElementById('agentList');
     const agents = d.agents||[];
-    if (!agents.length) { el.innerHTML='<div class="empty"><div class="empty-ico">⬡</div>Keine Agenten-Daten</div>'; return; }
+    if (!agents.length) { el.innerHTML='<div class="empty">Keine Agenten-Daten</div>'; return; }
     el.innerHTML = agents.map(ag=>{
         const pc = ag.status==='working'?'#F59E0B':ag.status==='active'?'#10B981':'#374151';
         const tags = (ag.tags||[]).map(t=>`<span class="ag-tag" style="color:${ag.color};border-color:${ag.color}33;background:${ag.bg}">${esc(t)}</span>`).join('');
-        const badgeTxt = ag.status==='working'?'◉ Working':ag.status==='active'?'✓ Aktiv':'· Idle';
+        const badgeTxt = ag.status==='working'?'Working':ag.status==='active'?'Aktiv':'Idle';
         return `<div class="ag-card ${ag.status}">
           <div class="ag-top">
             <div class="ag-ico" style="background:${ag.bg}"><span style="color:${ag.color}">${esc(ag.icon)}</span></div>
@@ -713,7 +713,7 @@ function renderSignals(d) {
     if(badge){badge.textContent=n; badge.style.display=n?'flex':'none';}
     document.getElementById('sigCount2').textContent = n+' Signal(e)';
     const el = document.getElementById('sigList');
-    if (!n) { el.innerHTML='<div class="empty"><div class="empty-ico">↯</div>Keine aktuellen Signale</div>'; return; }
+    if (!n) { el.innerHTML='<div class="empty">Keine aktuellen Signale</div>'; return; }
     el.innerHTML = sigs.map(s=>{
         const dir=(s.direction||'LONG').toUpperCase(), isL=dir==='LONG';
         return `<div class="sig-row">
@@ -832,7 +832,7 @@ function renderPoly(d) { return; // disabled
             var emptyMsg = scanned > 0
                 ? 'Letzter Scan: ' + scanned + ' Märkte — keine Opportunitäten (Edge≥8%, high confidence)'
                 : 'Kein Scan gelaufen — startet alle 5 Min';
-            oppEl.innerHTML = '<div class="empty"><div class="empty-ico">⬡</div>' + emptyMsg + '</div>';
+            oppEl.innerHTML = '<div class="empty">' + emptyMsg + '</div>';
         } else {
             oppEl.innerHTML = opps.map(function(o) {
                 var edgePct = (o.edge * 100).toFixed(1);
@@ -860,7 +860,7 @@ function renderPoly(d) { return; // disabled
     var ordHeaderEl = document.getElementById('polyOrderHeader');
     if (ordListEl) {
         if (!orders.length) {
-            ordListEl.innerHTML = '<div class="empty"><div class="empty-ico">≡</div>Noch keine Orders</div>';
+            ordListEl.innerHTML = '<div class="empty">Noch keine Orders</div>';
             if (ordHeaderEl) ordHeaderEl.textContent = 'Simulierte Orders';
         } else {
             var openOrders  = orders.filter(function(o){ return o.status === 'open'; });
@@ -1317,7 +1317,7 @@ function startOptimizer() {
     var today = new Date().toISOString().slice(0,10);
     m.innerHTML = '<div style="background:#0E1117;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:22px;width:100%;max-width:390px;max-height:88vh;overflow-y:auto">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">'
-        + '<span style="font-weight:700;font-size:.92rem;color:#F1F5F9">≡ Backtest / Optimizer</span>'
+        + '<span style="font-weight:700;font-size:.92rem;color:#F1F5F9">Backtest / Optimizer</span>'
         + '<button onclick="document.getElementById(\'_optModal\').style.display=\'none\'" style="background:none;border:none;color:#8B9BB4;font-size:1.2rem;cursor:pointer;padding:2px 6px">✕</button>'
         + '</div>'
         + _optField('Symbol','<select id="_oSym" style="'+inp+'"><option>XAUUSD</option><option>XAGUSD</option><option>EURUSD</option><option>GBPUSD</option></select>')
@@ -1348,7 +1348,7 @@ async function _runOpt(optimize) {
         toast('Optimizer gestartet — Ergebnis in ~5 Min. im Dashboard');
         await dispatch({type:'optimize', params:{min_wr:0.60, min_trades:15}});
     } else {
-        toast('Backtest gestartet — Ergebnis in ~2 Min. im Commander ▦');
+        toast('Backtest gestartet — Ergebnis in ~2 Min. im Commander');
         await dispatch({type:'backtest', params:{symbol:sym, from_date:from, to_date:to||undefined, initial_cap:cap, risk_pct:risk, allow_short:ashort}});
     }
 }
@@ -1379,7 +1379,7 @@ function renderAssetPicker() {
             + 'background:' + bgColor + ';border:1px solid ' + borderColor + ';'
             + 'border-radius:10px;padding:10px 12px;cursor:pointer;text-align:left;'
             + 'touch-action:manipulation;-webkit-appearance:none;width:100%;transition:all .2s">'
-            + '<div style="font-size:1.3rem;margin-bottom:3px">' + (a.emoji || '▦') + '</div>'
+            + '<div style="font-size:1.3rem;margin-bottom:3px">' + (a.emoji || '—') + '</div>'
             + '<div style="font-size:.78rem;font-weight:700;color:' + nameColor + '">' + a.symbol + spin + '</div>'
             + '<div style="font-size:.62rem;color:var(--text2);margin:2px 0">' + (a.name || '') + '</div>'
             + badge
@@ -1423,7 +1423,7 @@ var _chatSha = null;
 async function clearChat() {
     if (!confirm('Chat wirklich löschen?\n\nAlle Nachrichten werden unwiderruflich gelöscht — auch auf GitHub.')) return;
     var st = document.getElementById('syncStatus');
-    if (st) st.textContent = '↻ Lösche…';
+    if (st) st.textContent = 'Lösche…';
     try { localStorage.removeItem('gb_chat'); } catch(e) {}
     hist = [];
     _chatSha = null;
@@ -1592,7 +1592,7 @@ function initChat() {
     // Sync mit GitHub: neue Nachrichten holen (DOM bleibt — kein Flash)
     setTimeout(function(){
         var st = document.getElementById('syncStatus');
-        if (st) st.textContent = '↻ Syncing…';
+        if (st) st.textContent = 'Syncing…';
         uploadLocalHistory(saved).then(function(){
             return syncChat();
         }).then(function(){
@@ -1603,14 +1603,14 @@ function initChat() {
 
 async function manualSync() {
     const st = document.getElementById('syncStatus');
-    if (st) st.textContent = '↻ Lade hoch…';
+    if (st) st.textContent = 'Lade hoch…';
     const saved = (function(){ try{return JSON.parse(localStorage.getItem('gb_chat')||'[]').filter(function(m){return !m.auto;});}catch(e){return [];} })();
     if (saved.length) await uploadLocalHistory(saved);
     // Full reload: clear DOM + hist so syncChat fetches everything from GitHub fresh
     const box = document.getElementById('chatBox');
     if (box) box.innerHTML = '';
     hist = [];
-    if (st) st.textContent = '↻ Sync läuft…';
+    if (st) st.textContent = 'Sync läuft…';
     await syncChat();
     const n = box ? box.querySelectorAll('.msg').length : 0;
     if (st) st.textContent = '✓ ' + n + ' Msgs · ' + new Date().toLocaleTimeString('de',{hour:'2-digit',minute:'2-digit'});
@@ -1651,13 +1651,13 @@ function welcome() {
     const wr=d.wr?d.wr.toFixed(1)+'%':'–', pf=d.pf?d.pf.toFixed(2):'–';
     const dd=d.max_dd?d.max_dd.toFixed(1)+'%':'–', pnl=d.net_pnl?(d.net_pnl>0?'+':'')+d.net_pnl.toFixed(0)+'$':'–';
     // auto:true marks this as a generated status message — not saved to localStorage
-    addMsg('assistant',`**Gold Bot Commander** bereit ↯
+    addMsg('assistant',`**Gold Bot Commander** bereit
 
-▦ System-Status:
+System-Status:
 • Win Rate: **${wr}** | Profit Factor: **${pf}**
 • Max DD: **${dd}** | Net PnL: **${pnl}**
 • Gold-Bias: **${(d.gold_bias||'neutral').toUpperCase()}** | DXY: ${d.dxy||'–'}
-• Macro: ${d.macro_blocked?'■ BLOCKIERT':'✓ Trading frei'}
+• Macro: ${d.macro_blocked?'BLOCKIERT':'✓ Trading frei'}
 
 Wie kann ich helfen? Ich kann Agenten starten, Strategien analysieren und Befehle an den Bot senden.`, true);
 }
@@ -1805,8 +1805,8 @@ function polyWelcome() {
     var poly = L.polymarket || {};
     var opps = poly.opportunities || [];
     var top = poly.top_opportunity;
-    var txt = '**Poly Scout** bereit ⬡\n\n' +
-        '▦ Polymarket-Status:\n' +
+    var txt = '**Poly Scout** bereit\n\n' +
+        'Polymarket-Status:\n' +
         '• Gescannte Märkte: **' + (poly.markets_scanned || 0) + '**\n' +
         '• Opportunities: **' + opps.length + '** mit Edge ≥5%\n' +
         '• Modus: **' + (poly.dry_run !== false ? 'PAPER' : 'LIVE') + '**\n';
@@ -2643,7 +2643,7 @@ function updateTokenBtn() {
     var manual = !!localStorage.getItem('gh_token');
     var embedded = !!_embeddedGhTok;
     var has = manual || embedded;
-    btn.textContent = has ? ('⌗' + (embedded && !manual ? ' Auto ✓' : ' Token ✓')) : '⌗ Token setzen';
+    btn.textContent = has ? ('Token' + (embedded && !manual ? ' Auto ✓' : ' ✓')) : 'Token setzen';
     btn.style.borderColor = has ? 'rgba(16,185,129,.4)' : 'rgba(239,68,68,.4)';
     btn.style.color = has ? 'var(--green)' : 'var(--red)';
 }
@@ -2666,7 +2666,7 @@ async function dispatch(cmd){
     if(!ghTok()){
         var lastWarn = parseInt(sessionStorage.getItem('_noTokWarn')||'0');
         if (Date.now() - lastWarn > 30000) {
-            addMsg('assistant','! **Kein GitHub Token gesetzt.**\n\nTippe oben auf **⌗ Token setzen** um deinen GitHub Token einzugeben.', true);
+            addMsg('assistant','! **Kein GitHub Token gesetzt.**\n\nTippe oben auf **Token setzen** um deinen GitHub Token einzugeben.', true);
             sessionStorage.setItem('_noTokWarn', Date.now().toString());
         }
         return;
@@ -2687,7 +2687,7 @@ async function dispatch(cmd){
             }
             if(!r.ok) throw new Error('GitHub PUT '+r.status);
             if (cmd.type !== 'set_asset') {
-                addMsg('assistant','↯ **Befehl gesendet!** "'+esc(cmd.name||cmd.type)+'" wurde übermittelt.\n\nErgebnis erscheint in ~2 Min. im Dashboard.');
+                addMsg('assistant','**Befehl gesendet!** "'+esc(cmd.name||cmd.type)+'" wurde übermittelt.\n\nErgebnis erscheint in ~2 Min. im Dashboard.');
             }
             toast('Befehl gesendet ✓');
             return;
@@ -2725,7 +2725,7 @@ function clearNotes(){
 function renderNotes(){
     const notes=getNotes();
     const el=document.getElementById('notesList'); if(!el) return;
-    if(!notes.length){el.innerHTML='<div class="empty"><div class="empty-ico">▤</div>Noch keine Notizen</div>';return;}
+    if(!notes.length){el.innerHTML='<div class="empty">Noch keine Notizen</div>';return;}
     el.innerHTML='<div class="note-saved">'+notes.map((n,i)=>
         `<div class="note-item">
           <div class="note-item-text">${esc(n.text)}</div>
@@ -2822,7 +2822,7 @@ function requestNotifPerm() {
 function _updateNotifBtn() {
     var perm = typeof Notification !== 'undefined' ? Notification.permission : 'denied';
     var col = perm === 'granted' ? '#10B981' : perm === 'denied' ? '#EF4444' : '#F59E0B';
-    var icon = perm === 'granted' ? '◉' : perm === 'denied' ? '◎' : '◉?';
+    var icon = perm === 'granted' ? '✓' : perm === 'denied' ? '✗' : 'Alarme';
     document.querySelectorAll('.notifBtn').forEach(function(b) {
         b.textContent = icon;
         b.style.color = col;
@@ -2833,9 +2833,9 @@ function _updateNotifBtn() {
 
 // ── INJECT SYNC BAR + GLOBAL NOTIF BUTTON ────────────────────────────────────
 (function injectSyncBar() {
-    var NOTIF_BTN = '<button type="button" class="notifBtn" onclick="requestNotifPerm()" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:#F59E0B;font-size:.75rem;font-weight:700;padding:4px 8px;border-radius:6px;cursor:pointer;touch-action:manipulation" title="Benachrichtigungen aktivieren">◉?</button>';
+    var NOTIF_BTN = '<button type="button" class="notifBtn" onclick="requestNotifPerm()" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:#F59E0B;font-size:.75rem;font-weight:700;padding:4px 8px;border-radius:6px;cursor:pointer;touch-action:manipulation" title="Benachrichtigungen aktivieren">Alarme</button>';
 
-    // ◉ Button in den globalen Header einfügen (sichtbar auf allen Tabs)
+    // Alarm-Button in den globalen Header einfügen (sichtbar auf allen Tabs)
     var hdr = document.querySelector('header') || document.querySelector('.header') || document.querySelector('[class*="header"]');
     if (!hdr) {
         // Fallback: direkt in den Body ganz oben, als fixed Badge
@@ -2847,7 +2847,7 @@ function _updateNotifBtn() {
             badge.onclick = requestNotifPerm;
             badge.style.cssText = 'position:fixed;top:10px;right:10px;z-index:9999;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);color:#F59E0B;font-size:1rem;font-weight:700;padding:6px 10px;border-radius:50px;cursor:pointer;touch-action:manipulation;backdrop-filter:blur(8px)';
             badge.title = 'Benachrichtigungen aktivieren';
-            badge.textContent = '◉?';
+            badge.textContent = 'Alarme';
             document.body.appendChild(badge);
         }
     } else if (!hdr.querySelector('.notifBtn')) {
@@ -2855,7 +2855,7 @@ function _updateNotifBtn() {
         nb.className = 'notifBtn';
         nb.onclick = requestNotifPerm;
         nb.style.cssText = 'background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:#F59E0B;font-size:.8rem;padding:4px 8px;border-radius:6px;cursor:pointer;margin-left:auto';
-        nb.textContent = '◉?';
+        nb.textContent = 'Alarme';
         hdr.appendChild(nb);
     }
 
@@ -2869,7 +2869,7 @@ function _updateNotifBtn() {
         bar.innerHTML = '<span id="syncStatus" style="font-size:.6rem;color:#8B9BB4;flex:1">Sync bereit</span>'
             + NOTIF_BTN
             + DEL_BTN_HTML
-            + '<button type="button" id="syncBtn" style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#10B981;font-size:.6rem;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;touch-action:manipulation">↻ Sync</button>';
+            + '<button type="button" id="syncBtn" style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#10B981;font-size:.6rem;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;touch-action:manipulation">Sync</button>';
         chatBox.parentNode.insertBefore(bar, chatBox);
     } else if (bar && !document.getElementById('delBtn')) {
         // Del-Button in bestehendes HTML-syncBar einfügen
@@ -2892,7 +2892,7 @@ function _updateNotifBtn() {
         polyBar.style.cssText = 'display:flex;align-items:center;gap:6px;padding:6px 14px;border-bottom:1px solid rgba(255,255,255,.08);background:#07090E;flex-shrink:0';
         polyBar.innerHTML = '<span id="polySyncStatus" style="font-size:.6rem;color:#8B9BB4;flex:1">Sync bereit</span>'
             + NOTIF_BTN
-            + '<button type="button" id="polySyncBtn" style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#10B981;font-size:.6rem;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;touch-action:manipulation">↻ Sync</button>';
+            + '<button type="button" id="polySyncBtn" style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#10B981;font-size:.6rem;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;touch-action:manipulation">Sync</button>';
         polyBox.parentNode.insertBefore(polyBar, polyBox);
     }
     var polyBtn = document.getElementById('polySyncBtn');
