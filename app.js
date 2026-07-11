@@ -277,7 +277,7 @@ function renderHeader(d) {
     box.innerHTML =
         '<div onclick="_btToggle()" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;font-size:.65rem;color:#8B9BB4;user-select:none;-webkit-user-select:none">'
         + '<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
-        + '<span style="color:#6366F1;font-weight:700;font-size:.7rem">⚙ BACKTEST-KONFIGURATION</span>'
+        + '<span style="color:#6366F1;font-weight:700;font-size:.7rem">≡ BACKTEST-KONFIGURATION</span>'
         + '&nbsp;&nbsp;<span style="color:#F1F5F9">'+sym+'</span>'
         + '&nbsp;·&nbsp;<span style="color:#F1F5F9">'+fd+' – '+td2+'</span>'
         + '&nbsp;·&nbsp;Risiko <span style="color:#4DDFFF;font-weight:700">'+rPct+'%</span>/Trade'
@@ -295,7 +295,7 @@ function renderHeader(d) {
         + _aaRow('Short-Trades','<input id="_aaShort" type="checkbox" '+ashort+' style="width:22px;height:22px;accent-color:#10B981;cursor:pointer">',true)
         + '<div style="display:flex;gap:10px;margin-top:14px">'
         + '<button onclick="_runAccOpt(false)" style="flex:1;background:rgba(99,102,241,.18);border:1px solid rgba(99,102,241,.4);color:#818CF8;font-size:.78rem;font-weight:700;padding:13px;border-radius:10px;cursor:pointer;touch-action:manipulation">▶ Backtest</button>'
-        + '<button onclick="_runAccOpt(true)" style="flex:1;background:rgba(0,209,255,.15);border:1px solid rgba(0,209,255,.4);color:#4DDFFF;font-size:.78rem;font-weight:700;padding:13px;border-radius:10px;cursor:pointer;touch-action:manipulation">🔍 Optimieren</button>'
+        + '<button onclick="_runAccOpt(true)" style="flex:1;background:rgba(0,209,255,.15);border:1px solid rgba(0,209,255,.4);color:#4DDFFF;font-size:.78rem;font-weight:700;padding:13px;border-radius:10px;cursor:pointer;touch-action:manipulation">Optimieren</button>'
         + '</div>'
         + '</div></div>';
 }
@@ -326,10 +326,10 @@ async function _runAccOpt(optimize) {
     var ashort= !!(document.getElementById('_aaShort')||{checked:false}).checked;
     _btToggle(); // schließen
     if (optimize) {
-        toast('Optimizer gestartet — Ergebnis in ~5 Min. im Dashboard 🔍');
+        toast('Optimizer gestartet — Ergebnis in ~5 Min. im Dashboard');
         await dispatch({type:'optimize', params:{min_wr:0.60, min_trades:15}});
     } else {
-        toast('Backtest gestartet — Ergebnis in ~2 Min. im Commander 📊');
+        toast('Backtest gestartet — Ergebnis in ~2 Min. im Commander ▦');
         await dispatch({type:'backtest', params:{symbol:sym, from_date:from, to_date:to||undefined, initial_cap:cap, risk_pct:risk, allow_short:ashort}});
     }
 }
@@ -453,7 +453,7 @@ function renderKPIs(d) {
         ['Max Drawdown', dd.toFixed(1)+'%', dd>-5?'#10B981':dd>-8?'#F59E0B':'#EF4444'],
         ['Risiko je Trade', d.risk_pct ? (d.risk_pct*100).toFixed(0)+'%' : '–'],
         ['Start-Kapital', '$'+sc.toLocaleString('de-DE',{maximumFractionDigits:0})],
-        ['Status', dd>-5?'✅ Sicher':dd>-8?'⚠️ Warnung':'🔴 Kritisch']
+        ['Status', dd>-5?'✓ Sicher':dd>-8?'! Warnung':'▼ Kritisch']
     ]);
     _addTap('kPnL', 'Net PnL Details', [
         ['Net PnL', (pnl>0?'+':'')+pnl.toFixed(0)+'$', pnl>=0?'#10B981':'#EF4444'],
@@ -577,19 +577,19 @@ function renderStatus(d) {
     const mEl = document.getElementById('macroVal');
     const mPill = document.getElementById('macroPill');
     if (d.macro_blocked) {
-        mEl.textContent = '🔴 BLOCKIERT';
+        mEl.textContent = '■ BLOCKIERT';
         mEl.style.color = 'var(--red)';
         mPill.style.borderColor = 'rgba(239,68,68,.28)';
     } else {
         const mins = d.macro_mins;
-        mEl.textContent = mins ? '✅ Frei · '+mins+'min' : '✅ Frei';
+        mEl.textContent = mins ? '✓ Frei · '+mins+'min' : '✓ Frei';
         mEl.style.color = 'var(--green)';
         mPill.style.borderColor = '';
     }
     const bias = d.gold_bias||'neutral';
     const dEl = document.getElementById('dxyVal');
     const dStr = d.dxy ? d.dxy.toFixed(2) : '–';
-    const em = bias==='bullish'?'🟢':bias==='bearish'?'🔴':'⚪';
+    const em = bias==='bullish'?'▲':bias==='bearish'?'▼':'○';
     dEl.textContent = em+' '+bias.toUpperCase()+' '+dStr;
     dEl.style.color = bias==='bullish'?'var(--green)':bias==='bearish'?'var(--red)':'var(--text)';
     document.getElementById('sigStat').textContent = (d.n_signals||0)+' Signal(e)';
@@ -612,7 +612,7 @@ function renderRisk(d) {
 function renderStrategies(d) {
     const el = document.getElementById('stratList');
     const v = d.variants||[];
-    if (!v.length) { el.innerHTML='<div class="empty"><div class="empty-ico">🔄</div>Noch keine Strategien</div>'; return; }
+    if (!v.length) { el.innerHTML='<div class="empty"><div class="empty-ico">↻</div>Noch keine Strategien</div>'; return; }
     const top = [...v].sort((a,b)=>(b.wr||0)-(a.wr||0)).slice(0,6);
     _variants = top;
     el.innerHTML = top.map((s,i) => {
@@ -689,7 +689,7 @@ function drawStratsChart(top) {
 function renderAgents(d) {
     const el = document.getElementById('agentList');
     const agents = d.agents||[];
-    if (!agents.length) { el.innerHTML='<div class="empty"><div class="empty-ico">🤖</div>Keine Agenten-Daten</div>'; return; }
+    if (!agents.length) { el.innerHTML='<div class="empty"><div class="empty-ico">⬡</div>Keine Agenten-Daten</div>'; return; }
     el.innerHTML = agents.map(ag=>{
         const pc = ag.status==='working'?'#F59E0B':ag.status==='active'?'#10B981':'#374151';
         const tags = (ag.tags||[]).map(t=>`<span class="ag-tag" style="color:${ag.color};border-color:${ag.color}33;background:${ag.bg}">${esc(t)}</span>`).join('');
@@ -713,7 +713,7 @@ function renderSignals(d) {
     if(badge){badge.textContent=n; badge.style.display=n?'flex':'none';}
     document.getElementById('sigCount2').textContent = n+' Signal(e)';
     const el = document.getElementById('sigList');
-    if (!n) { el.innerHTML='<div class="empty"><div class="empty-ico">⚡</div>Keine aktuellen Signale</div>'; return; }
+    if (!n) { el.innerHTML='<div class="empty"><div class="empty-ico">↯</div>Keine aktuellen Signale</div>'; return; }
     el.innerHTML = sigs.map(s=>{
         const dir=(s.direction||'LONG').toUpperCase(), isL=dir==='LONG';
         return `<div class="sig-row">
@@ -791,14 +791,14 @@ function renderPoly(d) { return; // disabled
         if (edgeEl) edgeEl.textContent = (top.edge * 100).toFixed(1) + '% Edge';
         if (contentEl) {
             var dirColor = top.direction === 'YES' ? 'var(--green)' : 'var(--red)';
-            var verdictIcon = top.debate_verdict === 'bull' ? '🐂' : top.debate_verdict === 'bear' ? '🐻' : '⚖️';
+            var verdictIcon = top.debate_verdict === 'bull' ? '▲' : top.debate_verdict === 'bear' ? '▼' : '=';
             var bullHtml = top.bull_argument
                 ? '<div style="background:rgba(16,185,129,.07);border-left:2px solid var(--green);padding:6px 8px;border-radius:0 5px 5px 0;font-size:.67rem;color:var(--text2);line-height:1.45;margin-bottom:5px">' +
-                  '<span style="color:var(--green);font-weight:700;font-size:.6rem">🐂 BULL &nbsp;</span>' + esc(top.bull_argument) + '</div>'
+                  '<span style="color:var(--green);font-weight:700;font-size:.6rem">▲ BULL &nbsp;</span>' + esc(top.bull_argument) + '</div>'
                 : '';
             var bearHtml = top.bear_argument
                 ? '<div style="background:rgba(239,68,68,.07);border-left:2px solid var(--red);padding:6px 8px;border-radius:0 5px 5px 0;font-size:.67rem;color:var(--text2);line-height:1.45;margin-bottom:5px">' +
-                  '<span style="color:var(--red);font-weight:700;font-size:.6rem">🐻 BEAR &nbsp;</span>' + esc(top.bear_argument) + '</div>'
+                  '<span style="color:var(--red);font-weight:700;font-size:.6rem">▼ BEAR &nbsp;</span>' + esc(top.bear_argument) + '</div>'
                 : '';
             contentEl.innerHTML =
                 '<div style="font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:8px">' + esc(top.question) + '</div>' +
@@ -860,7 +860,7 @@ function renderPoly(d) { return; // disabled
     var ordHeaderEl = document.getElementById('polyOrderHeader');
     if (ordListEl) {
         if (!orders.length) {
-            ordListEl.innerHTML = '<div class="empty"><div class="empty-ico">📋</div>Noch keine Orders</div>';
+            ordListEl.innerHTML = '<div class="empty"><div class="empty-ico">≡</div>Noch keine Orders</div>';
             if (ordHeaderEl) ordHeaderEl.textContent = 'Simulierte Orders';
         } else {
             var openOrders  = orders.filter(function(o){ return o.status === 'open'; });
@@ -974,7 +974,7 @@ function calcBitget() {
     if (resEl) resEl.innerHTML = rows;
 
     var riskEl = document.getElementById('bgRiskNote');
-    if (riskEl) riskEl.innerHTML = '<strong style="color:#F59E0B">⚠ Backtest-Projektion</strong> · Keine Garantie. '
+    if (riskEl) riskEl.innerHTML = '<strong style="color:#F59E0B">! Backtest-Projektion</strong> · Keine Garantie. '
         + 'Historischer Max Drawdown: <strong style="color:#EF4444">-' + s.max_dd + '%</strong> '
         + '→ maximaler Verlust auf ' + _bgFmt$(capital) + ': <strong style="color:#EF4444">-' + _bgFmt$(capital * s.max_dd / 100) + '</strong>';
 }
@@ -1097,7 +1097,7 @@ function calcTopstep() {
     if (resEl) resEl.innerHTML = rows;
 
     var riskEl = document.getElementById('tsxRiskNote');
-    if (riskEl) riskEl.innerHTML = '<strong style="color:#00D1FF">⚠ Backtest-Projektion (80% Payout)</strong> · Keine Garantie. '
+    if (riskEl) riskEl.innerHTML = '<strong style="color:#00D1FF">! Backtest-Projektion (80% Payout)</strong> · Keine Garantie. '
         + 'Max Drawdown: <strong style="color:#EF4444">-' + s.max_dd + '%</strong> '
         + '→ max. Verlust: <strong style="color:#EF4444">-' + _bgFmt$(capital * s.max_dd / 100) + '</strong> · '
         + 'TopStepX zahlt 80% der Gewinne aus (nach Combine-Pass).';
@@ -1317,7 +1317,7 @@ function startOptimizer() {
     var today = new Date().toISOString().slice(0,10);
     m.innerHTML = '<div style="background:#0E1117;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:22px;width:100%;max-width:390px;max-height:88vh;overflow-y:auto">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">'
-        + '<span style="font-weight:700;font-size:.92rem;color:#F1F5F9">⚙ Backtest / Optimizer</span>'
+        + '<span style="font-weight:700;font-size:.92rem;color:#F1F5F9">≡ Backtest / Optimizer</span>'
         + '<button onclick="document.getElementById(\'_optModal\').style.display=\'none\'" style="background:none;border:none;color:#8B9BB4;font-size:1.2rem;cursor:pointer;padding:2px 6px">✕</button>'
         + '</div>'
         + _optField('Symbol','<select id="_oSym" style="'+inp+'"><option>XAUUSD</option><option>XAGUSD</option><option>EURUSD</option><option>GBPUSD</option></select>')
@@ -1328,7 +1328,7 @@ function startOptimizer() {
         + _optField('Short-Trades erlaubt','<input id="_oShort" type="checkbox" checked style="width:22px;height:22px;accent-color:#10B981;cursor:pointer;margin-right:4px">')
         + '<div style="display:flex;gap:10px;margin-top:20px">'
         + '<button onclick="_runOpt(false)" style="flex:1;background:rgba(99,102,241,.18);border:1px solid rgba(99,102,241,.4);color:#818CF8;font-size:.78rem;font-weight:700;padding:13px;border-radius:10px;cursor:pointer;touch-action:manipulation">▶ Backtest</button>'
-        + '<button onclick="_runOpt(true)" style="flex:1;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);color:#F59E0B;font-size:.78rem;font-weight:700;padding:13px;border-radius:10px;cursor:pointer;touch-action:manipulation">🔍 Optimieren</button>'
+        + '<button onclick="_runOpt(true)" style="flex:1;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);color:#F59E0B;font-size:.78rem;font-weight:700;padding:13px;border-radius:10px;cursor:pointer;touch-action:manipulation">Optimieren</button>'
         + '</div></div>';
     m.style.display = 'flex';
 }
@@ -1345,10 +1345,10 @@ async function _runOpt(optimize) {
     var ashort= !!(document.getElementById('_oShort')||{checked:true}).checked;
     document.getElementById('_optModal').style.display = 'none';
     if (optimize) {
-        toast('Optimizer gestartet — Ergebnis in ~5 Min. im Dashboard 🔍');
+        toast('Optimizer gestartet — Ergebnis in ~5 Min. im Dashboard');
         await dispatch({type:'optimize', params:{min_wr:0.60, min_trades:15}});
     } else {
-        toast('Backtest gestartet — Ergebnis in ~2 Min. im Commander 📊');
+        toast('Backtest gestartet — Ergebnis in ~2 Min. im Commander ▦');
         await dispatch({type:'backtest', params:{symbol:sym, from_date:from, to_date:to||undefined, initial_cap:cap, risk_pct:risk, allow_short:ashort}});
     }
 }
@@ -1379,7 +1379,7 @@ function renderAssetPicker() {
             + 'background:' + bgColor + ';border:1px solid ' + borderColor + ';'
             + 'border-radius:10px;padding:10px 12px;cursor:pointer;text-align:left;'
             + 'touch-action:manipulation;-webkit-appearance:none;width:100%;transition:all .2s">'
-            + '<div style="font-size:1.3rem;margin-bottom:3px">' + (a.emoji || '📊') + '</div>'
+            + '<div style="font-size:1.3rem;margin-bottom:3px">' + (a.emoji || '▦') + '</div>'
             + '<div style="font-size:.78rem;font-weight:700;color:' + nameColor + '">' + a.symbol + spin + '</div>'
             + '<div style="font-size:.62rem;color:var(--text2);margin:2px 0">' + (a.name || '') + '</div>'
             + badge
@@ -1410,7 +1410,7 @@ async function toggleAsset(symbol, activate) {
         delete _pendingAssets[symbol];
         renderAssetPicker();
     } catch(e) {
-        if (msgEl) msgEl.textContent = '⚠️ Fehler: ' + e.message + ' — Token in Commander setzen';
+        if (msgEl) msgEl.textContent = '! Fehler: ' + e.message + ' — Token in Commander setzen';
         delete _pendingAssets[symbol];
         renderAssetPicker();
     }
@@ -1423,7 +1423,7 @@ var _chatSha = null;
 async function clearChat() {
     if (!confirm('Chat wirklich löschen?\n\nAlle Nachrichten werden unwiderruflich gelöscht — auch auf GitHub.')) return;
     var st = document.getElementById('syncStatus');
-    if (st) st.textContent = '⏳ Lösche…';
+    if (st) st.textContent = '↻ Lösche…';
     try { localStorage.removeItem('gb_chat'); } catch(e) {}
     hist = [];
     _chatSha = null;
@@ -1592,7 +1592,7 @@ function initChat() {
     // Sync mit GitHub: neue Nachrichten holen (DOM bleibt — kein Flash)
     setTimeout(function(){
         var st = document.getElementById('syncStatus');
-        if (st) st.textContent = '⏳ Syncing…';
+        if (st) st.textContent = '↻ Syncing…';
         uploadLocalHistory(saved).then(function(){
             return syncChat();
         }).then(function(){
@@ -1603,14 +1603,14 @@ function initChat() {
 
 async function manualSync() {
     const st = document.getElementById('syncStatus');
-    if (st) st.textContent = '⏳ Lade hoch…';
+    if (st) st.textContent = '↻ Lade hoch…';
     const saved = (function(){ try{return JSON.parse(localStorage.getItem('gb_chat')||'[]').filter(function(m){return !m.auto;});}catch(e){return [];} })();
     if (saved.length) await uploadLocalHistory(saved);
     // Full reload: clear DOM + hist so syncChat fetches everything from GitHub fresh
     const box = document.getElementById('chatBox');
     if (box) box.innerHTML = '';
     hist = [];
-    if (st) st.textContent = '⏳ Sync läuft…';
+    if (st) st.textContent = '↻ Sync läuft…';
     await syncChat();
     const n = box ? box.querySelectorAll('.msg').length : 0;
     if (st) st.textContent = '✓ ' + n + ' Msgs · ' + new Date().toLocaleTimeString('de',{hour:'2-digit',minute:'2-digit'});
@@ -1651,13 +1651,13 @@ function welcome() {
     const wr=d.wr?d.wr.toFixed(1)+'%':'–', pf=d.pf?d.pf.toFixed(2):'–';
     const dd=d.max_dd?d.max_dd.toFixed(1)+'%':'–', pnl=d.net_pnl?(d.net_pnl>0?'+':'')+d.net_pnl.toFixed(0)+'$':'–';
     // auto:true marks this as a generated status message — not saved to localStorage
-    addMsg('assistant',`**Gold Bot Commander** bereit ⚡
+    addMsg('assistant',`**Gold Bot Commander** bereit ↯
 
-📊 System-Status:
+▦ System-Status:
 • Win Rate: **${wr}** | Profit Factor: **${pf}**
 • Max DD: **${dd}** | Net PnL: **${pnl}**
 • Gold-Bias: **${(d.gold_bias||'neutral').toUpperCase()}** | DXY: ${d.dxy||'–'}
-• Macro: ${d.macro_blocked?'🔴 BLOCKIERT':'✅ Trading frei'}
+• Macro: ${d.macro_blocked?'■ BLOCKIERT':'✓ Trading frei'}
 
 Wie kann ich helfen? Ich kann Agenten starten, Strategien analysieren und Befehle an den Bot senden.`, true);
 }
@@ -1750,7 +1750,7 @@ async function sendMsg() {
     const txt=inp.value.trim(); if(!txt) return;
     inp.value=''; inp.style.height='40px';
     addMsg('user',txt);
-    if (!PROXY_URL) { addMsg('assistant','⚠️ Proxy nicht erreichbar — Tailscale aktiv?'); return; }
+    if (!PROXY_URL) { addMsg('assistant','! Proxy nicht erreichbar — Tailscale aktiv?'); return; }
     busy=true; document.getElementById('sendBtn').disabled=true; const _pSend=document.getElementById('polySendBtn'); if(_pSend)_pSend.disabled=true; showTyping();
     try {
         const msgs=hist.slice(0,-1).map(m=>({role:m.role==='user'?'user':'assistant',content:m.content}));
@@ -1766,9 +1766,9 @@ async function sendMsg() {
         const dm=raw.match(/<dispatch>([\s\S]*?)<\/dispatch>/);
         const clean=raw.replace(/<dispatch>[\s\S]*?<\/dispatch>/g,'').trim();
         hideTyping(); addMsg('assistant',clean);
-        if(dm){try{const cmd=JSON.parse(dm[1]);cmd.id=Date.now().toString();await dispatch(cmd);}catch(e){addMsg('assistant','⚠️ Dispatch-Fehler: '+e.message);}}
+        if(dm){try{const cmd=JSON.parse(dm[1]);cmd.id=Date.now().toString();await dispatch(cmd);}catch(e){addMsg('assistant','! Dispatch-Fehler: '+e.message);}}
     } catch(err) {
-        hideTyping(); addMsg('assistant','❌ **Fehler:** '+err.message);
+        hideTyping(); addMsg('assistant','✗ **Fehler:** '+err.message);
     } finally {
         busy=false; document.getElementById('sendBtn').disabled=false; const _pS2=document.getElementById('polySendBtn'); if(_pS2)_pS2.disabled=false;
     }
@@ -1806,7 +1806,7 @@ function polyWelcome() {
     var opps = poly.opportunities || [];
     var top = poly.top_opportunity;
     var txt = '**Poly Scout** bereit ⬡\n\n' +
-        '📊 Polymarket-Status:\n' +
+        '▦ Polymarket-Status:\n' +
         '• Gescannte Märkte: **' + (poly.markets_scanned || 0) + '**\n' +
         '• Opportunities: **' + opps.length + '** mit Edge ≥5%\n' +
         '• Modus: **' + (poly.dry_run !== false ? 'PAPER' : 'LIVE') + '**\n';
@@ -1883,7 +1883,7 @@ async function sendPolyMsg() {
     var txt = inp.value.trim(); if (!txt) return;
     inp.value = ''; inp.style.height = '40px';
     polyAddMsg('user', txt);
-    if (!PROXY_URL) { polyAddMsg('assistant', '⚠️ Proxy nicht erreichbar — Tailscale aktiv?'); return; }
+    if (!PROXY_URL) { polyAddMsg('assistant', '! Proxy nicht erreichbar — Tailscale aktiv?'); return; }
     polyBusy = true;
     var sendBtn = document.getElementById('polySendBtn');
     if (sendBtn) sendBtn.disabled = true;
@@ -1902,9 +1902,9 @@ async function sendPolyMsg() {
         var dm = raw.match(/<dispatch>([\s\S]*?)<\/dispatch>/);
         var clean = raw.replace(/<dispatch>[\s\S]*?<\/dispatch>/g,'').trim();
         polyHideTyping(); polyAddMsg('assistant', clean);
-        if (dm) { try { var cmd=JSON.parse(dm[1]); cmd.id=Date.now().toString(); await dispatch(cmd); } catch(e) { polyAddMsg('assistant','⚠️ Dispatch-Fehler: '+e.message); } }
+        if (dm) { try { var cmd=JSON.parse(dm[1]); cmd.id=Date.now().toString(); await dispatch(cmd); } catch(e) { polyAddMsg('assistant','! Dispatch-Fehler: '+e.message); } }
     } catch(err) {
-        polyHideTyping(); polyAddMsg('assistant', '❌ **Fehler:** ' + err.message);
+        polyHideTyping(); polyAddMsg('assistant', '✗ **Fehler:** ' + err.message);
     } finally {
         polyBusy = false;
         if (sendBtn) sendBtn.disabled = false;
@@ -1948,7 +1948,7 @@ async function pollTopStep() {
             pnlEl.style.color = pnl >= DAILY_GOAL ? '#10B981' : pnl >= 0 ? '#F59E0B' : '#EF4444';
         }
         var pnlSub = document.getElementById('tsxPnlSub');
-        if (pnlSub) pnlSub.textContent = floor ? '🔒 Floor aktiv' : Math.round(Math.max(0, pnl) / DAILY_GOAL * 100) + '% von $600';
+        if (pnlSub) pnlSub.textContent = floor ? '■ Floor aktiv' : Math.round(Math.max(0, pnl) / DAILY_GOAL * 100) + '% von $600';
 
         var ddEl = document.getElementById('tsxDD');
         if (ddEl) {
@@ -2431,7 +2431,7 @@ function _refreshTsx2Panel(tsx) {
     el = document.getElementById('tsx2Pnl');
     if (el) { el.textContent = (pnl >= 0 ? '+' : '') + pnl.toFixed(0) + '$'; el.style.color = pnl >= DAILY_GOAL ? '#10B981' : pnl >= 0 ? '#F59E0B' : '#EF4444'; }
     el = document.getElementById('tsx2PnlSub');
-    if (el) el.textContent = floor ? '🔒 Floor aktiv' : Math.round(Math.max(0, pnl) / DAILY_GOAL * 100) + '% von $600';
+    if (el) el.textContent = floor ? '■ Floor aktiv' : Math.round(Math.max(0, pnl) / DAILY_GOAL * 100) + '% von $600';
 
     el = document.getElementById('tsx2DD');
     if (el) { el.textContent = dd.toFixed(1) + '%'; el.style.color = dd > 60 ? '#EF4444' : dd > 40 ? '#F59E0B' : '#10B981'; }
@@ -2515,7 +2515,7 @@ function _renderBitgetLiveMode(isLive) {
 
 async function setBitgetLiveMode(isLive) {
     if (!ghTok() || !GHUSER || !GHREPO) { toast('Kein GitHub-Token', true); return; }
-    if (isLive && !confirm('⚠️ BITGET LIVE TRADING aktivieren?\n\nDer Bot platziert ab sofort ECHTE Orders bei Bitget Futures.\n\nNur aktivieren wenn Dry-Run Signale geprüft wurden!')) return;
+    if (isLive && !confirm('! BITGET LIVE TRADING aktivieren?\n\nDer Bot platziert ab sofort ECHTE Orders bei Bitget Futures.\n\nNur aktivieren wenn Dry-Run Signale geprüft wurden!')) return;
     if (!isLive && !confirm('Bitget Live Trading deaktivieren?\n\nBot wechselt in Dry-Run Modus — keine echten Bitget Orders mehr.')) return;
     try {
         var r = await fetch(
@@ -2533,14 +2533,14 @@ async function setBitgetLiveMode(isLive) {
             { method: 'PUT', headers: { 'Authorization': 'Bearer ' + ghTok(), 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
         );
         _renderBitgetLiveMode(isLive);
-        toast(isLive ? '🔴 Bitget LIVE aktiviert!' : '✓ Bitget Dry-Run aktiv');
+        toast(isLive ? '● Bitget LIVE aktiviert!' : '✓ Bitget Dry-Run aktiv');
         setTimeout(pollBotStatus, 3000);
     } catch(e) { toast('Fehler: ' + e.message, true); }
 }
 
 async function setLiveMode(isLive) {
     if (!ghTok() || !GHUSER || !GHREPO) { toast('Kein GitHub-Token', true); return; }
-    if (isLive && !confirm('⚠️ LIVE TRADING aktivieren?\n\nDer Bot platziert ab sofort ECHTE Orders bei TopStepX.\n\nNur aktivieren wenn Dry-Run Signale geprüft wurden!')) return;
+    if (isLive && !confirm('! LIVE TRADING aktivieren?\n\nDer Bot platziert ab sofort ECHTE Orders bei TopStepX.\n\nNur aktivieren wenn Dry-Run Signale geprüft wurden!')) return;
     if (!isLive && !confirm('Live Trading deaktivieren?\n\nBot wechselt in Dry-Run Modus — keine echten Orders mehr.')) return;
     try {
         var r = await fetch(
@@ -2558,14 +2558,14 @@ async function setLiveMode(isLive) {
             { method: 'PUT', headers: { 'Authorization': 'Bearer ' + ghTok(), 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
         );
         _renderLiveMode(isLive);
-        toast(isLive ? '🔴 LIVE TRADING aktiviert!' : '✓ Dry-Run Modus aktiv');
+        toast(isLive ? '● LIVE TRADING aktiviert!' : '✓ Dry-Run Modus aktiv');
         // Commander-Chat Eintrag schreiben
         try {
             var now = new Date();
             var ts = now.toLocaleDateString('de-AT') + ' ' + now.toLocaleTimeString('de-AT', {hour:'2-digit',minute:'2-digit'});
             var chatMsg = isLive
-                ? '🔴 LIVE TRADING aktiviert — ' + ts + '\nBot handelt ab sofort echte MGC-Kontrakte bei TopStepX.'
-                : '⚪ Dry-Run aktiviert — ' + ts + '\nBot wechselt zu Simulationsmodus — keine echten Orders mehr.';
+                ? '● LIVE TRADING aktiviert — ' + ts + '\nBot handelt ab sofort echte MGC-Kontrakte bei TopStepX.'
+                : '○ Dry-Run aktiviert — ' + ts + '\nBot wechselt zu Simulationsmodus — keine echten Orders mehr.';
             var cr = await fetch('https://api.github.com/repos/'+GHUSER+'/'+GHREPO+'/contents/chat_v2.json',
                 {headers:{'Authorization':'Bearer '+ghTok(),'Accept':'application/vnd.github.v3+json'},cache:'no-store'});
             var csha=null, cmsgs=[];
@@ -2643,7 +2643,7 @@ function updateTokenBtn() {
     var manual = !!localStorage.getItem('gh_token');
     var embedded = !!_embeddedGhTok;
     var has = manual || embedded;
-    btn.textContent = has ? ('🔑' + (embedded && !manual ? ' Auto ✓' : ' Token ✓')) : '🔑 Token setzen';
+    btn.textContent = has ? ('⌗' + (embedded && !manual ? ' Auto ✓' : ' Token ✓')) : '⌗ Token setzen';
     btn.style.borderColor = has ? 'rgba(16,185,129,.4)' : 'rgba(239,68,68,.4)';
     btn.style.color = has ? 'var(--green)' : 'var(--red)';
 }
@@ -2666,7 +2666,7 @@ async function dispatch(cmd){
     if(!ghTok()){
         var lastWarn = parseInt(sessionStorage.getItem('_noTokWarn')||'0');
         if (Date.now() - lastWarn > 30000) {
-            addMsg('assistant','⚠️ **Kein GitHub Token gesetzt.**\n\nTippe oben auf **🔑 Token setzen** um deinen GitHub Token einzugeben.', true);
+            addMsg('assistant','! **Kein GitHub Token gesetzt.**\n\nTippe oben auf **⌗ Token setzen** um deinen GitHub Token einzugeben.', true);
             sessionStorage.setItem('_noTokWarn', Date.now().toString());
         }
         return;
@@ -2687,12 +2687,12 @@ async function dispatch(cmd){
             }
             if(!r.ok) throw new Error('GitHub PUT '+r.status);
             if (cmd.type !== 'set_asset') {
-                addMsg('assistant','⚡ **Befehl gesendet!** "'+esc(cmd.name||cmd.type)+'" wurde übermittelt.\n\nErgebnis erscheint in ~2 Min. im Dashboard.');
+                addMsg('assistant','↯ **Befehl gesendet!** "'+esc(cmd.name||cmd.type)+'" wurde übermittelt.\n\nErgebnis erscheint in ~2 Min. im Dashboard.');
             }
             toast('Befehl gesendet ✓');
             return;
         }catch(e){
-            if(attempt>=4) addMsg('assistant','⚠️ Dispatch fehlgeschlagen: '+e.message);
+            if(attempt>=4) addMsg('assistant','! Dispatch fehlgeschlagen: '+e.message);
             else await new Promise(function(res){setTimeout(res,400);});
         }
     }
@@ -2725,7 +2725,7 @@ function clearNotes(){
 function renderNotes(){
     const notes=getNotes();
     const el=document.getElementById('notesList'); if(!el) return;
-    if(!notes.length){el.innerHTML='<div class="empty"><div class="empty-ico">📝</div>Noch keine Notizen</div>';return;}
+    if(!notes.length){el.innerHTML='<div class="empty"><div class="empty-ico">▤</div>Noch keine Notizen</div>';return;}
     el.innerHTML='<div class="note-saved">'+notes.map((n,i)=>
         `<div class="note-item">
           <div class="note-item-text">${esc(n.text)}</div>
@@ -2822,7 +2822,7 @@ function requestNotifPerm() {
 function _updateNotifBtn() {
     var perm = typeof Notification !== 'undefined' ? Notification.permission : 'denied';
     var col = perm === 'granted' ? '#10B981' : perm === 'denied' ? '#EF4444' : '#F59E0B';
-    var icon = perm === 'granted' ? '🔔' : perm === 'denied' ? '🔕' : '🔔?';
+    var icon = perm === 'granted' ? '◉' : perm === 'denied' ? '◎' : '◉?';
     document.querySelectorAll('.notifBtn').forEach(function(b) {
         b.textContent = icon;
         b.style.color = col;
@@ -2833,9 +2833,9 @@ function _updateNotifBtn() {
 
 // ── INJECT SYNC BAR + GLOBAL NOTIF BUTTON ────────────────────────────────────
 (function injectSyncBar() {
-    var NOTIF_BTN = '<button type="button" class="notifBtn" onclick="requestNotifPerm()" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:#F59E0B;font-size:.75rem;font-weight:700;padding:4px 8px;border-radius:6px;cursor:pointer;touch-action:manipulation" title="Benachrichtigungen aktivieren">🔔?</button>';
+    var NOTIF_BTN = '<button type="button" class="notifBtn" onclick="requestNotifPerm()" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:#F59E0B;font-size:.75rem;font-weight:700;padding:4px 8px;border-radius:6px;cursor:pointer;touch-action:manipulation" title="Benachrichtigungen aktivieren">◉?</button>';
 
-    // 🔔 Button in den globalen Header einfügen (sichtbar auf allen Tabs)
+    // ◉ Button in den globalen Header einfügen (sichtbar auf allen Tabs)
     var hdr = document.querySelector('header') || document.querySelector('.header') || document.querySelector('[class*="header"]');
     if (!hdr) {
         // Fallback: direkt in den Body ganz oben, als fixed Badge
@@ -2847,7 +2847,7 @@ function _updateNotifBtn() {
             badge.onclick = requestNotifPerm;
             badge.style.cssText = 'position:fixed;top:10px;right:10px;z-index:9999;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);color:#F59E0B;font-size:1rem;font-weight:700;padding:6px 10px;border-radius:50px;cursor:pointer;touch-action:manipulation;backdrop-filter:blur(8px)';
             badge.title = 'Benachrichtigungen aktivieren';
-            badge.textContent = '🔔?';
+            badge.textContent = '◉?';
             document.body.appendChild(badge);
         }
     } else if (!hdr.querySelector('.notifBtn')) {
@@ -2855,11 +2855,11 @@ function _updateNotifBtn() {
         nb.className = 'notifBtn';
         nb.onclick = requestNotifPerm;
         nb.style.cssText = 'background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:#F59E0B;font-size:.8rem;padding:4px 8px;border-radius:6px;cursor:pointer;margin-left:auto';
-        nb.textContent = '🔔?';
+        nb.textContent = '◉?';
         hdr.appendChild(nb);
     }
 
-    var DEL_BTN_HTML = '<button type="button" id="delBtn" onclick="clearChat()" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#EF4444;font-size:.6rem;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;touch-action:manipulation" title="Chat löschen">🗑</button>';
+    var DEL_BTN_HTML = '<button type="button" id="delBtn" onclick="clearChat()" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#EF4444;font-size:.6rem;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;touch-action:manipulation" title="Chat löschen">✕</button>';
     var bar = document.getElementById('syncBar');
     var chatBox = document.getElementById('chatBox');
     if (!bar && chatBox) {
@@ -2876,7 +2876,7 @@ function _updateNotifBtn() {
         var delBtnEl = document.createElement('button');
         delBtnEl.type = 'button'; delBtnEl.id = 'delBtn'; delBtnEl.onclick = clearChat;
         delBtnEl.style.cssText = 'background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#EF4444;font-size:.6rem;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;touch-action:manipulation';
-        delBtnEl.title = 'Chat löschen'; delBtnEl.textContent = '🗑';
+        delBtnEl.title = 'Chat löschen'; delBtnEl.textContent = '✕';
         var syncBtn0 = document.getElementById('syncBtn');
         if (syncBtn0) bar.insertBefore(delBtnEl, syncBtn0);
         else bar.appendChild(delBtnEl);
