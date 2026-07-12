@@ -89,8 +89,8 @@ function showStrategy(mode) {
       btnSMC.style.background = 'rgba(255,255,255,.04)';
       btnSMC.style.borderColor= 'rgba(255,255,255,.1)';
     } else {
-      btnSMC.style.background  = 'rgba(0,209,255,.14)';
-      btnSMC.style.borderColor = 'rgba(0,209,255,.45)';
+      btnSMC.style.background  = 'rgba(76,139,245,.14)';
+      btnSMC.style.borderColor = 'rgba(76,139,245,.45)';
       btnBB.style.background  = 'rgba(139,92,246,.07)';
       btnBB.style.borderColor = 'rgba(139,92,246,.22)';
     }
@@ -181,10 +181,10 @@ function drawBBChart() {
   var yMil = py(1000000);
   if (yMil > pad.t && yMil < H-pad.b) {
     ctx.setLineDash([3,3]);
-    ctx.strokeStyle='rgba(0,209,255,.4)'; ctx.lineWidth=1;
+    ctx.strokeStyle='rgba(76,139,245,.4)'; ctx.lineWidth=1;
     ctx.beginPath(); ctx.moveTo(pad.l,yMil); ctx.lineTo(W-pad.r,yMil); ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle='rgba(77,223,255,.9)'; ctx.font='bold 8px -apple-system,sans-serif';
+    ctx.fillStyle='rgba(110,162,247,.9)'; ctx.font='bold 8px -apple-system,sans-serif';
     ctx.fillText('$1M',W-pad.r-18,yMil-2);
   }
   // From/To labels
@@ -198,7 +198,7 @@ function renderMonthlyBB() {
   var el = document.getElementById('monthlyTable');
   if (!el) return;
   el.innerHTML = BB_MONTHLY.map(function(m) {
-    var wc = m.wr >= 40 ? '#10B981' : m.wr >= 30 ? '#F59E0B' : '#EF4444';
+    var wc = m.wr >= 40 ? '#10B981' : m.wr >= 30 ? '#4C8BF5' : '#EF4444';
     var prev_cap = BB_MONTHLY[BB_MONTHLY.indexOf(m)-1] ? BB_MONTHLY[BB_MONTHLY.indexOf(m)-1].cap : 100000;
     var pnl = m.cap - prev_cap;
     var pc = pnl >= 0 ? '#10B981' : '#EF4444';
@@ -280,7 +280,7 @@ function renderHeader(d) {
         + '<span style="color:#6366F1;font-weight:700;font-size:.7rem">BACKTEST-KONFIGURATION</span>'
         + '&nbsp;&nbsp;<span style="color:#F1F5F9">'+sym+'</span>'
         + '&nbsp;·&nbsp;<span style="color:#F1F5F9">'+fd+' – '+td2+'</span>'
-        + '&nbsp;·&nbsp;Risiko <span style="color:#4DDFFF;font-weight:700">'+rPct+'%</span>/Trade'
+        + '&nbsp;·&nbsp;Risiko <span style="color:#6EA2F7;font-weight:700">'+rPct+'%</span>/Trade'
         + '&nbsp;·&nbsp;<span style="color:#475569">'+upd+'</span>'
         + '</span>'
         + '<span id="_btChev" style="color:#6366F1;font-size:.85rem;margin-left:10px;transition:transform .25s;flex-shrink:0">▼</span>'
@@ -295,7 +295,7 @@ function renderHeader(d) {
         + _aaRow('Short-Trades','<input id="_aaShort" type="checkbox" '+ashort+' style="width:22px;height:22px;accent-color:#10B981;cursor:pointer">',true)
         + '<div style="display:flex;gap:10px;margin-top:14px">'
         + '<button onclick="_runAccOpt(false)" style="flex:1;background:rgba(99,102,241,.18);border:1px solid rgba(99,102,241,.4);color:#818CF8;font-size:.78rem;font-weight:700;padding:13px;border-radius:10px;cursor:pointer;touch-action:manipulation">▶ Backtest</button>'
-        + '<button onclick="_runAccOpt(true)" style="flex:1;background:rgba(0,209,255,.15);border:1px solid rgba(0,209,255,.4);color:#4DDFFF;font-size:.78rem;font-weight:700;padding:13px;border-radius:10px;cursor:pointer;touch-action:manipulation">Optimieren</button>'
+        + '<button onclick="_runAccOpt(true)" style="flex:1;background:rgba(76,139,245,.15);border:1px solid rgba(76,139,245,.4);color:#6EA2F7;font-size:.78rem;font-weight:700;padding:13px;border-radius:10px;cursor:pointer;touch-action:manipulation">Optimieren</button>'
         + '</div>'
         + '</div></div>';
 }
@@ -342,10 +342,10 @@ function showVariantDetail(idx) {
     var cfg = s.config || {};
     var isActive = s.active || (s.name||'').includes('Aktuell aktiv');
     var rows = [
-        ['Win Rate',      (s.wr||0).toFixed(1)+'%',  s.wr>=70?'#10B981':s.wr>=60?'#F59E0B':'#EF4444'],
+        ['Win Rate',      (s.wr||0).toFixed(1)+'%',  s.wr>=70?'#10B981':s.wr>=60?'#4C8BF5':'#EF4444'],
         ['Profit Factor', (s.pf||0).toFixed(2)],
         ['Trades',        s.trades||0],
-        ['Max Drawdown',  (s.mdd||0).toFixed(1)+'%', (s.mdd||0)>-5?'#10B981':(s.mdd||0)>-10?'#F59E0B':'#EF4444'],
+        ['Max Drawdown',  (s.mdd||0).toFixed(1)+'%', (s.mdd||0)>-5?'#10B981':(s.mdd||0)>-10?'#4C8BF5':'#EF4444'],
         ['Net PnL',       ((s.pnl||0)>=0?'+':'')+(s.pnl||0).toFixed(0)+'$', (s.pnl||0)>=0?'#10B981':'#EF4444'],
         ['Datum',         s.date||'–'],
         ['─── Parameter ───', ''],
@@ -438,19 +438,19 @@ function renderKPIs(d) {
         }
     };
     _addTap('kWR',  'Win Rate Details', [
-        ['Win Rate', wr.toFixed(1)+'%', wr>=60?'#10B981':wr>=45?'#F59E0B':'#EF4444'],
+        ['Win Rate', wr.toFixed(1)+'%', wr>=60?'#10B981':wr>=45?'#4C8BF5':'#EF4444'],
         ['Trades gesamt', tr],
         ['Zeitraum', fd.slice(0,10)+' – '+td.slice(0,10)],
         ['Ziel', '≥ 60%', '#10B981']
     ]);
     _addTap('kPF',  'Profit Factor Details', [
-        ['Profit Factor', pf.toFixed(2), pf>=2?'#10B981':pf>=1.5?'#F59E0B':'#EF4444'],
+        ['Profit Factor', pf.toFixed(2), pf>=2?'#10B981':pf>=1.5?'#4C8BF5':'#EF4444'],
         ['Bedeutung', pf>=2 ? 'Exzellent' : pf>=1.5 ? 'Gut' : pf>=1 ? 'Akzeptabel' : 'Verlustzone'],
         ['Net PnL', (pnl>0?'+':'')+pnl.toFixed(0)+'$', pnl>=0?'#10B981':'#EF4444'],
         ['Ziel', '≥ 2.0', '#10B981']
     ]);
     _addTap('kDD',  'Max Drawdown Details', [
-        ['Max Drawdown', dd.toFixed(1)+'%', dd>-5?'#10B981':dd>-8?'#F59E0B':'#EF4444'],
+        ['Max Drawdown', dd.toFixed(1)+'%', dd>-5?'#10B981':dd>-8?'#4C8BF5':'#EF4444'],
         ['Risiko je Trade', d.risk_pct ? (d.risk_pct*100).toFixed(0)+'%' : '–'],
         ['Start-Kapital', '$'+sc.toLocaleString('de-DE',{maximumFractionDigits:0})],
         ['Status', dd>-5?'✓ Sicher':dd>-8?'! Warnung':'▼ Kritisch']
@@ -467,7 +467,7 @@ function renderMonthly(monthly) {
     const el = document.getElementById('monthlyTable');
     if (!el || !monthly.length) return;
     el.innerHTML = monthly.map(function(m){
-        const wr_c = m.wr >= 60 ? '#10B981' : m.wr >= 45 ? '#F59E0B' : '#EF4444';
+        const wr_c = m.wr >= 60 ? '#10B981' : m.wr >= 45 ? '#4C8BF5' : '#EF4444';
         const pnl_c = m.pnl >= 0 ? '#10B981' : '#EF4444';
         return '<tr style="border-bottom:1px solid rgba(255,255,255,.05)">'
             +'<td style="padding:5px 8px;color:#8B9BB4;font-size:.7rem">'+m.month+'</td>'
@@ -619,7 +619,7 @@ function renderStrategies(d) {
         const isActive = s.active || (s.name||'').includes('Aktuell aktiv');
         const activeBadge = isActive
             ? '<span style="background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.4);color:#10B981;font-size:.55rem;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap">✓ AKTIV</span>'
-            : `<button onclick="event.stopPropagation();activateVariant('${esc(s.id||s.name||'')}','${esc(s.name||'')}')" style="background:rgba(0,209,255,.12);border:1px solid rgba(0,209,255,.35);color:#4DDFFF;font-size:.55rem;font-weight:700;padding:3px 9px;border-radius:20px;cursor:pointer;touch-action:manipulation;white-space:nowrap">Aktivieren</button>`;
+            : `<button onclick="event.stopPropagation();activateVariant('${esc(s.id||s.name||'')}','${esc(s.name||'')}')" style="background:rgba(76,139,245,.12);border:1px solid rgba(76,139,245,.35);color:#6EA2F7;font-size:.55rem;font-weight:700;padding:3px 9px;border-radius:20px;cursor:pointer;touch-action:manipulation;white-space:nowrap">Aktivieren</button>`;
         return `<div class="str-row" onclick="showVariantDetail(${i})" style="align-items:center;gap:6px;cursor:pointer">
           <div class="str-rank">${i+1}</div>
           <div class="str-info" style="flex:1;min-width:0">
@@ -675,7 +675,7 @@ function drawStratsChart(top) {
         ctx.fillStyle = 'rgba(255,255,255,0.05)';
         ctx.beginPath(); ctx.roundRect(bx, y, barArea, BAR_H, 4); ctx.fill();
         const bw = (wr / maxWR) * barArea;
-        const col = wr >= 60 ? '#10B981' : wr >= 50 ? '#F59E0B' : '#EF4444';
+        const col = wr >= 60 ? '#10B981' : wr >= 50 ? '#4C8BF5' : '#EF4444';
         const grad = ctx.createLinearGradient(bx, 0, bx + bw, 0);
         grad.addColorStop(0, col + '55'); grad.addColorStop(1, col);
         ctx.fillStyle = grad;
@@ -691,7 +691,7 @@ function renderAgents(d) {
     const agents = d.agents||[];
     if (!agents.length) { el.innerHTML='<div class="empty">Keine Agenten-Daten</div>'; return; }
     el.innerHTML = agents.map(ag=>{
-        const pc = ag.status==='working'?'#F59E0B':ag.status==='active'?'#10B981':'#374151';
+        const pc = ag.status==='working'?'#4C8BF5':ag.status==='active'?'#10B981':'#374151';
         const tags = (ag.tags||[]).map(t=>`<span class="ag-tag" style="color:${ag.color};border-color:${ag.color}33;background:${ag.bg}">${esc(t)}</span>`).join('');
         const badgeTxt = ag.status==='working'?'Working':ag.status==='active'?'Aktiv':'Idle';
         return `<div class="ag-card ${ag.status}">
@@ -806,7 +806,7 @@ function renderPoly(d) { return; // disabled
                   '<span style="background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.3);color:var(--purple);padding:3px 8px;border-radius:5px;font-size:.65rem;font-weight:700">' +
                     top.direction + ' @ ' + (top.direction === 'YES' ? top.yes_price : top.no_price).toFixed(2) +
                   '</span>' +
-                  '<span style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);color:var(--gold);padding:3px 8px;border-radius:5px;font-size:.65rem;font-weight:700">' +
+                  '<span style="background:rgba(76,139,245,.1);border:1px solid rgba(76,139,245,.2);color:var(--gold);padding:3px 8px;border-radius:5px;font-size:.65rem;font-weight:700">' +
                     'Claude: ' + (top.claude_prob * 100).toFixed(0) + '%' +
                   '</span>' +
                   '<span style="background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text2);padding:3px 8px;border-radius:5px;font-size:.65rem">' +
@@ -917,8 +917,8 @@ function switchTab(tab) {
 
 // ── BITGET ──────────────────────────────────────────────────────────────────
 var BG_STRATS = {
-    'a': {name:'A — Long-only ★ (Bitget)',wr:60,   weekly_pct:11.15,max_dd:26.5, trades_week:4.5,  color:'#F59E0B',  rr:'1.5:1',  desc:'5% Risiko · 5 Charts · Jan–Jun 2026'},
-    'b': {name:'B — Long+Short (Bitget)', wr:52.6, weekly_pct:50.22,max_dd:53.5, trades_week:17.5, color:'#4DDFFF',  rr:'2:1',    desc:'5% Risiko · 5 Charts · Jan–Jun 2026'},
+    'a': {name:'A — Long-only ★ (Bitget)',wr:60,   weekly_pct:11.15,max_dd:26.5, trades_week:4.5,  color:'#4C8BF5',  rr:'1.5:1',  desc:'5% Risiko · 5 Charts · Jan–Jun 2026'},
+    'b': {name:'B — Long+Short (Bitget)', wr:52.6, weekly_pct:50.22,max_dd:53.5, trades_week:17.5, color:'#6EA2F7',  rr:'2:1',    desc:'5% Risiko · 5 Charts · Jan–Jun 2026'},
 };
 
 function _bgFmt$(n) { return '$' + Math.abs(n).toLocaleString('de-DE', {minimumFractionDigits:0,maximumFractionDigits:0}); }
@@ -974,7 +974,7 @@ function calcBitget() {
     if (resEl) resEl.innerHTML = rows;
 
     var riskEl = document.getElementById('bgRiskNote');
-    if (riskEl) riskEl.innerHTML = '<strong style="color:#F59E0B">! Backtest-Projektion</strong> · Keine Garantie. '
+    if (riskEl) riskEl.innerHTML = '<strong style="color:#4C8BF5">! Backtest-Projektion</strong> · Keine Garantie. '
         + 'Historischer Max Drawdown: <strong style="color:#EF4444">-' + s.max_dd + '%</strong> '
         + '→ maximaler Verlust auf ' + _bgFmt$(capital) + ': <strong style="color:#EF4444">-' + _bgFmt$(capital * s.max_dd / 100) + '</strong>';
 }
@@ -982,7 +982,7 @@ function calcBitget() {
 // ── NQ-ORB STRATEGIE-PANEL ───────────────────────────────────────────────────
 var ORB_STATUS_MAP = {
     'closed':       {txt: 'Geschlossen / Wartet auf US-Open', col: '#6B7280'},
-    'waiting_or':   {txt: 'Opening Range bildet sich',        col: '#F59E0B'},
+    'waiting_or':   {txt: 'Opening Range bildet sich',        col: '#4C8BF5'},
     'in_range':     {txt: 'In Range — wartet auf Breakout',   col: '#22D3EE'},
     'long':         {txt: 'LONG aktiv',                       col: '#10B981'},
     'short':        {txt: 'SHORT aktiv',                      col: '#EF4444'},
@@ -1042,7 +1042,7 @@ function calcOrb(d) {
 
 // ── TOPSTEP STRATEGIE-RECHNER ────────────────────────────────────────────────
 var TSX_STRATS = {
-    'elite':  {name:'SMC Elite ★ (Live)',  wr:69.4, weekly_pct:0.44, max_dd:3.5,  trades_week:10, color:'#00D1FF', pf:'1.28', desc:'MGC Gold · 5% Risiko · Jan–Jun 2026'},
+    'elite':  {name:'SMC Elite ★ (Live)',  wr:69.4, weekly_pct:0.44, max_dd:3.5,  trades_week:10, color:'#4C8BF5', pf:'1.28', desc:'MGC Gold · 5% Risiko · Jan–Jun 2026'},
     'moderat':{name:'SMC Moderat',         wr:65,   weekly_pct:0.22, max_dd:2.0,  trades_week:5,  color:'#10B981', pf:'1.15', desc:'2.5% Risiko · Reduzierte Frequenz'},
 };
 
@@ -1097,7 +1097,7 @@ function calcTopstep() {
     if (resEl) resEl.innerHTML = rows;
 
     var riskEl = document.getElementById('tsxRiskNote');
-    if (riskEl) riskEl.innerHTML = '<strong style="color:#00D1FF">! Backtest-Projektion (80% Payout)</strong> · Keine Garantie. '
+    if (riskEl) riskEl.innerHTML = '<strong style="color:#4C8BF5">! Backtest-Projektion (80% Payout)</strong> · Keine Garantie. '
         + 'Max Drawdown: <strong style="color:#EF4444">-' + s.max_dd + '%</strong> '
         + '→ max. Verlust: <strong style="color:#EF4444">-' + _bgFmt$(capital * s.max_dd / 100) + '</strong> · '
         + 'TopStepX zahlt 80% der Gewinne aus (nach Combine-Pass).';
@@ -1156,7 +1156,7 @@ function initBitget() {
         el = document.getElementById('bgSumTotalPnl');
         if (el) { el.textContent = (totalPnl >= 0 ? '+$' : '-$') + Math.abs(totalPnl).toFixed(2); el.style.color = totalPnl >= 0 ? '#10B981' : '#EF4444'; }
         el = document.getElementById('bgSumWR');
-        if (el) { el.textContent = totalTr > 0 ? wr + '%' : '–'; el.style.color = wr >= 60 ? '#10B981' : wr >= 40 ? '#F59E0B' : '#EF4444'; }
+        if (el) { el.textContent = totalTr > 0 ? wr + '%' : '–'; el.style.color = wr >= 60 ? '#10B981' : wr >= 40 ? '#4C8BF5' : '#EF4444'; }
         el = document.getElementById('bgSumTrades');
         if (el) el.textContent = totalTr + ' Trades';
         el = document.getElementById('bgSumUnreal');
@@ -1166,7 +1166,7 @@ function initBitget() {
 
         // ── Stats-Seite: Variante C (Bitget Live) ───────────────────────────
         el = document.getElementById('bgLiveWR');
-        if (el) { el.textContent = totalTr > 0 ? wr + '%' : '–'; el.style.color = wr >= 60 ? '#10B981' : wr >= 40 ? '#F59E0B' : '#EF4444'; }
+        if (el) { el.textContent = totalTr > 0 ? wr + '%' : '–'; el.style.color = wr >= 60 ? '#10B981' : wr >= 40 ? '#4C8BF5' : '#EF4444'; }
         el = document.getElementById('bgLiveTrades');
         if (el) el.textContent = totalTr > 0 ? totalTr : '–';
         el = document.getElementById('bgLivePnL');
@@ -1202,8 +1202,8 @@ function initBitget() {
     var bdg = document.getElementById('bgTradesBadge');
     if (bdg) {
         bdg.textContent = _totalFills;
-        bdg.style.background = _totalFills > 0 ? 'rgba(245,158,11,.18)' : 'rgba(55,65,81,.3)';
-        bdg.style.color = _totalFills > 0 ? '#F59E0B' : 'var(--text3)';
+        bdg.style.background = _totalFills > 0 ? 'rgba(76,139,245,.18)' : 'rgba(55,65,81,.3)';
+        bdg.style.color = _totalFills > 0 ? '#4C8BF5' : 'var(--text3)';
     }
     var cbdg = document.getElementById('bgClosedBadge');
     if (cbdg) cbdg.textContent = closedFills.length;
@@ -1217,7 +1217,7 @@ function initBitget() {
         var net  = (f.pnl || 0) + fee;
         var netCol = net > 0 ? '#10B981' : (net < 0 ? '#EF4444' : '#9DB4CC');
         var typ  = f.tradeSide === 'open' ? 'ENTRY' : (f.tradeSide === 'close' ? 'EXIT' : (f.tradeSide || ''));
-        var typCol = f.tradeSide === 'open' ? '#4DDFFF' : '#F59E0B';
+        var typCol = f.tradeSide === 'open' ? '#6EA2F7' : '#4C8BF5';
         var hasPnl = f.pnl !== 0 || fee !== 0;
         return '<div style="padding:6px 4px;border-bottom:1px solid rgba(255,255,255,.05)">'
             + '<div style="display:flex;align-items:center;gap:6px">'
@@ -1328,7 +1328,7 @@ function startOptimizer() {
         + _optField('Short-Trades erlaubt','<input id="_oShort" type="checkbox" checked style="width:22px;height:22px;accent-color:#10B981;cursor:pointer;margin-right:4px">')
         + '<div style="display:flex;gap:10px;margin-top:20px">'
         + '<button onclick="_runOpt(false)" style="flex:1;background:rgba(99,102,241,.18);border:1px solid rgba(99,102,241,.4);color:#818CF8;font-size:.78rem;font-weight:700;padding:13px;border-radius:10px;cursor:pointer;touch-action:manipulation">▶ Backtest</button>'
-        + '<button onclick="_runOpt(true)" style="flex:1;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);color:#F59E0B;font-size:.78rem;font-weight:700;padding:13px;border-radius:10px;cursor:pointer;touch-action:manipulation">Optimieren</button>'
+        + '<button onclick="_runOpt(true)" style="flex:1;background:rgba(76,139,245,.12);border:1px solid rgba(76,139,245,.35);color:#4C8BF5;font-size:.78rem;font-weight:700;padding:13px;border-radius:10px;cursor:pointer;touch-action:manipulation">Optimieren</button>'
         + '</div></div>';
     m.style.display = 'flex';
 }
@@ -1370,10 +1370,10 @@ function renderAssetPicker() {
     grid.innerHTML = assets.map(function(a) {
         var pending = _pendingAssets[a.symbol];
         var isActive = (pending !== undefined) ? pending : a.active;
-        var borderColor = isActive ? 'rgba(0,209,255,.55)' : 'var(--border)';
-        var bgColor = isActive ? 'rgba(0,209,255,.12)' : 'var(--card)';
+        var borderColor = isActive ? 'rgba(76,139,245,.55)' : 'var(--border)';
+        var bgColor = isActive ? 'rgba(76,139,245,.12)' : 'var(--card)';
         var nameColor = isActive ? 'var(--blue-bright)' : 'var(--text2)';
-        var badge = isActive ? '<span style="font-size:.55rem;background:rgba(0,209,255,.85);color:#fff;padding:2px 5px;border-radius:4px;font-weight:700">AKTIV</span>' : '<span style="font-size:.55rem;background:rgba(255,255,255,.07);color:var(--text3);padding:2px 5px;border-radius:4px">INAKTIV</span>';
+        var badge = isActive ? '<span style="font-size:.55rem;background:rgba(76,139,245,.85);color:#fff;padding:2px 5px;border-radius:4px;font-weight:700">AKTIV</span>' : '<span style="font-size:.55rem;background:rgba(255,255,255,.07);color:var(--text3);padding:2px 5px;border-radius:4px">INAKTIV</span>';
         var spin = (pending !== undefined) ? '<span style="font-size:.65rem;color:var(--text2)"> ⟳</span>' : '';
         return '<button type="button" onclick="toggleAsset(\'' + a.symbol + '\',' + !isActive + ')" style="'
             + 'background:' + bgColor + ';border:1px solid ' + borderColor + ';'
@@ -1945,7 +1945,7 @@ async function pollTopStep() {
         var pnlEl = document.getElementById('tsxPnl');
         if (pnlEl) {
             pnlEl.textContent = (pnl >= 0 ? '+' : '') + pnl.toFixed(0) + '$';
-            pnlEl.style.color = pnl >= DAILY_GOAL ? '#10B981' : pnl >= 0 ? '#F59E0B' : '#EF4444';
+            pnlEl.style.color = pnl >= DAILY_GOAL ? '#10B981' : pnl >= 0 ? '#4C8BF5' : '#EF4444';
         }
         var pnlSub = document.getElementById('tsxPnlSub');
         if (pnlSub) pnlSub.textContent = floor ? '■ Floor aktiv' : Math.round(Math.max(0, pnl) / DAILY_GOAL * 100) + '% von $600';
@@ -1953,7 +1953,7 @@ async function pollTopStep() {
         var ddEl = document.getElementById('tsxDD');
         if (ddEl) {
             ddEl.textContent = dd.toFixed(1) + '%';
-            ddEl.style.color = dd > 60 ? '#EF4444' : dd > 40 ? '#F59E0B' : '#10B981';
+            ddEl.style.color = dd > 60 ? '#EF4444' : dd > 40 ? '#4C8BF5' : '#10B981';
         }
         var ddMax = document.getElementById('tsxDDMax');
         if (ddMax) ddMax.textContent = 'Bal: $' + bal.toLocaleString('de-AT', {maximumFractionDigits:0});
@@ -1961,7 +1961,7 @@ async function pollTopStep() {
         var wrValEl = document.getElementById('tsxWinRate');
         if (wrValEl) {
             wrValEl.textContent = tr > 0 ? wr + '%' : '—';
-            wrValEl.style.color = wr >= 60 ? '#10B981' : wr >= 40 ? '#F59E0B' : (tr > 0 ? '#EF4444' : 'var(--text1)');
+            wrValEl.style.color = wr >= 60 ? '#10B981' : wr >= 40 ? '#4C8BF5' : (tr > 0 ? '#EF4444' : 'var(--text1)');
         }
         var trSubEl = document.getElementById('tsxTrades');
         if (trSubEl) trSubEl.textContent = tr + (tr === 1 ? ' Trade' : ' Trades') + (tsx.day_wins !== undefined ? ' (' + tsx.day_wins + 'W/' + tsx.day_losses + 'L)' : '');
@@ -1970,7 +1970,7 @@ async function pollTopStep() {
         var rr = tsx.day_rr || 0;
         if (rrEl) {
             rrEl.textContent = rr > 0 ? rr.toFixed(2) : '—';
-            rrEl.style.color = rr >= 1.5 ? '#10B981' : rr > 0 ? '#F59E0B' : 'var(--text1)';
+            rrEl.style.color = rr >= 1.5 ? '#10B981' : rr > 0 ? '#4C8BF5' : 'var(--text1)';
         }
         var rrSub = document.getElementById('tsxRRSub');
         if (rrSub) {
@@ -2058,8 +2058,8 @@ function switchChart(mode) {
     _activeChartMode = mode;
     var btnTsx = document.getElementById('btnChartTsx');
     var btnBg  = document.getElementById('btnChartBg');
-    if (btnTsx) { btnTsx.style.background = mode === 'tsx' ? 'rgba(0,209,255,.35)' : 'rgba(0,209,255,.18)'; btnTsx.style.borderColor = mode === 'tsx' ? 'rgba(0,209,255,.7)' : 'rgba(0,209,255,.4)'; }
-    if (btnBg)  { btnBg.style.background  = mode === 'bg'  ? 'rgba(245,158,11,.22)' : 'rgba(245,158,11,.08)'; btnBg.style.borderColor  = mode === 'bg'  ? 'rgba(245,158,11,.6)'  : 'rgba(245,158,11,.3)'; }
+    if (btnTsx) { btnTsx.style.background = mode === 'tsx' ? 'rgba(76,139,245,.35)' : 'rgba(76,139,245,.18)'; btnTsx.style.borderColor = mode === 'tsx' ? 'rgba(76,139,245,.7)' : 'rgba(76,139,245,.4)'; }
+    if (btnBg)  { btnBg.style.background  = mode === 'bg'  ? 'rgba(76,139,245,.22)' : 'rgba(76,139,245,.08)'; btnBg.style.borderColor  = mode === 'bg'  ? 'rgba(76,139,245,.6)'  : 'rgba(76,139,245,.3)'; }
     if (typeof LIVE === 'undefined') return;
     if (mode === 'tsx') {
         var tsxH = (LIVE.tsx && LIVE.tsx.daily_history) ? LIVE.tsx.daily_history : [];
@@ -2332,7 +2332,7 @@ function _renderTsxMonthly(hist) {
     tbody.innerHTML = keys.map(function(mo) {
         var m = months[mo];
         var wr = m.trades > 0 ? Math.round(m.wins / m.trades * 100) : 0;
-        var wrCol = wr >= 60 ? '#10B981' : wr >= 40 ? '#F59E0B' : '#EF4444';
+        var wrCol = wr >= 60 ? '#10B981' : wr >= 40 ? '#4C8BF5' : '#EF4444';
         var pnlCol = m.pnl >= 0 ? '#10B981' : '#EF4444';
         var label = mo.slice(0, 4) + '-' + mo.slice(5, 7);
         return '<tr style="border-bottom:1px solid rgba(255,255,255,.05)">' +
@@ -2394,15 +2394,15 @@ function _renderLiveMode(isLive) {
         if (btnL) btnL.style.display = 'none';
         if (btnD) btnD.style.display = 'inline-block';
     } else {
-        dot.style.background = '#F59E0B';
-        if (txt) { txt.textContent = 'Dry-Run Modus'; txt.style.color = '#F59E0B'; txt.style.fontWeight = '700'; }
+        dot.style.background = '#4C8BF5';
+        if (txt) { txt.textContent = 'Dry-Run Modus'; txt.style.color = '#4C8BF5'; txt.style.fontWeight = '700'; }
         if (btnL) btnL.style.display = 'inline-block';
         if (btnD) btnD.style.display = 'none';
     }
     // Sync TopStepX dedicated panel indicator
     var d2 = document.getElementById('tsx2LiveDot'), t2 = document.getElementById('tsx2LiveTxt');
-    if (d2) d2.style.background = isLive ? '#EF4444' : '#F59E0B';
-    if (t2) { t2.textContent = isLive ? 'LIVE TRADING aktiv' : 'Dry-Run Modus'; t2.style.color = isLive ? '#EF4444' : '#F59E0B'; }
+    if (d2) d2.style.background = isLive ? '#EF4444' : '#4C8BF5';
+    if (t2) { t2.textContent = isLive ? 'LIVE TRADING aktiv' : 'Dry-Run Modus'; t2.style.color = isLive ? '#EF4444' : '#4C8BF5'; }
 }
 
 function _refreshTsx2Panel(tsx) {
@@ -2429,23 +2429,23 @@ function _refreshTsx2Panel(tsx) {
 
     var DAILY_GOAL = 600;
     el = document.getElementById('tsx2Pnl');
-    if (el) { el.textContent = (pnl >= 0 ? '+' : '') + pnl.toFixed(0) + '$'; el.style.color = pnl >= DAILY_GOAL ? '#10B981' : pnl >= 0 ? '#F59E0B' : '#EF4444'; }
+    if (el) { el.textContent = (pnl >= 0 ? '+' : '') + pnl.toFixed(0) + '$'; el.style.color = pnl >= DAILY_GOAL ? '#10B981' : pnl >= 0 ? '#4C8BF5' : '#EF4444'; }
     el = document.getElementById('tsx2PnlSub');
     if (el) el.textContent = floor ? '■ Floor aktiv' : Math.round(Math.max(0, pnl) / DAILY_GOAL * 100) + '% von $600';
 
     el = document.getElementById('tsx2DD');
-    if (el) { el.textContent = dd.toFixed(1) + '%'; el.style.color = dd > 60 ? '#EF4444' : dd > 40 ? '#F59E0B' : '#10B981'; }
+    if (el) { el.textContent = dd.toFixed(1) + '%'; el.style.color = dd > 60 ? '#EF4444' : dd > 40 ? '#4C8BF5' : '#10B981'; }
     el = document.getElementById('tsx2DDSub');
     if (el) el.textContent = 'Bal: $' + bal.toLocaleString('de-AT', {maximumFractionDigits:0});
 
     el = document.getElementById('tsx2WinRate');
-    if (el) { el.textContent = tr > 0 ? wr + '%' : '—'; el.style.color = wr >= 60 ? '#10B981' : wr >= 40 ? '#F59E0B' : (tr > 0 ? '#EF4444' : 'var(--text1)'); }
+    if (el) { el.textContent = tr > 0 ? wr + '%' : '—'; el.style.color = wr >= 60 ? '#10B981' : wr >= 40 ? '#4C8BF5' : (tr > 0 ? '#EF4444' : 'var(--text1)'); }
     el = document.getElementById('tsx2Trades');
     if (el) el.textContent = tr + (tr === 1 ? ' Trade' : ' Trades') + (tsx.day_wins !== undefined ? ' (' + tsx.day_wins + 'W/' + tsx.day_losses + 'L)' : '');
 
     el = document.getElementById('tsx2RR');
     var rr = tsx.day_rr || 0;
-    if (el) { el.textContent = rr > 0 ? rr.toFixed(2) : '—'; el.style.color = rr >= 1.5 ? '#10B981' : rr > 0 ? '#F59E0B' : 'var(--text1)'; }
+    if (el) { el.textContent = rr > 0 ? rr.toFixed(2) : '—'; el.style.color = rr >= 1.5 ? '#10B981' : rr > 0 ? '#4C8BF5' : 'var(--text1)'; }
     el = document.getElementById('tsx2RRSub');
     if (el) { var aw = tsx.avg_win || 0, al = tsx.avg_loss || 0; el.textContent = (aw > 0 || al > 0) ? '+$' + aw.toFixed(0) + ' / -$' + al.toFixed(0) : 'Ø Win / Loss'; }
 
@@ -2455,7 +2455,7 @@ function _refreshTsx2Panel(tsx) {
     // Drawdown bar
     var ddPct = ddMax > 0 ? Math.min(100, ddUsed / ddMax * 100) : 0;
     el = document.getElementById('tsx2DDBar');
-    if (el) { el.style.width = ddPct + '%'; el.style.background = ddPct > 70 ? '#EF4444' : ddPct > 40 ? '#F59E0B' : '#10B981'; }
+    if (el) { el.style.width = ddPct + '%'; el.style.background = ddPct > 70 ? '#EF4444' : ddPct > 40 ? '#4C8BF5' : '#10B981'; }
     el = document.getElementById('tsx2DDUsed');
     if (el) el.textContent = '$' + ddUsed.toFixed(0) + ' / $' + ddMax.toLocaleString('de-AT', {maximumFractionDigits:0});
 
@@ -2506,8 +2506,8 @@ function _renderBitgetLiveMode(isLive) {
         if (btnL) btnL.style.display = 'none';
         if (btnD) btnD.style.display = 'inline-block';
     } else {
-        dot.style.background = '#F59E0B';
-        if (txt) { txt.textContent = 'Dry-Run Modus'; txt.style.color = '#F59E0B'; txt.style.fontWeight = '700'; }
+        dot.style.background = '#4C8BF5';
+        if (txt) { txt.textContent = 'Dry-Run Modus'; txt.style.color = '#4C8BF5'; txt.style.fontWeight = '700'; }
         if (btnL) btnL.style.display = 'inline-block';
         if (btnD) btnD.style.display = 'none';
     }
@@ -2821,7 +2821,7 @@ function requestNotifPerm() {
 }
 function _updateNotifBtn() {
     var perm = typeof Notification !== 'undefined' ? Notification.permission : 'denied';
-    var col = perm === 'granted' ? '#10B981' : perm === 'denied' ? '#EF4444' : '#F59E0B';
+    var col = perm === 'granted' ? '#10B981' : perm === 'denied' ? '#EF4444' : '#4C8BF5';
     var icon = perm === 'granted' ? '✓' : perm === 'denied' ? '✗' : 'Alarme';
     document.querySelectorAll('.notifBtn').forEach(function(b) {
         b.textContent = icon;
@@ -2833,7 +2833,7 @@ function _updateNotifBtn() {
 
 // ── INJECT SYNC BAR + GLOBAL NOTIF BUTTON ────────────────────────────────────
 (function injectSyncBar() {
-    var NOTIF_BTN = '<button type="button" class="notifBtn" onclick="requestNotifPerm()" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:#F59E0B;font-size:.75rem;font-weight:700;padding:4px 8px;border-radius:6px;cursor:pointer;touch-action:manipulation" title="Benachrichtigungen aktivieren">Alarme</button>';
+    var NOTIF_BTN = '<button type="button" class="notifBtn" onclick="requestNotifPerm()" style="background:rgba(76,139,245,.1);border:1px solid rgba(76,139,245,.3);color:#4C8BF5;font-size:.75rem;font-weight:700;padding:4px 8px;border-radius:6px;cursor:pointer;touch-action:manipulation" title="Benachrichtigungen aktivieren">Alarme</button>';
 
     // Alarm-Button in den globalen Header einfügen (sichtbar auf allen Tabs)
     var hdr = document.querySelector('header') || document.querySelector('.header') || document.querySelector('[class*="header"]');
@@ -2845,7 +2845,7 @@ function _updateNotifBtn() {
             badge.id = '_notifBadge';
             badge.className = 'notifBtn';
             badge.onclick = requestNotifPerm;
-            badge.style.cssText = 'position:fixed;top:10px;right:10px;z-index:9999;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);color:#F59E0B;font-size:1rem;font-weight:700;padding:6px 10px;border-radius:50px;cursor:pointer;touch-action:manipulation;backdrop-filter:blur(8px)';
+            badge.style.cssText = 'position:fixed;top:10px;right:10px;z-index:9999;background:rgba(76,139,245,.15);border:1px solid rgba(76,139,245,.4);color:#4C8BF5;font-size:1rem;font-weight:700;padding:6px 10px;border-radius:50px;cursor:pointer;touch-action:manipulation;backdrop-filter:blur(8px)';
             badge.title = 'Benachrichtigungen aktivieren';
             badge.textContent = 'Alarme';
             document.body.appendChild(badge);
@@ -2854,7 +2854,7 @@ function _updateNotifBtn() {
         var nb = document.createElement('button');
         nb.className = 'notifBtn';
         nb.onclick = requestNotifPerm;
-        nb.style.cssText = 'background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:#F59E0B;font-size:.8rem;padding:4px 8px;border-radius:6px;cursor:pointer;margin-left:auto';
+        nb.style.cssText = 'background:rgba(76,139,245,.1);border:1px solid rgba(76,139,245,.3);color:#4C8BF5;font-size:.8rem;padding:4px 8px;border-radius:6px;cursor:pointer;margin-left:auto';
         nb.textContent = 'Alarme';
         hdr.appendChild(nb);
     }
