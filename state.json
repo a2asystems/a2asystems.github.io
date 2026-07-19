@@ -650,8 +650,8 @@
     }
   ],
   "bot_status": "running",
-  "bot_status_ts": "2026-06-07T13:51:59Z",
+  "bot_status_ts": "2026-07-19T17:53:20Z",
   "live_trading": true,
   "live_bitget": false,
-  "bot_command": "start"
+  "bot_command": ""
 }
