@@ -649,9 +649,9 @@
       }
     }
   ],
-  "bot_status": "running",
-  "bot_status_ts": "2026-07-19T17:53:20Z",
+  "bot_status": "stopped",
+  "bot_status_ts": "2026-07-19T18:17:55Z",
   "live_trading": false,
   "live_bitget": false,
-  "bot_command": "stop"
+  "bot_command": ""
 }
