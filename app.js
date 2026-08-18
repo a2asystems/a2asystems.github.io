@@ -252,7 +252,8 @@ function hardReload(ver) {
 // ── RENDER ─────────────────────────────────────────────────────────────────
 function renderAll(d) {
     [renderHeader, renderKPIs, drawChart, renderStatus, renderRisk,
-     renderStrategies, renderAgents, renderSignals, renderEvents, calcOrb
+     renderStrategies, renderAgents, renderSignals, renderEvents, calcOrb,
+     calcCopytrading
     ].forEach(function(fn){ try { fn(d); } catch(e) { console.error(fn.name, e); } });
 }
 
@@ -3023,3 +3024,74 @@ function calcBBProjection() {
         }
     } catch(e) {}
 })();
+// ── COPYTRADING (Telegram HM XAUUSD -> TopStepX) ─────────────────────────────
+function calcCopytrading(d) {
+  var c = d && d.copytrading;
+  if (!c) return;
+  function _set(id, v) { var e = document.getElementById(id); if (e) e.textContent = v; }
+  var G = '#10B981', R = '#EF4444', A = '#F59E0B', DIM = '#6B7280';
+  var live = !!c.live, run = !!c.running;
+  var col = run ? (live ? G : A) : R;
+  var txt = run ? (live ? 'LIVE — Orders gehen an TopStepX' : 'Dry Run — es wird nur geloggt')
+                : 'Listener gestoppt — keine Signale';
+
+  var dot = document.getElementById('ctDot');
+  if (dot) dot.style.background = col;
+  var st = document.getElementById('ctStatus');
+  if (st) { st.textContent = txt; st.style.color = col; }
+  var bd = document.getElementById('ctBadge');
+  if (bd) {
+    bd.textContent = run ? (live ? 'LIVE' : 'DRY') : 'AUS';
+    bd.style.color = col;
+    bd.style.background = 'rgba(' + (run ? (live ? '16,185,129' : '245,158,11') : '239,68,68') + ',.18)';
+    bd.style.borderColor = col;
+  }
+
+  var t = c.today || {}, h = c.history || {}, cf = c.config || {};
+  _set('ctSigToday', t.signals != null ? t.signals : '—');
+  _set('ctTraded',   t.traded  != null ? t.traded  : '—');
+  _set('ctSkipped',  t.skipped != null ? t.skipped : '—');
+  _set('ctSize',   (cf.contracts || 5) + ' MGC · ' + (cf.per_tp || 1) + ' je Ziel');
+  _set('ctFilter', 'max ' + (cf.max_sl_dist || 12) + ' USD Stop');
+  _set('ctRisk',   '$' + (cf.risk_max || 600));
+  _set('ctHist',   (h.signals || 0) + ' Signale · ' + (h.longs || 0) + 'L / ' + (h.shorts || 0) + 'S');
+
+  var ls = c.last_signal, box = document.getElementById('ctLastSignal');
+  if (box) {
+    if (!ls) { box.innerHTML = '<span style="color:#6B7280">Noch kein Signal erfasst</span>'; }
+    else {
+      var lc = ls.direction === 'LONG' ? G : R;
+      box.innerHTML =
+        '<div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:var(--text3)">Richtung</span>' +
+        '<span style="font-weight:800;color:' + lc + '">' + (ls.direction || '—') + '</span></div>' +
+        '<div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:var(--text3)">Zone</span>' +
+        '<span style="font-weight:700;color:var(--text)">' + ls.entry_low + ' – ' + ls.entry_high + '</span></div>' +
+        '<div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:var(--text3)">Stop</span>' +
+        '<span style="font-weight:700;color:' + R + '">' + ls.sl + '</span></div>' +
+        '<div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:var(--text3)">Ziele</span>' +
+        '<span style="font-weight:700;color:var(--text)">' + ((ls.tps || []).join(' · ') || '—') + '</span></div>';
+      _set('ctLastTime', (ls.ts_local || '').replace('T', ' ').slice(5, 16));
+    }
+  }
+
+  var dec = c.decisions || [], dbox = document.getElementById('ctDecisions');
+  if (dbox) {
+    if (!dec.length) { dbox.innerHTML = '<span style="color:#6B7280">Noch keine Entscheidungen</span>'; }
+    else {
+      var html = '';
+      for (var i = 0; i < Math.min(dec.length, 6); i++) {
+        var o = dec[i];
+        var oc = (o.result || '').indexOf('ok') === 0 ? G
+               : (o.result === 'skip' ? DIM : (o.result === 'error' ? R : A));
+        var lbl = o.direction === 'CMD' ? 'Befehl' : (o.direction || '—') + ' ' + (o.contracts || 0) + 'x';
+        html += '<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:' +
+                (i ? '1px solid rgba(255,255,255,.05)' : 'none') + '">' +
+                '<span style="color:var(--text3);white-space:nowrap">' +
+                (o.ts_local || '').replace('T', ' ').slice(5, 16) + '</span>' +
+                '<span style="text-align:right"><span style="font-weight:800;color:' + oc + '">' + lbl + '</span><br>' +
+                '<span style="font-size:.62rem;color:#6B7280;word-break:break-word">' + (o.note || o.result || '').slice(0, 56) + '</span></span></div>';
+      }
+      dbox.innerHTML = html;
+    }
+  }
+}
