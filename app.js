@@ -3068,7 +3068,8 @@ function calcCopytrading(d) {
   _set('ctSigToday', t.signals != null ? t.signals : '—');
   _set('ctTraded',   t.traded  != null ? t.traded  : '—');
   _set('ctSkipped',  t.skipped != null ? t.skipped : '—');
-  _set('ctSize',   (cf.contracts || 5) + ' MGC · ' + (cf.per_tp || 1) + ' je Ziel');
+  _set('ctSize',   (cf.contracts || 5) + ' MGC'
+                   + (cf.boost ? ' · ab +$' + cf.boost_min + ' dann ' + cf.boost : ''));
   _set('ctFilter', 'max ' + (cf.max_sl_dist || 12) + ' USD Stop');
   _set('ctRisk',   '$' + (cf.risk_max || 600));
   _set('ctHist',   (h.signals || 0) + ' Signale · ' + (h.longs || 0) + 'L / ' + (h.shorts || 0) + 'S');
