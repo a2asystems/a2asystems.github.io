@@ -3030,6 +3030,23 @@ function calcCopytrading(d) {
   if (!c) return;
   function _set(id, v) { var e = document.getElementById(id); if (e) e.textContent = v; }
   var G = '#10B981', R = '#EF4444', A = '#F59E0B', DIM = '#6B7280';
+  // Konto-Karte: Zahlen kommen aus dem TopStep-Agent (LIVE.tsx), nicht aus der
+  // Signal-DB — die Bruecke kennt den Kontostand nicht.
+  var t = d.tsx || {};
+  var bal = t.balance || 0, pnl = t.daily_pnl || 0;
+  function _fmt(v) { return '$' + Math.round(v).toLocaleString('de-DE'); }
+  function _col(id, v) { var e = document.getElementById(id); if (e) e.style.color = v; }
+  if (bal) {
+    _set('ctBalance', _fmt(bal));
+    _set('ctBalSub', (bal - 50000 >= 0 ? '+' : '') + _fmt(bal - 50000) + ' gesamt');
+    _set('ctPnl', (pnl >= 0 ? '+' : '') + _fmt(pnl));
+    _col('ctPnl', pnl > 0 ? G : pnl < 0 ? R : DIM);
+    _set('ctPnlSub', (t.day_trades || 0) + ' Trade(s) · WR ' + (t.day_wr || 0) + '%');
+    var prog = Math.max(0, Math.min(100, Math.round((bal - 50000) / 3000 * 100)));
+    _set('ctTarget', prog + '%');
+    _col('ctTarget', prog >= 100 ? G : '#4C8BF5');
+    _set('ctTargetSub', prog >= 100 ? 'erreicht — Consistency offen' : 'von $3.000');
+  }
   var live = !!c.live, run = !!c.running;
   var col = run ? (live ? G : A) : R;
   var txt = run ? (live ? 'LIVE — Orders gehen an TopStepX' : 'Dry Run — es wird nur geloggt')
