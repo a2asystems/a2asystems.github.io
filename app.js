@@ -893,7 +893,7 @@ function renderPoly(d) { return; // disabled
 }
 
 // ── TABS ───────────────────────────────────────────────────────────────────
-var _tabMap = {stats:'panelDashboard', agents:'panelAgents', topstep:'panelTopstep', bitget:'panelBitget', chat:'panelChat', notes:'panelNotes'};
+var _tabMap = {stats:'panelDashboard', agents:'panelAgents', topstep:'panelTopstep'};
 function switchTab(tab) {
     var targetId = _tabMap[tab];
     // Update panel visibility
@@ -908,77 +908,11 @@ function switchTab(tab) {
         if (b.dataset.tab === tab) { b.classList.add('show'); }
         else { b.classList.remove('show'); }
     });
-    if (tab === 'notes') renderNotes();
-    if (tab === 'chat' && document.getElementById('chatBox') && !document.getElementById('chatBox').children.length) initChat();
-    if (tab === 'bitget') initBitget();
     if (tab === 'topstep') { calcTopstep(); _updateTsx2Chart(); _refreshTsx2Panel(_tsxLastData || (LIVE && LIVE.tsx) || {}); }
-    // Badge löschen wenn Chat-Tab geöffnet wird
-    if (tab === 'chat') { var b=document.getElementById('chatBadge'); if(b){b.textContent='0';b.style.display='none';} }
 }
-
-// ── BITGET ──────────────────────────────────────────────────────────────────
-var BG_STRATS = {
-    'a': {name:'A — Long-only ★ (Bitget)',wr:60,   weekly_pct:11.15,max_dd:26.5, trades_week:4.5,  color:'#4C8BF5',  rr:'1.5:1',  desc:'5% Risiko · 5 Charts · Jan–Jun 2026'},
-    'b': {name:'B — Long+Short (Bitget)', wr:52.6, weekly_pct:50.22,max_dd:53.5, trades_week:17.5, color:'#6EA2F7',  rr:'2:1',    desc:'5% Risiko · 5 Charts · Jan–Jun 2026'},
-};
 
 function _bgFmt$(n) { return '$' + Math.abs(n).toLocaleString('de-DE', {minimumFractionDigits:0,maximumFractionDigits:0}); }
 function _bgFmtPct(n) { return (n >= 0 ? '+' : '') + n.toFixed(1) + '%'; }
-
-function calcBitget() {
-    var strat = (document.getElementById('bgStrategy')||{}).value || 'd';
-    var capital = parseFloat((document.getElementById('bgCapital')||{}).value) || 1000;
-    var s = BG_STRATS[strat];
-    if (!s) return;
-    var wkly = s.weekly_pct / 100;
-
-    var infoEl = document.getElementById('bgStratInfo');
-    if (infoEl) {
-        infoEl.innerHTML = [
-            ['Win Rate', s.wr + '%', s.color],
-            ['R:R', s.rr, s.color],
-            ['Trades/Woche', s.trades_week, '#9DB4CC'],
-            ['Max DD', '-' + s.max_dd + '%', '#EF4444']
-        ].map(function(x) {
-            return '<div style="text-align:center">'
-                + '<div style="font-size:.55rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">' + x[0] + '</div>'
-                + '<div style="font-size:.8rem;font-weight:800;color:' + x[2] + '">' + x[1] + '</div></div>';
-        }).join('');
-    }
-
-    var periods = [
-        {label:'1 Woche', weeks:1},
-        {label:'1 Monat', weeks:4.33},
-        {label:'3 Monate', weeks:13},
-        {label:'6 Monate', weeks:26},
-        {label:'1 Jahr', weeks:52}
-    ];
-    var max1yr = capital * Math.pow(1 + wkly, 52);
-    var rows = '';
-    for (var i = 0; i < periods.length; i++) {
-        var p = periods[i];
-        var end = capital * Math.pow(1 + wkly, p.weeks);
-        var gain = end - capital;
-        var pct = (gain / capital) * 100;
-        var col = gain >= 0 ? '#10B981' : '#EF4444';
-        var bar_w = Math.min(100, ((end - capital) / (max1yr - capital)) * 100);
-        rows += '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05)">'
-            + '<span style="font-size:.68rem;color:var(--text2);flex-shrink:0;width:72px">' + p.label + '</span>'
-            + '<div style="flex:1;height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden">'
-            + '<div style="height:100%;width:' + bar_w.toFixed(0) + '%;background:' + s.color + ';border-radius:2px;opacity:.8"></div></div>'
-            + '<div style="text-align:right;flex-shrink:0">'
-            + '<div style="font-size:.85rem;font-weight:900;color:' + col + '">' + (gain >= 0 ? '+' : '') + _bgFmt$(gain) + '</div>'
-            + '<div style="font-size:.58rem;color:var(--text3)">' + _bgFmt$(end) + ' (' + _bgFmtPct(pct) + ')</div>'
-            + '</div></div>';
-    }
-    var resEl = document.getElementById('bgResults');
-    if (resEl) resEl.innerHTML = rows;
-
-    var riskEl = document.getElementById('bgRiskNote');
-    if (riskEl) riskEl.innerHTML = '<strong style="color:#4C8BF5">! Backtest-Projektion</strong> · Keine Garantie. '
-        + 'Historischer Max Drawdown: <strong style="color:#EF4444">-' + s.max_dd + '%</strong> '
-        + '→ maximaler Verlust auf ' + _bgFmt$(capital) + ': <strong style="color:#EF4444">-' + _bgFmt$(capital * s.max_dd / 100) + '</strong>';
-}
 
 // ── NQ-ORB STRATEGIE-PANEL ───────────────────────────────────────────────────
 var ORB_STATUS_MAP = {
@@ -1102,207 +1036,6 @@ function calcTopstep() {
         + 'Max Drawdown: <strong style="color:#EF4444">-' + s.max_dd + '%</strong> '
         + '→ max. Verlust: <strong style="color:#EF4444">-' + _bgFmt$(capital * s.max_dd / 100) + '</strong> · '
         + 'TopStepX zahlt 80% der Gewinne aus (nach Combine-Pass).';
-}
-
-function initBitget() {
-    calcBitget();
-    _updateBgChart();
-    var L = (typeof LIVE !== 'undefined') ? LIVE : {};
-    var bg = L.bitget || {};
-    var conn = !!bg.connected;
-
-    var badge = document.getElementById('bgConnBadge');
-    if (badge) {
-        badge.textContent = conn ? '● Verbunden' : '· Nicht verbunden';
-        badge.style.background = conn ? 'rgba(16,185,129,.15)' : 'rgba(55,65,81,.4)';
-        badge.style.color = conn ? '#10B981' : 'var(--text3)';
-    }
-    var note = document.getElementById('bgConnNote');
-    if (note) note.style.display = conn ? 'none' : 'block';
-
-    if (conn) {
-        var bal = bg.balance || 0;
-        var pnlT = bg.realized_pnl_today || 0;
-        var unpnl = bg.unrealized_pnl || 0;
-        var positions = bg.positions || [];
-        var el; el = document.getElementById('bgBalance');
-        if (el) { el.textContent = bal > 0 ? '$' + bal.toFixed(2) : '–'; }
-        el = document.getElementById('bgPnLToday');
-        if (el) { el.textContent = (pnlT >= 0 ? '+$' : '-$') + Math.abs(pnlT).toFixed(2); el.style.color = pnlT >= 0 ? '#10B981' : '#EF4444'; }
-        el = document.getElementById('bgUnrealPnL');
-        if (el) { el.textContent = (unpnl >= 0 ? '+$' : '-$') + Math.abs(unpnl).toFixed(2); el.style.color = unpnl >= 0 ? '#10B981' : '#EF4444'; }
-        el = document.getElementById('bgPosCnt');
-        if (el) el.textContent = positions.length + ' Positionen';
-        var posHtml = '';
-        positions.forEach(function(p) {
-            var c = p.direction === 'long' ? '#10B981' : '#EF4444';
-            var pnl = p.unrealizedPnl || 0;
-            posHtml += '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)">'
-                + '<span style="font-size:.55rem;font-weight:800;padding:2px 6px;border-radius:4px;background:' + c + '22;color:' + c + ';border:1px solid ' + c + '44">' + (p.direction||'?').toUpperCase() + '</span>'
-                + '<span style="font-size:.7rem;font-weight:700;color:#F0F4FF">' + (p.symbol||'?') + '</span>'
-                + '<span style="font-size:.62rem;color:#9DB4CC">' + (p.size||0) + 'x</span>'
-                + '<span style="margin-left:auto;font-size:.72rem;font-weight:700;color:' + c + '">' + (pnl >= 0 ? '+$' : '-$') + Math.abs(pnl).toFixed(2) + '</span>'
-                + '</div>';
-        });
-        el = document.getElementById('bgPosList');
-        if (el) el.innerHTML = posHtml || '<div style="font-size:.65rem;color:var(--text3);padding:4px 0">Keine offene Position</div>';
-
-        // ── Stats-Seite: Bitget-Kurzfassung ─────────────────────────────────
-        var totalPnl  = bg.total_realized_pnl || 0;
-        var totalTr   = bg.total_trades  || 0;
-        var totalWins = bg.total_wins    || 0;
-        var wr = totalTr > 0 ? Math.round(totalWins / totalTr * 100) : 0;
-        el = document.getElementById('bgSumBalance');
-        if (el) el.textContent = bal > 0 ? '$' + bal.toFixed(2) : '–';
-        el = document.getElementById('bgSumTotalPnl');
-        if (el) { el.textContent = (totalPnl >= 0 ? '+$' : '-$') + Math.abs(totalPnl).toFixed(2); el.style.color = totalPnl >= 0 ? '#10B981' : '#EF4444'; }
-        el = document.getElementById('bgSumWR');
-        if (el) { el.textContent = totalTr > 0 ? wr + '%' : '–'; el.style.color = wr >= 60 ? '#10B981' : wr >= 40 ? '#4C8BF5' : '#EF4444'; }
-        el = document.getElementById('bgSumTrades');
-        if (el) el.textContent = totalTr + ' Trades';
-        el = document.getElementById('bgSumUnreal');
-        if (el) { el.textContent = (unpnl >= 0 ? '+$' : '-$') + Math.abs(unpnl).toFixed(2); el.style.color = unpnl >= 0 ? '#10B981' : '#EF4444'; }
-        el = document.getElementById('bgSumPosCnt');
-        if (el) el.textContent = positions.length + ' Pos.';
-
-        // ── Stats-Seite: Variante C (Bitget Live) ───────────────────────────
-        el = document.getElementById('bgLiveWR');
-        if (el) { el.textContent = totalTr > 0 ? wr + '%' : '–'; el.style.color = wr >= 60 ? '#10B981' : wr >= 40 ? '#4C8BF5' : '#EF4444'; }
-        el = document.getElementById('bgLiveTrades');
-        if (el) el.textContent = totalTr > 0 ? totalTr : '–';
-        el = document.getElementById('bgLivePnL');
-        if (el) { el.textContent = (totalPnl >= 0 ? '+$' : '-$') + Math.abs(totalPnl).toFixed(2); el.style.color = totalPnl >= 0 ? '#10B981' : '#EF4444'; }
-        el = document.getElementById('bgLiveBal');
-        if (el) el.textContent = bal > 0 ? '$' + bal.toFixed(2) : '–';
-        var hist = bg.daily_history || [];
-        var fillsHtml = '';
-        var recentFills = (bg.fills_today || []).slice(-5).reverse();
-        recentFills.forEach(function(f) {
-            var c = f.pnl > 0 ? '#10B981' : (f.pnl < 0 ? '#EF4444' : '#9DB4CC');
-            fillsHtml += '<span style="margin-right:8px;color:' + c + '">' + (f.symbol || '?') + ' ' + (f.pnl >= 0 ? '+$' : '-$') + Math.abs(f.pnl || 0).toFixed(2) + '</span>';
-        });
-        el = document.getElementById('bgLiveFills');
-        if (el) el.innerHTML = fillsHtml || '<span style="color:var(--text3)">Keine Fills heute</span>';
-        if (hist.length > 0) {
-            var period = hist[0].date + ' – ' + hist[hist.length - 1].date;
-            el = document.getElementById('bgLivePeriod');
-            if (el) el.textContent = period;
-        }
-
-        // Bitget-Chart zeichnen (falls aktiver Tab)
-        if (_activeChartMode === 'bg') {
-            _drawBitgetChart(hist, bg);
-        }
-    }
-
-    // ── Trades ab 09.06. (immer rendern, auch ohne Verbindung) ──────────────
-    var allFillsRaw = bg.all_fills || [];
-    var closedFills = allFillsRaw.filter(function(f) { return (f.time || '') >= '2026-06-09' && f.result !== 'OPEN'; });
-    var openFills   = (bg.fills_today || []).filter(function(f) { return f.result === 'OPEN'; });
-    var _totalFills = closedFills.length + openFills.length;
-    var bdg = document.getElementById('bgTradesBadge');
-    if (bdg) {
-        bdg.textContent = _totalFills;
-        bdg.style.background = _totalFills > 0 ? 'rgba(76,139,245,.18)' : 'rgba(55,65,81,.3)';
-        bdg.style.color = _totalFills > 0 ? '#4C8BF5' : 'var(--text3)';
-    }
-    var cbdg = document.getElementById('bgClosedBadge');
-    if (cbdg) cbdg.textContent = closedFills.length;
-    var obdg = document.getElementById('bgOpenBadge');
-    if (obdg) obdg.textContent = openFills.length;
-
-    function _fillRow(f) {
-        var col  = f.pnl > 0 ? '#10B981' : (f.pnl < 0 ? '#EF4444' : '#9DB4CC');
-        var res  = f.result || (f.pnl > 0 ? 'WIN' : f.pnl < 0 ? 'LOSS' : 'OPEN');
-        var fee  = f.fee || 0;
-        var net  = (f.pnl || 0) + fee;
-        var netCol = net > 0 ? '#10B981' : (net < 0 ? '#EF4444' : '#9DB4CC');
-        var typ  = f.tradeSide === 'open' ? 'ENTRY' : (f.tradeSide === 'close' ? 'EXIT' : (f.tradeSide || ''));
-        var typCol = f.tradeSide === 'open' ? '#6EA2F7' : '#4C8BF5';
-        var hasPnl = f.pnl !== 0 || fee !== 0;
-        return '<div style="padding:6px 4px;border-bottom:1px solid rgba(255,255,255,.05)">'
-            + '<div style="display:flex;align-items:center;gap:6px">'
-            + (typ ? '<span style="font-size:.48rem;font-weight:800;padding:1px 5px;border-radius:3px;background:' + typCol + '22;color:' + typCol + ';border:1px solid ' + typCol + '33;flex-shrink:0">' + typ + '</span>' : '')
-            + '<span style="font-size:.52rem;font-weight:800;padding:2px 6px;border-radius:4px;background:' + col + '22;color:' + col + ';border:1px solid ' + col + '44;flex-shrink:0">' + res + '</span>'
-            + '<span style="font-size:.68rem;font-weight:700;color:#F0F4FF">' + (f.symbol || '?') + '</span>'
-            + '<span style="font-size:.58rem;color:#9DB4CC">' + (f.side || '') + ' · ' + (f.qty || 0) + ' @ $' + (f.price || 0).toFixed(2) + '</span>'
-            + '<span style="margin-left:auto;font-size:.72rem;font-weight:800;color:' + col + '">' + (f.pnl >= 0 ? '+$' : '-$') + Math.abs(f.pnl || 0).toFixed(2) + '</span>'
-            + '</div>'
-            + (hasPnl ? '<div style="display:flex;justify-content:flex-end;gap:12px;margin-top:2px">'
-            + '<span style="font-size:.55rem;color:#6B7A90">Gebühr: <span style="color:#EF444488">-$' + Math.abs(fee).toFixed(4) + '</span></span>'
-            + '<span style="font-size:.55rem;color:#6B7A90">Netto: <span style="font-weight:700;color:' + netCol + '">' + (net >= 0 ? '+$' : '-$') + Math.abs(net).toFixed(2) + '</span></span>'
-            + '</div>' : '')
-            + '</div>';
-    }
-    var cEl = document.getElementById('bgTradesClosedHtml');
-    if (cEl) {
-        if (!conn) {
-            cEl.innerHTML = '<div style="font-size:.65rem;color:var(--text3);padding:8px 2px;text-align:center">API nicht verbunden · keine Fills</div>';
-        } else if (closedFills.length === 0) {
-            cEl.innerHTML = '<div style="font-size:.65rem;color:var(--text3);padding:6px 2px">Keine geschlossenen Trades heute</div>';
-        } else {
-            cEl.innerHTML = closedFills.slice().reverse().map(_fillRow).join('');
-        }
-    }
-    var oEl = document.getElementById('bgTradesOpenHtml');
-    if (oEl) {
-        if (!conn) {
-            oEl.innerHTML = '';
-        } else if (openFills.length === 0) {
-            oEl.innerHTML = '<div style="font-size:.65rem;color:var(--text3);padding:6px 2px">Keine offenen Positionen</div>';
-        } else {
-            oEl.innerHTML = openFills.slice().reverse().map(_fillRow).join('');
-        }
-    }
-
-    // ── Trade-Verlauf (alle Tage) ────────────────────────────────────────────
-    var allFills = bg.all_fills || [];
-    var histBdg = document.getElementById('bgHistBadge');
-    if (histBdg) histBdg.textContent = allFills.length;
-    var histEl = document.getElementById('bgAllTradesHtml');
-    if (histEl) {
-        if (!conn) {
-            histEl.innerHTML = '<div style="font-size:.65rem;color:var(--text3);padding:8px 2px;text-align:center">API nicht verbunden</div>';
-        } else if (allFills.length === 0) {
-            histEl.innerHTML = '<div style="font-size:.65rem;color:var(--text3);padding:8px 2px;text-align:center">Keine Trades gespeichert</div>';
-        } else {
-            // Gruppieren nach Datum
-            var byDate = {};
-            allFills.forEach(function(f) {
-                var d = f.time || '?';
-                if (!byDate[d]) byDate[d] = [];
-                byDate[d].push(f);
-            });
-            var dates = Object.keys(byDate).sort().reverse();
-            var html = '';
-            dates.forEach(function(d) {
-                var dayFills  = byDate[d];
-                var dayPnl    = dayFills.reduce(function(s, f) { return s + (f.pnl || 0); }, 0);
-                var dayFees   = dayFills.reduce(function(s, f) { return s + (f.fee || 0); }, 0);
-                var dayNet    = dayPnl + dayFees;
-                var wins      = dayFills.filter(function(f) { return f.pnl > 0; }).length;
-                var losses    = dayFills.filter(function(f) { return f.pnl < 0; }).length;
-                var closed    = dayFills.filter(function(f) { return f.result !== 'OPEN'; });
-                var netCol    = dayNet >= 0 ? '#10B981' : '#EF4444';
-                var bruttoCol = dayPnl >= 0 ? '#10B981' : '#EF4444';
-                html += '<div style="margin-bottom:4px">'
-                    + '<div style="padding:7px 8px;background:rgba(255,255,255,.04);border-radius:8px;cursor:pointer;border:1px solid rgba(255,255,255,.06)" onclick="(function(el){var n=el.nextElementSibling;n.style.display=n.style.display===\'none\'?\'block\':\'none\';})(this)">'
-                    + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">'
-                    + '<span style="font-size:.68rem;font-weight:700;color:#C8D8E8">' + d + '</span>'
-                    + '<span style="font-size:.58rem;color:var(--text3)">' + closed.length + ' Trades · ' + wins + 'W ' + losses + 'L</span>'
-                    + '<span style="margin-left:auto;font-size:.75rem;font-weight:800;color:' + netCol + '">' + (dayNet >= 0 ? '+$' : '-$') + Math.abs(dayNet).toFixed(2) + ' netto</span>'
-                    + '</div>'
-                    + '<div style="display:flex;gap:14px">'
-                    + '<span style="font-size:.55rem;color:#6B7A90">Brutto: <span style="color:' + bruttoCol + '">' + (dayPnl >= 0 ? '+$' : '-$') + Math.abs(dayPnl).toFixed(2) + '</span></span>'
-                    + '<span style="font-size:.55rem;color:#6B7A90">Gebühren: <span style="color:#EF444488">-$' + Math.abs(dayFees).toFixed(2) + '</span></span>'
-                    + '</div>'
-                    + '</div>'
-                    + '<div style="display:none;padding:0 2px;margin-top:2px">' + dayFills.map(_fillRow).join('') + '</div>'
-                    + '</div>';
-            });
-            histEl.innerHTML = html;
-        }
-    }
 }
 
 function startOptimizer() {
@@ -2053,66 +1786,6 @@ function _drawTsxChart(hist, tsx) {
     if (fromEl) fromEl.textContent = fakeD.from_date.slice(0, 10);
 }
 
-var _activeChartMode = 'tsx'; // 'tsx' | 'bg'
-
-function switchChart(mode) {
-    _activeChartMode = mode;
-    var btnTsx = document.getElementById('btnChartTsx');
-    var btnBg  = document.getElementById('btnChartBg');
-    if (btnTsx) { btnTsx.style.background = mode === 'tsx' ? 'rgba(76,139,245,.35)' : 'rgba(76,139,245,.18)'; btnTsx.style.borderColor = mode === 'tsx' ? 'rgba(76,139,245,.7)' : 'rgba(76,139,245,.4)'; }
-    if (btnBg)  { btnBg.style.background  = mode === 'bg'  ? 'rgba(76,139,245,.22)' : 'rgba(76,139,245,.08)'; btnBg.style.borderColor  = mode === 'bg'  ? 'rgba(76,139,245,.6)'  : 'rgba(76,139,245,.3)'; }
-    if (typeof LIVE === 'undefined') return;
-    if (mode === 'tsx') {
-        var tsxH = (LIVE.tsx && LIVE.tsx.daily_history) ? LIVE.tsx.daily_history : [];
-        if (tsxH.length > 0) { _drawTsxChart(tsxH, LIVE.tsx); }
-    } else {
-        var bgH = (LIVE.bitget && LIVE.bitget.daily_history) ? LIVE.bitget.daily_history : [];
-        _drawBitgetChart(bgH, LIVE.bitget || {});
-    }
-}
-
-function _drawBitgetChart(hist, bg) {
-    var canvas = document.getElementById('pnlChart');
-    if (!canvas) return;
-    var pts = [];
-    var startBal = bg.start_balance || 0;
-    if (hist.length > 0) {
-        if (startBal <= 0) startBal = hist[0].balance - (hist[0].pnl || 0);
-        pts.push(startBal);
-        for (var i = 0; i < hist.length; i++) { pts.push(hist[i].balance); }
-    } else if (bg.balance > 0) {
-        var cur = bg.balance;
-        var pnlT = bg.realized_pnl_today || 0;
-        pts = [cur - pnlT, cur];
-    }
-    if (pts.length < 2) {
-        _setEl('chartTitle', 'Bitget — Kapitalkurve');
-        return;
-    }
-    var fakeMonthly = [{cap: pts[0]}].concat(
-        hist.length > 0 ? hist.map(function(h) { return { cap: h.balance }; }) : [{cap: pts[pts.length-1]}]
-    );
-    var fakeD = {
-        _tsx: true,
-        monthly:    fakeMonthly,
-        start_cap:  pts[0],
-        end_cap:    pts[pts.length - 1],
-        trades:     hist.reduce(function(s, h) { return s + (h.trades || 0); }, 0),
-        wr:         0,
-        from_date:  hist.length > 0 ? hist[0].date : new Date().toISOString().slice(0, 10),
-        to_date:    hist.length > 0 ? hist[hist.length - 1].date : new Date().toISOString().slice(0, 10),
-    };
-    _setEl('chartTitle', 'Bitget — Kapitalkurve');
-    drawChart(fakeD);
-    var fromEl = document.getElementById('chartFrom');
-    if (fromEl) fromEl.textContent = fakeD.from_date.slice(0, 10);
-    var changeEl = document.getElementById('chartChange');
-    if (changeEl) {
-        var chg = pts[pts.length-1] - pts[0];
-        changeEl.textContent = (chg >= 0 ? '+$' : '-$') + Math.abs(chg).toFixed(2);
-        changeEl.style.color = chg >= 0 ? '#10B981' : '#EF4444';
-    }
-}
 
 // ── PANEL EQUITY CHARTS ───────────────────────────────────────────────────────
 function _drawPanelChart(canvasId, pts, opts) {
@@ -2196,26 +1869,6 @@ function _drawPanelChart(canvasId, pts, opts) {
     // From label
     var fromEl2 = opts.fromId ? document.getElementById(opts.fromId) : null;
     if (fromEl2 && opts.fromDate) fromEl2.textContent = opts.fromDate;
-}
-
-function _updateBgChart() {
-    if (typeof LIVE === 'undefined') return;
-    var bg   = LIVE.bitget || {};
-    var hist = bg.daily_history || [];
-    var pts  = [0];
-    if (hist.length > 0) {
-        var cum = 0;
-        hist.forEach(function(h) { cum += (h.pnl || 0); pts.push(parseFloat(cum.toFixed(2))); });
-    } else if (bg.balance > 0) {
-        pts = [0, bg.realized_pnl_today || 0];
-    }
-    if (pts.length < 2) return;
-    _drawPanelChart('bgChart', pts, {
-        changeId: 'bgChartChange',
-        fromId:   'bgChartFrom',
-        fromDate: hist.length > 0 ? hist[0].date : ''
-    });
-    _buildPnlCalendar('bgCalendar', hist);
 }
 
 function _updateTsx2Chart() {
@@ -2355,7 +2008,6 @@ async function pollBotStatus() {
         const data = await r.json();
         _renderBotStatus(data.bot_status || 'unknown');
         _renderLiveMode(data.live_trading || false);
-        _renderBitgetLiveMode(data.live_bitget || false);
     } catch(e) {}
 }
 
@@ -2495,50 +2147,6 @@ function _refreshTsx2Panel(tsx) {
     _updateTsx2Chart();
 }
 
-function _renderBitgetLiveMode(isLive) {
-    var dot  = document.getElementById('bgLiveDot');
-    var txt  = document.getElementById('bgLiveTxt');
-    var btnL = document.getElementById('btnBgGoLive');
-    var btnD = document.getElementById('btnBgGoDry');
-    if (!dot) return;
-    if (isLive) {
-        dot.style.background = '#EF4444';
-        if (txt) { txt.textContent = 'LIVE aktiv · Bitget Futures'; txt.style.color = '#EF4444'; txt.style.fontWeight = '800'; }
-        if (btnL) btnL.style.display = 'none';
-        if (btnD) btnD.style.display = 'inline-block';
-    } else {
-        dot.style.background = '#4C8BF5';
-        if (txt) { txt.textContent = 'Dry-Run Modus'; txt.style.color = '#4C8BF5'; txt.style.fontWeight = '700'; }
-        if (btnL) btnL.style.display = 'inline-block';
-        if (btnD) btnD.style.display = 'none';
-    }
-}
-
-async function setBitgetLiveMode(isLive) {
-    if (!ghTok() || !GHUSER || !GHREPO) { toast('Kein GitHub-Token', true); return; }
-    if (isLive && !confirm('! BITGET LIVE TRADING aktivieren?\n\nDer Bot platziert ab sofort ECHTE Orders bei Bitget Futures.\n\nNur aktivieren wenn Dry-Run Signale geprüft wurden!')) return;
-    if (!isLive && !confirm('Bitget Live Trading deaktivieren?\n\nBot wechselt in Dry-Run Modus — keine echten Bitget Orders mehr.')) return;
-    try {
-        var r = await fetch(
-            'https://api.github.com/repos/' + GHUSER + '/' + GHREPO + '/contents/state.json',
-            { headers: { 'Authorization': 'Bearer ' + ghTok(), 'Accept': 'application/vnd.github.v3+json' }, cache: 'no-store' }
-        );
-        var sha = null, data = {};
-        if (r.ok) { var d = await r.json(); sha = d.sha; data = JSON.parse(atob(d.content.replace(/\n/g, ''))); }
-        data.live_bitget = isLive;
-        var encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
-        var payload = { message: 'dashboard: live_bitget=' + isLive, content: encoded };
-        if (sha) payload.sha = sha;
-        await fetch(
-            'https://api.github.com/repos/' + GHUSER + '/' + GHREPO + '/contents/state.json',
-            { method: 'PUT', headers: { 'Authorization': 'Bearer ' + ghTok(), 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
-        );
-        _renderBitgetLiveMode(isLive);
-        toast(isLive ? '● Bitget LIVE aktiviert!' : '✓ Bitget Dry-Run aktiv');
-        setTimeout(pollBotStatus, 3000);
-    } catch(e) { toast('Fehler: ' + e.message, true); }
-}
-
 async function setLiveMode(isLive) {
     if (!ghTok() || !GHUSER || !GHREPO) { toast('Kein GitHub-Token', true); return; }
     if (isLive && !confirm('! LIVE TRADING aktivieren?\n\nDer Bot platziert ab sofort ECHTE Orders bei TopStepX.\n\nNur aktivieren wenn Dry-Run Signale geprüft wurden!')) return;
@@ -2606,7 +2214,7 @@ async function sendBotCommand(cmd) {
             'https://api.github.com/repos/' + GHUSER + '/' + GHREPO + '/contents/state.json',
             { method: 'PUT', headers: { 'Authorization': 'Bearer ' + ghTok(), 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
         );
-        if (cmd === 'stop') { _renderLiveMode(false); _renderBitgetLiveMode(false); }
+        if (cmd === 'stop') { _renderLiveMode(false); }
         toast(cmd === 'start' ? 'Start-Befehl gesendet' : 'Stop-Befehl gesendet — Dry-Run aktiv');
         setTimeout(pollBotStatus, 5000);
     } catch(e) { toast('Fehler: ' + e.message, true); }
@@ -2927,22 +2535,14 @@ function _updateNotifBtn() {
 
 // ── BOOT (inline — DOM is ready because script is at end of <body>) ──────────
 (function boot() {
-    var notesInp = document.getElementById('t-notes');
-    if (notesInp) notesInp.addEventListener('change', function() { if (this.checked) renderNotes(); });
+    // Commander (Chat) und Notizen wurden am 04.09.2026 aus dem Dashboard entfernt.
+    // Die Funktionen stehen unbenutzt weiter unten - nur nicht mehr verdrahtet.
     renderAll(L);
     renderAssetPicker();
-    initChat();
-    renderNotes();
-    renderPhotos();
     updateTokenBtn();
     setInterval(poll, 30000);
-    setInterval(syncChat, 8000); // Echtzeit-Sync alle 8 Sekunden
     pollBotStatus(); setInterval(pollBotStatus, 30000); // Bot-Status alle 30s
     pollTopStep();   setInterval(pollTopStep,   60000); // TopStepX Live alle 60s
-    setInterval(function(){
-        var saved=(function(){try{return JSON.parse(localStorage.getItem('gb_chat')||'[]').filter(function(m){return !m.auto;});}catch(e){return [];}})();
-        if(saved.length) uploadLocalHistory(saved);
-    }, 300000);
     // Service Worker + Push-Benachrichtigungen registrieren
     _initSW();
 })();
@@ -2964,7 +2564,6 @@ function _initSW() {
         });
         // Neue Nachrichten vom SW empfangen → Tab aktualisieren
         navigator.serviceWorker.addEventListener('message', function(e) {
-            if (e.data && e.data.type === 'NEW_MSGS') { syncChat(); }
         });
     }).catch(function(){});
 }
