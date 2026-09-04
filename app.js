@@ -2533,6 +2533,171 @@ function _updateNotifBtn() {
     }
 })();
 
+
+// ── MICRO GOLD LIVE-CHART ───────────────────────────────────────────────────
+// Quelle ist das private Repo `live-feed` (agents/mgc_feed.py), NICHT data.json:
+// jede Datei im Pages-Repo loest einen Deploy aus, ein Minutentakt waere die
+// Deploy-Flut vom 26.08. Gelesen wird ueber die GitHub-API (raw.githubusercontent
+// ist CDN-gecacht und damit fuer einen Live-Chart unbrauchbar).
+var MGCREPO = _cds.mgc || '';
+var _mgcData = null;
+var _mgcTf = (function(){ try { return localStorage.getItem('mgc_tf') || 'm1'; } catch(e) { return 'm1'; } })();
+var MGC_MAX_BARS = 90;
+
+function setMgcTf(tf) {
+    _mgcTf = tf;
+    try { localStorage.setItem('mgc_tf', tf); } catch(e) {}
+    ['m1','m5'].forEach(function(k){
+        var b = document.getElementById('mgcTf' + k);
+        if (b) b.classList.toggle('on', k === tf);
+    });
+    _drawMgc();
+}
+
+async function pollMgc() {
+    var card = document.getElementById('mgcCard');
+    if (!card) return;
+    if (!ghTok() || !GHUSER || !MGCREPO) { _mgcNote('Kein GitHub-Token — unter Copytrading setzen'); return; }
+    try {
+        var r = await fetch('https://api.github.com/repos/' + GHUSER + '/' + MGCREPO + '/contents/mgc_live.json',
+            { headers: { 'Authorization': 'Bearer ' + ghTok(), 'Accept': 'application/vnd.github.raw+json' },
+              cache: 'no-store' });
+        if (!r.ok) { _mgcNote('Feed nicht erreichbar (' + r.status + ')'); return; }
+        _mgcData = JSON.parse(await r.text());
+        _drawMgc();
+    } catch(e) { _mgcNote('Feed-Fehler: ' + e.message); }
+}
+
+function _mgcNote(txt) {
+    var el = document.getElementById('mgcMeta');
+    if (el) el.textContent = txt;
+}
+
+function _drawMgc() {
+    var cv = document.getElementById('mgcChart');
+    var d  = _mgcData;
+    if (!cv || !d || !d.bars) return;
+    var bars = (d.bars[_mgcTf] || []).slice(-MGC_MAX_BARS);
+    if (bars.length < 2) { _mgcNote('Keine Kerzen'); return; }
+
+    // Kopfzeile: letzter Preis + Veraenderung seit Beginn der Reihe
+    var lastEl = document.getElementById('mgcLast');
+    if (lastEl) lastEl.textContent = (d.last || 0).toFixed(1);
+    var chgEl = document.getElementById('mgcChg');
+    if (chgEl) {
+        var up = (d.change || 0) >= 0;
+        chgEl.textContent = (up ? '+' : '') + (d.change || 0).toFixed(1) + ' (' + (up ? '+' : '') + (d.change_pct || 0).toFixed(2) + '%)';
+        chgEl.style.color = up ? '#10B981' : '#EF4444';
+    }
+
+    var dpr = window.devicePixelRatio || 1;
+    var W = cv.clientWidth || 340, H = 200;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    var g = cv.getContext('2d');
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, W, H);
+
+    var padR = 46, padT = 8, padB = 16, padL = 6;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+
+    var lo = Infinity, hi = -Infinity;
+    bars.forEach(function(b){ if (b[3] < lo) lo = b[3]; if (b[2] > hi) hi = b[2]; });
+    // Eigene Marken muessen mit ins Bild, sonst zeigt der Chart Linien ausserhalb
+    var t0 = bars[0][0], t1 = bars[bars.length - 1][0];
+    var marks = [];
+    (d.fills || []).forEach(function(f){ if (f.t >= t0) marks.push(f.px); });
+    (d.orders || []).forEach(function(o){ marks.push(o.px); });
+    if (d.position && d.position.size) marks.push(d.position.avg);
+    marks.forEach(function(px){ if (px > 0) { if (px < lo) lo = px; if (px > hi) hi = px; } });
+    if (hi <= lo) { hi = lo + 1; }
+    var pad = (hi - lo) * 0.08; lo -= pad; hi += pad;
+
+    function y(px) { return padT + plotH - (px - lo) / (hi - lo) * plotH; }
+    function x(i)  { return padL + (i + 0.5) / bars.length * plotW; }
+
+    // Raster + Preisachse
+    g.font = '9px -apple-system,system-ui,sans-serif';
+    g.textAlign = 'left';
+    for (var k = 0; k <= 3; k++) {
+        var pv = lo + (hi - lo) * k / 3, yy = y(pv);
+        g.strokeStyle = 'rgba(255,255,255,.05)'; g.lineWidth = 1;
+        g.beginPath(); g.moveTo(padL, yy); g.lineTo(padL + plotW, yy); g.stroke();
+        g.fillStyle = '#5B6B80';
+        g.fillText(pv.toFixed(1), padL + plotW + 5, yy + 3);
+    }
+
+    // Kerzen
+    var cw = Math.max(1.5, plotW / bars.length * 0.62);
+    bars.forEach(function(b, i) {
+        var up = b[4] >= b[1];
+        var col = up ? '#10B981' : '#EF4444';
+        var cx = x(i);
+        g.strokeStyle = col; g.lineWidth = 1;
+        g.beginPath(); g.moveTo(cx, y(b[2])); g.lineTo(cx, y(b[3])); g.stroke();
+        var yo = y(b[1]), yc = y(b[4]);
+        var top = Math.min(yo, yc), bh = Math.max(1, Math.abs(yc - yo));
+        g.fillStyle = col;
+        g.fillRect(cx - cw / 2, top, cw, bh);
+    });
+
+    // Offene Orders (Stop rot, Ziel blau) und Einstand der offenen Position
+    function hline(px, col, label) {
+        var yy = y(px);
+        if (yy < padT || yy > padT + plotH) return;
+        g.strokeStyle = col; g.lineWidth = 1; g.setLineDash([3, 3]);
+        g.beginPath(); g.moveTo(padL, yy); g.lineTo(padL + plotW, yy); g.stroke();
+        g.setLineDash([]);
+        g.fillStyle = col; g.textAlign = 'left';
+        g.fillText(label, padL + 2, yy - 3);
+    }
+    (d.orders || []).forEach(function(o) {
+        var isStop = o.type === 'stop' || o.type === 'trail';
+        hline(o.px, isStop ? '#EF4444' : '#4C8BF5',
+              (o.type === 'stop' ? 'Stop ' : o.type === 'trail' ? 'Trail ' : 'Ziel ') + o.px.toFixed(1));
+    });
+    if (d.position && d.position.size) {
+        hline(d.position.avg, '#F59E0B',
+              (d.position.size > 0 ? 'Long ' : 'Short ') + Math.abs(d.position.size) + 'x @ ' + d.position.avg.toFixed(1));
+    }
+
+    // Eigene Fills als Dreieck auf der Zeitachse
+    var span = Math.max(1, t1 - t0);
+    (d.fills || []).forEach(function(f) {
+        if (f.t < t0) return;
+        var cx = padL + (f.t - t0) / span * plotW, yy = y(f.px);
+        if (yy < padT || yy > padT + plotH) return;
+        var buy = f.side === 'BUY';
+        g.fillStyle = buy ? '#10B981' : '#EF4444';
+        g.beginPath();
+        if (buy) { g.moveTo(cx, yy - 5); g.lineTo(cx - 4, yy + 2); g.lineTo(cx + 4, yy + 2); }
+        else     { g.moveTo(cx, yy + 5); g.lineTo(cx - 4, yy - 2); g.lineTo(cx + 4, yy - 2); }
+        g.closePath(); g.fill();
+        g.strokeStyle = 'rgba(0,0,0,.5)'; g.lineWidth = 0.5; g.stroke();
+    });
+
+    // Letzter Preis
+    var lastY = y(bars[bars.length - 1][4]);
+    g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = 1; g.setLineDash([2, 3]);
+    g.beginPath(); g.moveTo(padL, lastY); g.lineTo(padL + plotW, lastY); g.stroke();
+    g.setLineDash([]);
+
+    var entries = (d.fills || []).filter(function(f){ return f.t >= t0; }).length;
+    _mgcNote(bars.length + ' Kerzen · ' + (_mgcTf === 'm1' ? '1 Min' : '5 Min')
+             + (entries ? ' · ' + entries + ' eigene Fills' : ''));
+    var upd = document.getElementById('mgcUpd');
+    if (upd && d.updated) {
+        try {
+            upd.textContent = new Date(d.updated).toLocaleTimeString('de-AT', {hour: '2-digit', minute: '2-digit'});
+        } catch(e) { upd.textContent = ''; }
+    }
+}
+
+var _mgcResizeT = null;
+window.addEventListener('resize', function() {
+    clearTimeout(_mgcResizeT);
+    _mgcResizeT = setTimeout(_drawMgc, 200);
+});
+
 // ── BOOT (inline — DOM is ready because script is at end of <body>) ──────────
 (function boot() {
     // Commander (Chat) und Notizen wurden am 04.09.2026 aus dem Dashboard entfernt.
@@ -2543,6 +2708,8 @@ function _updateNotifBtn() {
     setInterval(poll, 30000);
     pollBotStatus(); setInterval(pollBotStatus, 30000); // Bot-Status alle 30s
     pollTopStep();   setInterval(pollTopStep,   60000); // TopStepX Live alle 60s
+    setMgcTf(_mgcTf); // markiert den gemerkten Zeitrahmen
+    pollMgc();       setInterval(pollMgc,        60000); // MGC-Kerzen alle 60s
     // Service Worker + Push-Benachrichtigungen registrieren
     _initSW();
 })();
