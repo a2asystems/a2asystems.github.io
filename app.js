@@ -2803,12 +2803,17 @@ function calcCopytrading(d) {
   function _fmt(v) { return '$' + Math.round(v).toLocaleString('de-DE'); }
   function _col(id, v) { var e = document.getElementById(id); if (e) e.style.color = v; }
   if (bal) {
+    // Die TopStepX-API meldet je nach Kontotyp Verschiedenes: Johannes'
+    // 50K Combine liefert den vollen Stand (51.670), Dominiks EXPRESS-V2 nur
+    // den Gewinn seit Start (693). Blind 50.000 abzuziehen ergab dort
+    // "-49.307 gesamt" und einen Profit-Fortschritt von 0%.
+    var gewinn = bal > 10000 ? bal - 50000 : bal;
     _set('ctBalance', _fmt(bal));
-    _set('ctBalSub', (bal - 50000 >= 0 ? '+' : '') + _fmt(bal - 50000) + ' gesamt');
+    _set('ctBalSub', (gewinn >= 0 ? '+' : '') + _fmt(gewinn) + ' gesamt');
     _set('ctPnl', (pnl >= 0 ? '+' : '') + _fmt(pnl));
     _col('ctPnl', pnl > 0 ? G : pnl < 0 ? R : DIM);
     _set('ctPnlSub', (t.day_trades || 0) + ' Trade(s) · WR ' + (t.day_wr || 0) + '%');
-    var prog = Math.max(0, Math.min(100, Math.round((bal - 50000) / 3000 * 100)));
+    var prog = Math.max(0, Math.min(100, Math.round(gewinn / 3000 * 100)));
     _set('ctTarget', prog + '%');
     _col('ctTarget', prog >= 100 ? G : '#4C8BF5');
     _set('ctTargetSub', prog >= 100 ? 'erreicht — Consistency offen' : 'von $3.000');
